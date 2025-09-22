@@ -14,7 +14,12 @@ import { useEffect, useState } from "react";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import CRM from "./pages/CRM";
-import Atendimentos from "./pages/Atendimentos";
+import Conversas from "./pages/Conversas";
+import Conexoes from "./pages/Conexoes";
+import FunilVendas from "./pages/FunilVendas";
+import Kanban from "./pages/Kanban";
+import Scrum from "./pages/Scrum";
+import Agendamentos from "./pages/Agendamentos";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -74,6 +79,22 @@ const App = () => {
                   }
                 />
                 <Route
+                  path="/conversas"
+                  element={
+                    <ProtectedRoute>
+                      <Conversas />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/conexoes/*"
+                  element={
+                    <ProtectedRoute>
+                      <Conexoes />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="/crm"
                   element={
                     <ProtectedRoute>
@@ -85,20 +106,23 @@ const App = () => {
                   path="/funil"
                   element={
                     <ProtectedRoute>
-                      <div className="p-6">
-                        <h1 className="text-3xl font-bold">Funil de Vendas</h1>
-                        <p className="text-muted-foreground mt-2">
-                          Analytics e métricas do pipeline de vendas em desenvolvimento...
-                        </p>
-                      </div>
+                      <FunilVendas />
                     </ProtectedRoute>
                   }
                 />
                 <Route
-                  path="/atendimentos"
+                  path="/kanban"
                   element={
                     <ProtectedRoute>
-                      <Atendimentos />
+                      <Kanban />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/scrum/*"
+                  element={
+                    <ProtectedRoute>
+                      <Scrum />
                     </ProtectedRoute>
                   }
                 />
@@ -106,114 +130,44 @@ const App = () => {
                   path="/agendamentos"
                   element={
                     <ProtectedRoute>
+                      <Agendamentos />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/relatorios"
+                  element={
+                    <ProtectedRoute>
                       <div className="p-6">
-                        <h1 className="text-3xl font-bold">Agendamentos</h1>
+                        <h1 className="text-3xl font-bold">Relatórios & Analytics</h1>
                         <p className="text-muted-foreground mt-2">
-                          Calendário e gestão de reuniões em desenvolvimento...
+                          Dashboards analíticos e relatórios em desenvolvimento...
                         </p>
                       </div>
                     </ProtectedRoute>
                   }
                 />
                 <Route
-                  path="/chamadas"
+                  path="/usuarios"
                   element={
                     <ProtectedRoute>
                       <div className="p-6">
-                        <h1 className="text-3xl font-bold">Chamadas</h1>
+                        <h1 className="text-3xl font-bold">Usuários & Times</h1>
                         <p className="text-muted-foreground mt-2">
-                          Central de vídeo/áudio em desenvolvimento...
+                          Controle de acesso e gestão de equipes em desenvolvimento...
                         </p>
                       </div>
                     </ProtectedRoute>
                   }
                 />
                 <Route
-                  path="/tickets"
+                  path="/configuracoes"
                   element={
                     <ProtectedRoute>
                       <div className="p-6">
-                        <h1 className="text-3xl font-bold">Tickets</h1>
+                        <h1 className="text-3xl font-bold">Configurações</h1>
                         <p className="text-muted-foreground mt-2">
-                          Sistema de suporte em desenvolvimento...
-                        </p>
-                      </div>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/deals"
-                  element={
-                    <ProtectedRoute>
-                      <div className="p-6">
-                        <h1 className="text-3xl font-bold">Deals</h1>
-                        <p className="text-muted-foreground mt-2">
-                          Gestão de oportunidades em desenvolvimento...
-                        </p>
-                      </div>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/empresas"
-                  element={
-                    <ProtectedRoute>
-                      <div className="p-6">
-                        <h1 className="text-3xl font-bold">Empresas</h1>
-                        <p className="text-muted-foreground mt-2">
-                          Base de empresas em desenvolvimento...
-                        </p>
-                      </div>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/tags"
-                  element={
-                    <ProtectedRoute>
-                      <div className="p-6">
-                        <h1 className="text-3xl font-bold">Tags</h1>
-                        <p className="text-muted-foreground mt-2">
-                          Gestão de etiquetas em desenvolvimento...
-                        </p>
-                      </div>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/workflows"
-                  element={
-                    <ProtectedRoute>
-                      <div className="p-6">
-                        <h1 className="text-3xl font-bold">Workflows</h1>
-                        <p className="text-muted-foreground mt-2">
-                          Automações em desenvolvimento...
-                        </p>
-                      </div>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/integracoes"
-                  element={
-                    <ProtectedRoute>
-                      <div className="p-6">
-                        <h1 className="text-3xl font-bold">Integrações</h1>
-                        <p className="text-muted-foreground mt-2">
-                          Conectores e APIs em desenvolvimento...
-                        </p>
-                      </div>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/ai"
-                  element={
-                    <ProtectedRoute>
-                      <div className="p-6">
-                        <h1 className="text-3xl font-bold">Inteligência Artificial</h1>
-                        <p className="text-muted-foreground mt-2">
-                          Recursos de IA em desenvolvimento...
+                          Opções de configuração do sistema em desenvolvimento...
                         </p>
                       </div>
                     </ProtectedRoute>
@@ -226,20 +180,33 @@ const App = () => {
                       <div className="p-6">
                         <h1 className="text-3xl font-bold">Financeiro</h1>
                         <p className="text-muted-foreground mt-2">
-                          Relatórios financeiros em desenvolvimento...
+                          Planos, faturas e pagamentos (Admin Supremo apenas)...
                         </p>
                       </div>
                     </ProtectedRoute>
                   }
                 />
                 <Route
-                  path="/config"
+                  path="/personalizacao"
                   element={
                     <ProtectedRoute>
                       <div className="p-6">
-                        <h1 className="text-3xl font-bold">Configurações</h1>
+                        <h1 className="text-3xl font-bold">Personalização</h1>
                         <p className="text-muted-foreground mt-2">
-                          Painel de configurações em desenvolvimento...
+                          Customização de marca e layout (Admin Supremo apenas)...
+                        </p>
+                      </div>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/ajuda"
+                  element={
+                    <ProtectedRoute>
+                      <div className="p-6">
+                        <h1 className="text-3xl font-bold">Ajuda / Sobre</h1>
+                        <p className="text-muted-foreground mt-2">
+                          Documentação, suporte e informações do sistema...
                         </p>
                       </div>
                     </ProtectedRoute>

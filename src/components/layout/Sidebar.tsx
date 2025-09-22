@@ -2,82 +2,96 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useUIStore } from '@/stores/ui';
 import { useLocation, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from 'react';
 import {
   LayoutDashboard,
   Users,
   MessageSquare,
   Calendar,
-  Phone,
-  Building2,
   TrendingUp,
   Ticket,
-  Handshake,
-  Tags,
-  Workflow,
-  Zap,
-  Bot,
-  DollarSign,
+  Building2,
+  BarChart3,
+  UserCheck,
   Settings,
+  DollarSign,
+  Palette,
+  HelpCircle,
   X,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  MessageCircle,
+  Link as LinkIcon,
+  Columns3,
+  GitBranch,
+  ChevronUp,
 } from 'lucide-react';
 import logo from '@/assets/logo.svg';
 
 const menuItems = [
+  { icon: LayoutDashboard, label: 'Dashboard', href: '/', badge: null },
+  { icon: MessageCircle, label: 'Conversas', href: '/conversas', badge: 12 },
   {
-    title: 'Principal',
-    items: [
-      { icon: LayoutDashboard, label: 'Dashboard', href: '/', badge: null },
-      { icon: Users, label: 'CRM/Kanban', href: '/crm', badge: null },
-      { icon: TrendingUp, label: 'Funil de Vendas', href: '/funil', badge: null },
+    icon: LinkIcon,
+    label: 'Conexões',
+    href: '/conexoes',
+    badge: null,
+    hasDropdown: true,
+    subItems: [
+      { label: 'WhatsApp', href: '/conexoes/whatsapp' },
+      { label: 'Facebook', href: '/conexoes/facebook' },
+      { label: 'Instagram', href: '/conexoes/instagram' },
     ]
   },
+  { icon: Users, label: 'CRM', href: '/crm', badge: null },
+  { icon: TrendingUp, label: 'Funil de Vendas', href: '/funil', badge: null },
+  { icon: Columns3, label: 'Kanban', href: '/kanban', badge: null },
   {
-    title: 'Comunicação',
-    items: [
-      { icon: MessageSquare, label: 'Atendimentos', href: '/atendimentos', badge: 12 },
-      { icon: Calendar, label: 'Agendamentos', href: '/agendamentos', badge: null },
-      { icon: Phone, label: 'Chamadas', href: '/chamadas', badge: null },
+    icon: GitBranch,
+    label: 'Scrum',
+    href: '/scrum',
+    badge: null,
+    hasDropdown: true,
+    subItems: [
+      { label: 'Backlog', href: '/scrum/backlog' },
+      { label: 'Planejamento', href: '/scrum/planejamento' },
+      { label: 'Quadro Scrum', href: '/scrum/quadro' },
+      { label: 'Relatórios', href: '/scrum/relatorios' },
     ]
   },
-  {
-    title: 'Gestão',
-    items: [
-      { icon: Ticket, label: 'Tickets', href: '/tickets', badge: 5 },
-      { icon: Handshake, label: 'Deals', href: '/deals', badge: null },
-      { icon: Building2, label: 'Empresas', href: '/empresas', badge: null },
-      { icon: Tags, label: 'Tags', href: '/tags', badge: null },
-    ]
-  },
-  {
-    title: 'Automação',
-    items: [
-      { icon: Workflow, label: 'Workflows', href: '/workflows', badge: null },
-      { icon: Zap, label: 'Integrações', href: '/integracoes', badge: null },
-      { icon: Bot, label: 'AI', href: '/ai', badge: 'NOVO' },
-    ]
-  },
-  {
-    title: 'Sistema',
-    items: [
-      { icon: DollarSign, label: 'Financeiro', href: '/financeiro', badge: null },
-      { icon: Settings, label: 'Configurações', href: '/config', badge: null },
-    ]
-  },
+  { icon: Calendar, label: 'Agendamentos', href: '/agendamentos', badge: null },
+  { icon: BarChart3, label: 'Relatórios & Analytics', href: '/relatorios', badge: null },
+  { icon: UserCheck, label: 'Usuários & Times', href: '/usuarios', badge: null },
+  { icon: Settings, label: 'Configurações', href: '/configuracoes', badge: null },
+  { icon: DollarSign, label: 'Financeiro', href: '/financeiro', badge: null, adminOnly: true },
+  { icon: Palette, label: 'Personalização', href: '/personalizacao', badge: null, adminOnly: true },
+  { icon: HelpCircle, label: 'Ajuda / Sobre', href: '/ajuda', badge: null },
 ];
 
 export function Sidebar() {
   const { sidebarOpen, setSidebarOpen, sidebarCollapsed, setSidebarCollapsed } = useUIStore();
   const location = useLocation();
+  const [openDropdowns, setOpenDropdowns] = useState<string[]>([]);
 
   const isActive = (href: string) => {
     if (href === '/') return location.pathname === '/';
     return location.pathname.startsWith(href);
   };
+
+  const toggleDropdown = (label: string) => {
+    setOpenDropdowns(prev => 
+      prev.includes(label) 
+        ? prev.filter(item => item !== label)
+        : [...prev, label]
+    );
+  };
+
+  const isDropdownOpen = (label: string) => openDropdowns.includes(label);
 
   return (
     <>
@@ -156,53 +170,94 @@ export function Sidebar() {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto p-4 space-y-6">
-            {menuItems.map((section) => (
-              <div key={section.title}>
-                {!sidebarCollapsed && (
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                    {section.title}
-                  </h3>
-                )}
-                <div className="space-y-1">
-                  {section.items.map((item) => {
-                    const Icon = item.icon;
-                    const active = isActive(item.href);
-                    
-                    return (
-                      <Link key={item.href} to={item.href}>
-                        <Button
-                          variant={active ? "secondary" : "ghost"}
-                          className={cn(
-                            "w-full justify-start",
-                            sidebarCollapsed ? "px-2" : "px-3",
-                            active && "bg-primary/10 text-primary hover:bg-primary/20"
-                          )}
-                        >
-                          <Icon className={cn("h-4 w-4", !sidebarCollapsed && "mr-2")} />
-                          {!sidebarCollapsed && (
-                            <>
-                              <span className="flex-1 text-left">{item.label}</span>
-                              {item.badge && (
-                                <Badge 
-                                  variant={typeof item.badge === 'string' ? 'secondary' : 'destructive'}
-                                  className="ml-auto"
-                                >
-                                  {item.badge}
-                                </Badge>
-                              )}
-                            </>
-                          )}
-                        </Button>
-                      </Link>
-                    );
-                  })}
-                </div>
-                {section !== menuItems[menuItems.length - 1] && (
-                  <Separator className="mt-4" />
-                )}
-              </div>
-            ))}
+          <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              const active = isActive(item.href);
+              const hasDropdown = item.hasDropdown && !sidebarCollapsed;
+              const dropdownOpen = isDropdownOpen(item.label);
+              
+              if (hasDropdown) {
+                return (
+                  <Collapsible key={item.label} open={dropdownOpen} onOpenChange={() => toggleDropdown(item.label)}>
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant={active ? "secondary" : "ghost"}
+                        className={cn(
+                          "w-full justify-start",
+                          sidebarCollapsed ? "px-2" : "px-3",
+                          active && "bg-primary/10 text-primary hover:bg-primary/20"
+                        )}
+                      >
+                        <Icon className={cn("h-4 w-4", !sidebarCollapsed && "mr-2")} />
+                        {!sidebarCollapsed && (
+                          <>
+                            <span className="flex-1 text-left">{item.label}</span>
+                            {item.badge && (
+                              <Badge 
+                                variant={typeof item.badge === 'string' ? 'secondary' : 'destructive'}
+                                className="ml-auto mr-2"
+                              >
+                                {item.badge}
+                              </Badge>
+                            )}
+                            {dropdownOpen ? (
+                              <ChevronUp className="h-4 w-4" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4" />
+                            )}
+                          </>
+                        )}
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="space-y-1 mt-1">
+                      {item.subItems?.map((subItem) => (
+                        <Link key={subItem.href} to={subItem.href}>
+                          <Button
+                            variant={isActive(subItem.href) ? "secondary" : "ghost"}
+                            size="sm"
+                            className={cn(
+                              "w-full justify-start ml-6",
+                              isActive(subItem.href) && "bg-primary/10 text-primary hover:bg-primary/20"
+                            )}
+                          >
+                            <span className="text-sm">{subItem.label}</span>
+                          </Button>
+                        </Link>
+                      ))}
+                    </CollapsibleContent>
+                  </Collapsible>
+                );
+              }
+              
+              return (
+                <Link key={item.href} to={item.href}>
+                  <Button
+                    variant={active ? "secondary" : "ghost"}
+                    className={cn(
+                      "w-full justify-start",
+                      sidebarCollapsed ? "px-2" : "px-3",
+                      active && "bg-primary/10 text-primary hover:bg-primary/20"
+                    )}
+                  >
+                    <Icon className={cn("h-4 w-4", !sidebarCollapsed && "mr-2")} />
+                    {!sidebarCollapsed && (
+                      <>
+                        <span className="flex-1 text-left">{item.label}</span>
+                        {item.badge && (
+                          <Badge 
+                            variant={typeof item.badge === 'string' ? 'secondary' : 'destructive'}
+                            className="ml-auto"
+                          >
+                            {item.badge}
+                          </Badge>
+                        )}
+                      </>
+                    )}
+                  </Button>
+                </Link>
+              );
+            })}
           </nav>
 
           {/* Footer */}
