@@ -23,8 +23,6 @@ import {
   MessageCircle,
   CheckCircle,
   AlertCircle,
-  Phone,
-  MessageCircle,
   Hash,
 } from 'lucide-react';
 

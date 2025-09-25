@@ -22,6 +22,7 @@ import {
   RefreshCw,
   Settings,
   Activity,
+  Instagram,
 } from 'lucide-react';
 
 const connections = [
@@ -165,7 +166,7 @@ export default function Conexoes() {
                       <Button variant="outline" size="sm">
                         {connection.status === 'connected' ? (
                           <>
-                            <Refresh className="h-4 w-4 mr-2" />
+                            <RefreshCw className="h-4 w-4 mr-2" />
                             Reconectar
                           </>
                         ) : (
