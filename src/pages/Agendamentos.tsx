@@ -1,5 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import interactionPlugin from '@fullcalendar/interaction';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -318,12 +322,61 @@ export default function Agendamentos() {
                 <CardTitle>Calendário - Janeiro 2024</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-12">
-                  <Calendar className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Visualização do Calendário</h3>
-                  <p className="text-muted-foreground">
-                    Componente de calendário será implementado aqui com integração FullCalendar
-                  </p>
+                <div className="fullcalendar-container">
+                  <FullCalendar
+                    plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+                    initialView="dayGridMonth"
+                    headerToolbar={{
+                      left: 'prev,next today',
+                      center: 'title',
+                      right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                    }}
+                    events={appointments.map(apt => ({
+                      id: apt.id.toString(),
+                      title: apt.title,
+                      start: `${apt.date}T${apt.time}`,
+                      duration: `${apt.duration}:00`,
+                      backgroundColor: apt.status === 'confirmed' ? '#10B981' : 
+                                     apt.status === 'pending' ? '#F59E0B' : '#EF4444',
+                      borderColor: 'transparent',
+                      textColor: 'white',
+                      extendedProps: {
+                        contact: apt.contact,
+                        phone: apt.phone,
+                        location: apt.location,
+                        notes: apt.notes,
+                        agent: apt.agent,
+                        type: apt.type,
+                        status: apt.status
+                      }
+                    }))}
+                    locale="pt-br"
+                    firstDay={1} // Monday
+                    weekNumbers={false}
+                    editable={true}
+                    selectable={true}
+                    selectMirror={true}
+                    dayMaxEvents={true}
+                    select={(selectInfo) => {
+                      console.log('Date selected:', selectInfo);
+                      // Open new appointment modal with pre-filled date
+                      setIsNewAppointmentOpen(true);
+                    }}
+                    eventClick={(clickInfo) => {
+                      console.log('Event clicked:', clickInfo.event);
+                      // Could open event details modal
+                    }}
+                    eventDrop={(dropInfo) => {
+                      console.log('Event moved:', dropInfo);
+                      // Handle event move
+                    }}
+                    eventResize={(resizeInfo) => {
+                      console.log('Event resized:', resizeInfo);
+                      // Handle event resize
+                    }}
+                    height="auto"
+                    contentHeight="auto"
+                  />
                 </div>
               </CardContent>
             </Card>

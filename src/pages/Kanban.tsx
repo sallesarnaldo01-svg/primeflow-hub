@@ -1,5 +1,20 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,6 +25,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { KanbanCard } from '@/components/KanbanCard';
 import {
   Plus,
   MoreHorizontal,
@@ -132,6 +148,15 @@ export default function Kanban() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCard, setSelectedCard] = useState(null);
   const [isCardDialogOpen, setIsCardDialogOpen] = useState(false);
+  const [activeCard, setActiveCard] = useState(null);
+  
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
 
   const filteredColumns = columns.map(column => ({
     ...column,
@@ -153,6 +178,72 @@ export default function Kanban() {
 
   const isOverdue = (dateString: string) => {
     return new Date(dateString) < new Date();
+  };
+
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    const card = columns
+      .flatMap(col => col.cards)
+      .find(card => card.id === active.id);
+    setActiveCard(card);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveCard(null);
+
+    if (!over) return;
+
+    const activeCardId = active.id;
+    const overId = over.id;
+
+    // Find the source column and card
+    const sourceColumn = columns.find(column =>
+      column.cards.some(card => card.id === activeCardId)
+    );
+    const activeCard = sourceColumn?.cards.find(card => card.id === activeCardId);
+
+    if (!sourceColumn || !activeCard) return;
+
+    // Find target column (either by column id or card id)
+    let targetColumn = columns.find(column => column.id === overId);
+    if (!targetColumn) {
+      targetColumn = columns.find(column =>
+        column.cards.some(card => card.id === overId)
+      );
+    }
+
+    if (!targetColumn) return;
+
+    // If dropped in the same column, just reorder
+    if (sourceColumn.id === targetColumn.id) {
+      const targetCardIndex = targetColumn.cards.findIndex(card => card.id === overId);
+      const activeCardIndex = sourceColumn.cards.findIndex(card => card.id === activeCardId);
+      
+      if (targetCardIndex !== -1 && activeCardIndex !== targetCardIndex) {
+        const newCards = [...sourceColumn.cards];
+        const [removed] = newCards.splice(activeCardIndex, 1);
+        newCards.splice(targetCardIndex, 0, removed);
+
+        setColumns(columns.map(col =>
+          col.id === sourceColumn.id ? { ...col, cards: newCards } : col
+        ));
+      }
+    } else {
+      // Move between columns
+      const sourceCards = sourceColumn.cards.filter(card => card.id !== activeCardId);
+      const targetCards = [...targetColumn.cards, activeCard];
+
+      setColumns(columns.map(col => {
+        if (col.id === sourceColumn.id) {
+          return { ...col, cards: sourceCards };
+        }
+        if (col.id === targetColumn.id) {
+          return { ...col, cards: targetCards };
+        }
+        return col;
+      }));
+    }
   };
 
   return (
@@ -212,146 +303,56 @@ export default function Kanban() {
         {/* Board */}
         <div className="flex-1 overflow-x-auto">
           <div className="flex space-x-6 h-full min-w-max pb-6">
-            {filteredColumns.map((column) => (
-              <div key={column.id} className="flex-shrink-0 w-80">
-                <Card className={`h-full border-t-4 ${column.color}`}>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-base font-semibold">
-                        {column.title}
-                      </CardTitle>
-                      <div className="flex items-center space-x-2">
-                        <Badge variant="secondary">{column.cards.length}</Badge>
-                        <Button variant="ghost" size="sm">
-                          <Plus className="h-4 w-4" />
-                        </Button>
+            <DndContext
+              sensors={sensors}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+            >
+              {filteredColumns.map((column) => (
+                <div key={column.id} className="flex-shrink-0 w-80">
+                  <Card className={`h-full border-t-4 ${column.color}`}>
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-base font-semibold">
+                          {column.title}
+                        </CardTitle>
+                        <div className="flex items-center space-x-2">
+                          <Badge variant="secondary">{column.cards.length}</Badge>
+                          <Button variant="ghost" size="sm">
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto">
-                    <AnimatePresence>
-                      {column.cards.map((card) => (
-                        <motion.div
-                          key={card.id}
-                          layout
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -20 }}
-                          whileHover={{ scale: 1.02 }}
-                          className="cursor-pointer"
-                          onClick={() => handleCardClick(card)}
-                        >
-                          <Card className="hover:shadow-md transition-shadow">
-                            <CardContent className="p-4 space-y-3">
-                              {/* Priority & Menu */}
-                              <div className="flex items-center justify-between">
-                                <Badge
-                                  className={`${priorityColors[card.priority]} text-xs`}
-                                >
-                                  <Flag className="h-3 w-3 mr-1" />
-                                  {priorityLabels[card.priority]}
-                                </Badge>
-                                <Button variant="ghost" size="sm">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </div>
-
-                              {/* Title & Description */}
-                              <div>
-                                <h4 className="font-semibold text-sm line-clamp-2">
-                                  {card.title}
-                                </h4>
-                                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                                  {card.description}
-                                </p>
-                              </div>
-
-                              {/* Tags */}
-                              {card.tags.length > 0 && (
-                                <div className="flex flex-wrap gap-1">
-                                  {card.tags.slice(0, 2).map((tag) => (
-                                    <Badge key={tag} variant="outline" className="text-xs">
-                                      {tag}
-                                    </Badge>
-                                  ))}
-                                  {card.tags.length > 2 && (
-                                    <Badge variant="outline" className="text-xs">
-                                      +{card.tags.length - 2}
-                                    </Badge>
-                                  )}
-                                </div>
-                              )}
-
-                              {/* Progress & Stats */}
-                              <div className="space-y-2">
-                                {card.checklist.total > 0 && (
-                                  <div className="flex items-center space-x-2">
-                                    <CheckSquare className="h-4 w-4 text-muted-foreground" />
-                                    <div className="flex-1 bg-muted rounded-full h-2">
-                                      <div
-                                        className="h-2 bg-primary rounded-full transition-all"
-                                        style={{
-                                          width: `${(card.checklist.completed / card.checklist.total) * 100}%`,
-                                        }}
-                                      />
-                                    </div>
-                                    <span className="text-xs text-muted-foreground">
-                                      {card.checklist.completed}/{card.checklist.total}
-                                    </span>
-                                  </div>
-                                )}
-
-                                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                                  <div className="flex items-center space-x-3">
-                                    {card.attachments > 0 && (
-                                      <div className="flex items-center space-x-1">
-                                        <Paperclip className="h-3 w-3" />
-                                        <span>{card.attachments}</span>
-                                      </div>
-                                    )}
-                                    {card.comments > 0 && (
-                                      <div className="flex items-center space-x-1">
-                                        <MessageSquare className="h-3 w-3" />
-                                        <span>{card.comments}</span>
-                                      </div>
-                                    )}
-                                  </div>
-                                  <div className="flex items-center space-x-1">
-                                    <Clock className="h-3 w-3" />
-                                    <span
-                                      className={
-                                        isOverdue(card.dueDate) ? 'text-red-600' : ''
-                                      }
-                                    >
-                                      {formatDate(card.dueDate)}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* Assignee */}
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center space-x-2">
-                                  <Avatar className="h-6 w-6">
-                                    <AvatarImage src="" />
-                                    <AvatarFallback className="text-xs">
-                                      {card.assignee?.charAt(0)}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <span className="text-xs text-muted-foreground">
-                                    {card.assignee}
-                                  </span>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
-                  </CardContent>
-                </Card>
-              </div>
-            ))}
+                    </CardHeader>
+                    <CardContent className="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto">
+                      <SortableContext
+                        items={column.cards.map(card => card.id)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        <AnimatePresence>
+                          {column.cards.map((card) => (
+                            <motion.div
+                              key={card.id}
+                              layout
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -20 }}
+                            >
+                              <KanbanCard card={card} onClick={handleCardClick} />
+                            </motion.div>
+                          ))}
+                        </AnimatePresence>
+                      </SortableContext>
+                    </CardContent>
+                  </Card>
+                </div>
+              ))}
+              <DragOverlay>
+                {activeCard ? (
+                  <KanbanCard card={activeCard} onClick={() => {}} />
+                ) : null}
+              </DragOverlay>
+            </DndContext>
           </div>
         </div>
 

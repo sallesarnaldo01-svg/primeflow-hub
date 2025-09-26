@@ -85,7 +85,63 @@
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+  --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.8));
+  --gradient-secondary: linear-gradient(135deg, hsl(var(--secondary)), hsl(var(--secondary) / 0.8));
+}
+
+/* FullCalendar Styles */
+.fullcalendar-container .fc {
+  font-family: inherit;
+}
+.fullcalendar-container .fc-toolbar-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+.fullcalendar-container .fc-button {
+  background: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+.fullcalendar-container .fc-button:hover {
+  background: hsl(var(--primary) / 0.9);
+  border-color: hsl(var(--primary) / 0.9);
+}
+.fullcalendar-container .fc-button:disabled {
+  background: hsl(var(--muted));
+  border-color: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+}
+.fullcalendar-container .fc-today-button {
+  background: hsl(var(--secondary));
+  border-color: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+}
+.fullcalendar-container .fc-today-button:hover {
+  background: hsl(var(--secondary) / 0.9);
+  border-color: hsl(var(--secondary) / 0.9);
+}
+.fullcalendar-container .fc-daygrid-day.fc-day-today {
+  background-color: hsl(var(--accent) / 0.1);
+}
+.fullcalendar-container .fc-col-header-cell,
+.fullcalendar-container .fc-daygrid-day {
+  border-color: hsl(var(--border));
+}
+.fullcalendar-container .fc-event {
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 768px) {
+  .fullcalendar-container .fc-toolbar {
+    flex-direction: column;
+    gap: 0.5rem;
   }
+  .fullcalendar-container .fc-toolbar-chunk {
+    display: flex;
+    justify-content: center;
+  }
+}
 
   .dark {
     /* Backgrounds dark */

@@ -7,19 +7,28 @@ import { AnimatePresence } from "framer-motion";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { LoadingSplash } from "@/components/LoadingSplash";
+import { CommandPalette, useCommandPalette } from "@/components/CommandPalette";
 import { useAuthStore } from "@/stores/auth";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense, lazy } from "react";
+import { PageSkeleton } from "@/components/PageSkeleton";
 
-// Pages
+// Lazy-loaded pages for better performance
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Kanban = lazy(() => import("./pages/Kanban"));
+const Agendamentos = lazy(() => import("./pages/Agendamentos"));
+const Conversas = lazy(() => import("./pages/Conversas"));
+const FunilVendas = lazy(() => import("./pages/FunilVendas"));
+
+// Static pages
 import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
+import Register from "./pages/Register";
+import ResetPassword from "./pages/ResetPassword";
+import AuthCallback from "./pages/AuthCallback";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
 import CRM from "./pages/CRM";
-import Conversas from "./pages/Conversas";
 import Conexoes from "./pages/Conexoes";
-import FunilVendas from "./pages/FunilVendas";
-import Kanban from "./pages/Kanban";
 import Scrum from "./pages/Scrum";
-import Agendamentos from "./pages/Agendamentos";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -34,6 +43,7 @@ const queryClient = new QueryClient({
 const App = () => {
   const { isAuthenticated } = useAuthStore();
   const [isLoading, setIsLoading] = useState(true);
+  const { open, setOpen } = useCommandPalette();
 
   useEffect(() => {
     // Simulate app initialization
@@ -54,6 +64,7 @@ const App = () => {
         <TooltipProvider>
           <Toaster />
           <Sonner />
+          <CommandPalette open={open} onOpenChange={setOpen} />
           <BrowserRouter>
             <AnimatePresence mode="wait">
               <Routes>
@@ -68,13 +79,38 @@ const App = () => {
                     )
                   } 
                 />
+                <Route 
+                  path="/register" 
+                  element={
+                    isAuthenticated ? (
+                      <Navigate to="/" replace />
+                    ) : (
+                      <Register />
+                    )
+                  } 
+                />
+                <Route 
+                  path="/reset-password" 
+                  element={
+                    isAuthenticated ? (
+                      <Navigate to="/" replace />
+                    ) : (
+                      <ResetPassword />
+                    )
+                  } 
+                />
+                <Route path="/auth/callback" element={<AuthCallback />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/privacy" element={<Privacy />} />
 
                 {/* Protected routes */}
                 <Route
                   path="/"
                   element={
                     <ProtectedRoute>
-                      <Dashboard />
+                      <Suspense fallback={<PageSkeleton />}>
+                        <Dashboard />
+                      </Suspense>
                     </ProtectedRoute>
                   }
                 />
@@ -82,7 +118,9 @@ const App = () => {
                   path="/conversas"
                   element={
                     <ProtectedRoute>
-                      <Conversas />
+                      <Suspense fallback={<PageSkeleton />}>
+                        <Conversas />
+                      </Suspense>
                     </ProtectedRoute>
                   }
                 />
@@ -106,7 +144,9 @@ const App = () => {
                   path="/funil"
                   element={
                     <ProtectedRoute>
-                      <FunilVendas />
+                      <Suspense fallback={<PageSkeleton />}>
+                        <FunilVendas />
+                      </Suspense>
                     </ProtectedRoute>
                   }
                 />
@@ -114,7 +154,9 @@ const App = () => {
                   path="/kanban"
                   element={
                     <ProtectedRoute>
-                      <Kanban />
+                      <Suspense fallback={<PageSkeleton />}>
+                        <Kanban />
+                      </Suspense>
                     </ProtectedRoute>
                   }
                 />
@@ -130,7 +172,9 @@ const App = () => {
                   path="/agendamentos"
                   element={
                     <ProtectedRoute>
-                      <Agendamentos />
+                      <Suspense fallback={<PageSkeleton />}>
+                        <Agendamentos />
+                      </Suspense>
                     </ProtectedRoute>
                   }
                 />
