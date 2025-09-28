@@ -18,6 +18,15 @@ const Kanban = lazy(() => import("./pages/Kanban"));
 const Agendamentos = lazy(() => import("./pages/Agendamentos"));
 const Conversas = lazy(() => import("./pages/Conversas"));
 const FunilVendas = lazy(() => import("./pages/FunilVendas"));
+const Chamadas = lazy(() => import("./pages/Chamadas"));
+const Tickets = lazy(() => import("./pages/Tickets"));
+const Empresas = lazy(() => import("./pages/Empresas"));
+const Tags = lazy(() => import("./pages/Tags"));
+const Workflows = lazy(() => import("./pages/Workflows"));
+const IA = lazy(() => import("./pages/IA"));
+const Integracoes = lazy(() => import("./pages/Integracoes"));
+const Financeiro = lazy(() => import("./pages/Financeiro"));
+const ConfiguracoesAvancadas = lazy(() => import("./pages/ConfiguracoesAvancadas"));
 
 // Static pages
 import Login from "./pages/Login";
@@ -179,6 +188,96 @@ const App = () => {
                   }
                 />
                 <Route
+                  path="/chamadas"
+                  element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<PageSkeleton />}>
+                        <Chamadas />
+                      </Suspense>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/tickets"
+                  element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<PageSkeleton />}>
+                        <Tickets />
+                      </Suspense>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/empresas"
+                  element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<PageSkeleton />}>
+                        <Empresas />
+                      </Suspense>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/tags"
+                  element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<PageSkeleton />}>
+                        <Tags />
+                      </Suspense>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/workflows"
+                  element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<PageSkeleton />}>
+                        <Workflows />
+                      </Suspense>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/ia"
+                  element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<PageSkeleton />}>
+                        <IA />
+                      </Suspense>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/integracoes"
+                  element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<PageSkeleton />}>
+                        <Integracoes />
+                      </Suspense>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/financeiro"
+                  element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<PageSkeleton />}>
+                        <Financeiro />
+                      </Suspense>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/configuracoes"
+                  element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<PageSkeleton />}>
+                        <ConfiguracoesAvancadas />
+                      </Suspense>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="/relatorios"
                   element={
                     <ProtectedRoute>
@@ -199,32 +298,6 @@ const App = () => {
                         <h1 className="text-3xl font-bold">Usuários & Times</h1>
                         <p className="text-muted-foreground mt-2">
                           Controle de acesso e gestão de equipes em desenvolvimento...
-                        </p>
-                      </div>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/configuracoes"
-                  element={
-                    <ProtectedRoute>
-                      <div className="p-6">
-                        <h1 className="text-3xl font-bold">Configurações</h1>
-                        <p className="text-muted-foreground mt-2">
-                          Opções de configuração do sistema em desenvolvimento...
-                        </p>
-                      </div>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/financeiro"
-                  element={
-                    <ProtectedRoute>
-                      <div className="p-6">
-                        <h1 className="text-3xl font-bold">Financeiro</h1>
-                        <p className="text-muted-foreground mt-2">
-                          Planos, faturas e pagamentos (Admin Supremo apenas)...
                         </p>
                       </div>
                     </ProtectedRoute>
