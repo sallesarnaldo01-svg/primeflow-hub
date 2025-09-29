@@ -27,6 +27,8 @@ const IA = lazy(() => import("./pages/IA"));
 const Integracoes = lazy(() => import("./pages/Integracoes"));
 const Financeiro = lazy(() => import("./pages/Financeiro"));
 const ConfiguracoesAvancadas = lazy(() => import("./pages/ConfiguracoesAvancadas"));
+const Relatorios = lazy(() => import("./pages/Relatórios"));
+const Usuarios = lazy(() => import("./pages/Usuarios"));
 
 // Static pages
 import Login from "./pages/Login";
@@ -281,12 +283,9 @@ const App = () => {
                   path="/relatorios"
                   element={
                     <ProtectedRoute>
-                      <div className="p-6">
-                        <h1 className="text-3xl font-bold">Relatórios & Analytics</h1>
-                        <p className="text-muted-foreground mt-2">
-                          Dashboards analíticos e relatórios em desenvolvimento...
-                        </p>
-                      </div>
+                      <Suspense fallback={<PageSkeleton />}>
+                        <Relatorios />
+                      </Suspense>
                     </ProtectedRoute>
                   }
                 />
@@ -294,12 +293,9 @@ const App = () => {
                   path="/usuarios"
                   element={
                     <ProtectedRoute>
-                      <div className="p-6">
-                        <h1 className="text-3xl font-bold">Usuários & Times</h1>
-                        <p className="text-muted-foreground mt-2">
-                          Controle de acesso e gestão de equipes em desenvolvimento...
-                        </p>
-                      </div>
+                      <Suspense fallback={<PageSkeleton />}>
+                        <Usuarios />
+                      </Suspense>
                     </ProtectedRoute>
                   }
                 />

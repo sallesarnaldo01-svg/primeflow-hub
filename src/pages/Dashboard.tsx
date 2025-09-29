@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -17,10 +18,14 @@ import {
   CheckCircle,
   ArrowUpRight,
   MoreHorizontal,
-  Plus
+  Plus,
+  Phone,
+  Bot,
+  Zap
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuthStore } from '@/stores/auth';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 
 // Mock data
 const metrics = [
@@ -56,6 +61,13 @@ const metrics = [
     icon: DollarSign,
     description: 'Meta mensal atingida',
   },
+];
+
+const chartData = [
+  { name: 'Jan', leads: 120, conversoes: 24 },
+  { name: 'Fev', leads: 180, conversoes: 32 },
+  { name: 'Mar', leads: 210, conversoes: 45 },
+  { name: 'Abr', leads: 324, conversoes: 59 },
 ];
 
 const recentDeals = [
@@ -95,6 +107,7 @@ const recentActivities = [
     message: 'Deal "TechCorp Solutions" movido para Proposta',
     time: '2 min atrás',
     user: 'Maria Silva',
+    icon: Target,
   },
   {
     id: '2',
@@ -102,6 +115,7 @@ const recentActivities = [
     message: 'Ticket #1247 resolvido',
     time: '15 min atrás',
     user: 'João Santos',
+    icon: CheckCircle,
   },
   {
     id: '3',
@@ -109,6 +123,7 @@ const recentActivities = [
     message: 'Reunião agendada com StartupXYZ',
     time: '1h atrás',
     user: 'Ana Costa',
+    icon: Calendar,
   },
   {
     id: '4',
@@ -116,6 +131,15 @@ const recentActivities = [
     message: '3 novos leads do WhatsApp',
     time: '2h atrás',
     user: 'Sistema',
+    icon: MessageSquare,
+  },
+  {
+    id: '5',
+    type: 'automation',
+    message: 'Workflow "Boas-vindas" executado 12 vezes',
+    time: '3h atrás',
+    user: 'IA PrimeZap',
+    icon: Bot,
   },
 ];
 
@@ -165,174 +189,267 @@ export default function Dashboard() {
   };
 
   return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      className="space-y-6"
-    >
-      {/* Header */}
-      <motion.div variants={itemVariants} className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">
-            Bom dia, {user?.name?.split(' ')[0] || 'Usuário'}! 👋
-          </h1>
-          <p className="text-muted-foreground">
-            Aqui está o resumo das suas atividades hoje
-          </p>
-        </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Novo Deal
-        </Button>
-      </motion.div>
-
-      {/* Metrics Cards */}
-      <motion.div 
-        variants={itemVariants}
-        className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
+    <Layout>
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="space-y-6"
       >
-        {metrics.map((metric) => {
-          const Icon = metric.icon;
-          return (
-            <Card key={metric.title} className="hover:shadow-md transition-shadow cursor-pointer">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {metric.title}
-                </CardTitle>
-                <Icon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{metric.value}</div>
-                <div className="flex items-center text-xs text-muted-foreground">
-                  <span className={`flex items-center ${
-                    metric.changeType === 'positive' ? 'text-success' : 'text-destructive'
-                  }`}>
-                    {metric.changeType === 'positive' ? (
-                      <TrendingUp className="mr-1 h-3 w-3" />
-                    ) : (
-                      <TrendingDown className="mr-1 h-3 w-3" />
-                    )}
-                    {metric.change}
-                  </span>
-                  <Separator orientation="vertical" className="mx-2 h-3" />
-                  <span>{metric.description}</span>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </motion.div>
+        {/* Header */}
+        <motion.div variants={itemVariants} className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">
+              Bom dia, {user?.name?.split(' ')[0] || 'Usuário'}! 👋
+            </h1>
+            <p className="text-muted-foreground">
+              Aqui está o resumo das suas atividades hoje
+            </p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button variant="outline">
+              <Phone className="mr-2 h-4 w-4" />
+              Conectar WhatsApp
+            </Button>
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Novo Deal
+            </Button>
+          </div>
+        </motion.div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Recent Deals */}
-        <motion.div variants={itemVariants} className="lg:col-span-2">
+        {/* Metrics Cards */}
+        <motion.div 
+          variants={itemVariants}
+          className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
+        >
+          {metrics.map((metric) => {
+            const Icon = metric.icon;
+            return (
+              <Card key={metric.title} className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    {metric.title}
+                  </CardTitle>
+                  <Icon className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{metric.value}</div>
+                  <div className="flex items-center text-xs text-muted-foreground">
+                    <span className={`flex items-center ${
+                      metric.changeType === 'positive' ? 'text-success' : 'text-destructive'
+                    }`}>
+                      {metric.changeType === 'positive' ? (
+                        <TrendingUp className="mr-1 h-3 w-3" />
+                      ) : (
+                        <TrendingDown className="mr-1 h-3 w-3" />
+                      )}
+                      {metric.change}
+                    </span>
+                    <Separator orientation="vertical" className="mx-2 h-3" />
+                    <span>{metric.description}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </motion.div>
+
+        {/* Charts Row */}
+        <motion.div variants={itemVariants} className="grid gap-6 lg:grid-cols-2">
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Deals Recentes</CardTitle>
-                  <CardDescription>
-                    Pipeline de vendas em andamento
-                  </CardDescription>
-                </div>
-                <Button variant="ghost" size="sm">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </div>
+              <CardTitle>Tendência de Leads</CardTitle>
+              <CardDescription>Leads gerados e conversões nos últimos 4 meses</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="leads" fill="hsl(var(--primary))" name="Leads" />
+                  <Bar dataKey="conversoes" fill="hsl(var(--success))" name="Conversões" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Performance de Canais</CardTitle>
+              <CardDescription>Origem dos leads por canal</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {recentDeals.map((deal) => (
-                  <div key={deal.id} className="flex items-center space-x-4 p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={deal.avatar} />
-                      <AvatarFallback>
-                        {deal.owner.split(' ').map(n => n[0]).join('')}
-                      </AvatarFallback>
-                    </Avatar>
-                    
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <p className="font-medium">{deal.company}</p>
-                        <p className="font-semibold text-primary">{deal.value}</p>
-                      </div>
-                      <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                        <Badge variant="secondary">{deal.stage}</Badge>
-                        <span>•</span>
-                        <span>{deal.owner}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Progress value={deal.probability} className="flex-1 h-2" />
-                        <span className="text-xs text-muted-foreground">
-                          {deal.probability}%
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <Button variant="ghost" size="sm">
-                      <ArrowUpRight className="h-4 w-4" />
-                    </Button>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-green-500 rounded-full" />
+                    <span className="text-sm">WhatsApp</span>
                   </div>
-                ))}
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-muted-foreground">156 leads</span>
+                    <span className="text-sm font-medium">48%</span>
+                  </div>
+                </div>
+                <Progress value={48} className="h-2" />
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full" />
+                    <span className="text-sm">Facebook</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-muted-foreground">89 leads</span>
+                    <span className="text-sm font-medium">27%</span>
+                  </div>
+                </div>
+                <Progress value={27} className="h-2" />
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-pink-500 rounded-full" />
+                    <span className="text-sm">Instagram</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-muted-foreground">67 leads</span>
+                    <span className="text-sm font-medium">21%</span>
+                  </div>
+                </div>
+                <Progress value={21} className="h-2" />
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-purple-500 rounded-full" />
+                    <span className="text-sm">Site</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-muted-foreground">12 leads</span>
+                    <span className="text-sm font-medium">4%</span>
+                  </div>
+                </div>
+                <Progress value={4} className="h-2" />
               </div>
             </CardContent>
           </Card>
         </motion.div>
 
-        {/* Right Column */}
-        <motion.div variants={itemVariants} className="space-y-6">
-          {/* Today's Tasks */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Clock className="mr-2 h-4 w-4" />
-                Tarefas de Hoje
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {upcomingTasks.map((task) => (
-                  <div key={task.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                    <div className={`w-2 h-2 rounded-full ${
-                      task.priority === 'high' ? 'bg-destructive' :
-                      task.priority === 'medium' ? 'bg-warning' : 'bg-success'
-                    }`} />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">{task.title}</p>
-                      <p className="text-xs text-muted-foreground">{task.time}</p>
-                    </div>
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Recent Deals */}
+          <motion.div variants={itemVariants} className="lg:col-span-2">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Deals Recentes</CardTitle>
+                    <CardDescription>
+                      Pipeline de vendas em andamento
+                    </CardDescription>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  <Button variant="ghost" size="sm">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {recentDeals.map((deal) => (
+                    <div key={deal.id} className="flex items-center space-x-4 p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={deal.avatar} />
+                        <AvatarFallback>
+                          {deal.owner.split(' ').map(n => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                      
+                      <div className="flex-1 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <p className="font-medium">{deal.company}</p>
+                          <p className="font-semibold text-primary">{deal.value}</p>
+                        </div>
+                        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                          <Badge variant="secondary">{deal.stage}</Badge>
+                          <span>•</span>
+                          <span>{deal.owner}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Progress value={deal.probability} className="flex-1 h-2" />
+                          <span className="text-xs text-muted-foreground">
+                            {deal.probability}%
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <Button variant="ghost" size="sm">
+                        <ArrowUpRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-          {/* Recent Activities */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Atividades Recentes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {recentActivities.map((activity) => (
-                  <div key={activity.id} className="flex items-start space-x-3">
-                    <div className="flex-shrink-0 w-2 h-2 rounded-full bg-primary mt-2" />
-                    <div className="flex-1 space-y-1">
-                      <p className="text-sm">{activity.message}</p>
-                      <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-                        <span>{activity.user}</span>
-                        <span>•</span>
-                        <span>{activity.time}</span>
+          {/* Right Column */}
+          <motion.div variants={itemVariants} className="space-y-6">
+            {/* Today's Tasks */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Clock className="mr-2 h-4 w-4" />
+                  Tarefas de Hoje
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {upcomingTasks.map((task) => (
+                    <div key={task.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                      <div className={`w-2 h-2 rounded-full ${
+                        task.priority === 'high' ? 'bg-destructive' :
+                        task.priority === 'medium' ? 'bg-warning' : 'bg-success'
+                      }`} />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">{task.title}</p>
+                        <p className="text-xs text-muted-foreground">{task.time}</p>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-    </motion.div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Recent Activities */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Atividades Recentes</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {recentActivities.map((activity) => {
+                    const Icon = activity.icon;
+                    return (
+                      <div key={activity.id} className="flex items-start space-x-3">
+                        <div className="flex-shrink-0 w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+                          <Icon className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <div className="flex-1 space-y-1">
+                          <p className="text-sm">{activity.message}</p>
+                          <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+                            <span>{activity.user}</span>
+                            <span>•</span>
+                            <span>{activity.time}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+      </motion.div>
+    </Layout>
   );
 }
