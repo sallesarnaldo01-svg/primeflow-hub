@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
   DropdownMenu, 
@@ -11,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuthStore } from '@/stores/auth';
 import { useUIStore } from '@/stores/ui';
+import { ProfileMenu } from '@/components/ProfileMenu';
 import { 
   Sun, 
   Moon, 
@@ -21,7 +23,9 @@ import {
   Settings,
   LogOut,
   User,
-  HelpCircle
+  HelpCircle,
+  Camera,
+  Lock
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
@@ -30,6 +34,8 @@ export function Header() {
   const { theme, setTheme } = useTheme();
   const { user, logout } = useAuthStore();
   const { setSidebarOpen, sidebarOpen } = useUIStore();
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [profileMode, setProfileMode] = useState<'profile' | 'avatar' | 'password'>('profile');
 
   const getThemeIcon = () => {
     switch (theme) {
@@ -124,10 +130,28 @@ export function Header() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {
+                setProfileMode('profile');
+                setProfileMenuOpen(true);
+              }}>
                 <User className="mr-2 h-4 w-4" />
-                Perfil
+                Meu Perfil
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {
+                setProfileMode('avatar');
+                setProfileMenuOpen(true);
+              }}>
+                <Camera className="mr-2 h-4 w-4" />
+                Trocar Foto
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {
+                setProfileMode('password');
+                setProfileMenuOpen(true);
+              }}>
+                <Lock className="mr-2 h-4 w-4" />
+                Resetar Senha
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem>
                 <Settings className="mr-2 h-4 w-4" />
                 Configurações
@@ -145,6 +169,12 @@ export function Header() {
           </DropdownMenu>
         </div>
       </div>
+
+      <ProfileMenu 
+        open={profileMenuOpen} 
+        onOpenChange={setProfileMenuOpen}
+        mode={profileMode}
+      />
     </motion.header>
   );
 }

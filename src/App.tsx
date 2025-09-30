@@ -300,6 +300,19 @@ const App = () => {
                   }
                 />
                 <Route
+                  path="/contatos"
+                  element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<PageSkeleton />}>
+                        {(() => {
+                          const Contatos = lazy(() => import("./pages/Contatos"));
+                          return <Contatos />;
+                        })()}
+                      </Suspense>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="/personalizacao"
                   element={
                     <ProtectedRoute>

@@ -30,6 +30,12 @@ import {
   Columns3,
   GitBranch,
   ChevronUp,
+  Phone,
+  Tag,
+  Workflow,
+  Sparkles,
+  Plug,
+  Contact,
 } from 'lucide-react';
 import logo from '@/assets/logo.svg';
 
@@ -48,6 +54,7 @@ const menuItems = [
       { label: 'Instagram', href: '/conexoes/instagram' },
     ]
   },
+  { icon: Contact, label: 'Contatos', href: '/contatos', badge: null },
   { icon: Users, label: 'CRM', href: '/crm', badge: null },
   { icon: TrendingUp, label: 'Funil de Vendas', href: '/funil', badge: null },
   { icon: Columns3, label: 'Kanban', href: '/kanban', badge: null },
@@ -65,10 +72,17 @@ const menuItems = [
     ]
   },
   { icon: Calendar, label: 'Agendamentos', href: '/agendamentos', badge: null },
+  { icon: Phone, label: 'Chamadas', href: '/chamadas', badge: null },
+  { icon: Ticket, label: 'Tickets', href: '/tickets', badge: 8 },
+  { icon: Building2, label: 'Empresas', href: '/empresas', badge: null },
+  { icon: Tag, label: 'Tags', href: '/tags', badge: null },
+  { icon: Workflow, label: 'Workflows', href: '/workflows', badge: null },
+  { icon: Sparkles, label: 'IA', href: '/ia', badge: 'NOVO' },
+  { icon: Plug, label: 'Integrações', href: '/integracoes', badge: null },
   { icon: BarChart3, label: 'Relatórios & Analytics', href: '/relatorios', badge: null },
   { icon: UserCheck, label: 'Usuários & Times', href: '/usuarios', badge: null },
-  { icon: Settings, label: 'Configurações', href: '/configuracoes', badge: null },
   { icon: DollarSign, label: 'Financeiro', href: '/financeiro', badge: null, adminOnly: true },
+  { icon: Settings, label: 'Configurações', href: '/configuracoes', badge: null },
   { icon: Palette, label: 'Personalização', href: '/personalizacao', badge: null, adminOnly: true },
   { icon: HelpCircle, label: 'Ajuda / Sobre', href: '/ajuda', badge: null },
 ];
