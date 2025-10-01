@@ -1,4 +1,4 @@
-.PHONY: help up down restart logs ps migrate seed build clean preflight dev
+.PHONY: help up down restart logs ps migrate seed build clean preflight dev create-patch apply-patch rollback-patch patch-status
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
@@ -62,3 +62,37 @@ dev: ## Start development mode
 
 install: ## Run installation script
 	bash scripts/install.sh
+
+create-patch: ## Create a new patch (use VERSION=x.x.x)
+	@if [ -z "$(VERSION)" ]; then \
+		bash scripts/create-patch.sh; \
+	else \
+		bash scripts/create-patch.sh $(VERSION); \
+	fi
+
+apply-patch: ## Apply a patch (use VERSION=x.x.x)
+	@if [ -z "$(VERSION)" ]; then \
+		echo "❌ Error: VERSION not specified"; \
+		echo "Usage: make apply-patch VERSION=2.2.0"; \
+		exit 1; \
+	else \
+		bash scripts/apply-patch.sh $(VERSION); \
+	fi
+
+rollback-patch: ## Rollback a patch (use VERSION=x.x.x)
+	@if [ -z "$(VERSION)" ]; then \
+		echo "❌ Error: VERSION not specified"; \
+		echo "Usage: make rollback-patch VERSION=2.2.0"; \
+		exit 1; \
+	else \
+		bash scripts/rollback-patch.sh $(VERSION); \
+	fi
+
+patch-status: ## Show current version and available patches
+	@echo "Current Version: $$(cat VERSION 2>/dev/null || echo 'unknown')"
+	@echo ""
+	@echo "Available Patches:"
+	@ls -la patches/ 2>/dev/null || echo "No patches directory found"
+	@echo ""
+	@echo "Recent Backups:"
+	@ls -lat backups/ 2>/dev/null | head -n 5 || echo "No backups directory found"
