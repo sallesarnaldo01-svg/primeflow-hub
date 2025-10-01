@@ -1,0 +1,341 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id          String       @id @default(cuid())
+  name        String
+  settings    Json?
+  users       User[]
+  queues      Queue[]
+  connections Connection[]
+  flows       Flow[]
+  campaigns   CampaignPhrase[]
+  tags        Tag[]
+  stages      Stage[]
+  deals       Deal[]
+  contacts    Contact[]
+  broadcasts  Broadcast[]
+  followUps   FollowUp[]
+  messageLogs MessageLog[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@map("tenants")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  tenantId     String
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  email        String   @unique
+  name         String
+  role         Role     @default(AGENT)
+  passwordHash String?
+  avatar       String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("users")
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  AGENT
+}
+
+model Queue {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  flows       Flow[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("queues")
+}
+
+model Connection {
+  id         String           @id @default(cuid())
+  tenantId   String
+  tenant     Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  type       ConnectionType
+  status     ConnectionStatus @default(DISCONNECTED)
+  name       String
+  meta       Json?
+  campaigns  CampaignPhrase[]
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  @@index([tenantId, type])
+  @@map("connections")
+}
+
+enum ConnectionType {
+  WHATSAPP
+  FACEBOOK
+  INSTAGRAM
+}
+
+enum ConnectionStatus {
+  CONNECTED
+  DISCONNECTED
+  ERROR
+}
+
+model Flow {
+  id          String            @id @default(cuid())
+  tenantId    String
+  tenant      Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name        String
+  status      FlowStatus        @default(DRAFT)
+  version     Int               @default(1)
+  active      Boolean           @default(true)
+  startNodeId String?
+  queueId     String?
+  queue       Queue?            @relation(fields: [queueId], references: [id])
+  variables   Json?
+  nodes       FlowNode[]
+  edges       FlowEdge[]
+  campaigns   CampaignPhrase[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([tenantId, status])
+  @@map("flows")
+}
+
+enum FlowStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model FlowNode {
+  id        String   @id @default(cuid())
+  flowId    String
+  flow      Flow     @relation(fields: [flowId], references: [id], onDelete: Cascade)
+  type      NodeType
+  label     String?
+  x         Int      @default(0)
+  y         Int      @default(0)
+  config    Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([flowId])
+  @@map("flow_nodes")
+}
+
+enum NodeType {
+  START
+  CONTENT
+  MENU
+  RANDOMIZER
+  DELAY
+  TICKET
+  TYPEBOT
+  OPENAI
+  CONDITION
+  HTTP
+  SCHEDULE
+  ASSIGN_QUEUE
+  SUBFLOW
+}
+
+model FlowEdge {
+  id        String  @id @default(cuid())
+  flowId    String
+  flow      Flow    @relation(fields: [flowId], references: [id], onDelete: Cascade)
+  sourceId  String
+  targetId  String
+  condition Json?
+  label     String?
+
+  @@index([flowId])
+  @@map("flow_edges")
+}
+
+model CampaignPhrase {
+  id           String     @id @default(cuid())
+  tenantId     String
+  tenant       Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name         String
+  flowId       String
+  flow         Flow       @relation(fields: [flowId], references: [id])
+  connectionId String
+  connection   Connection @relation(fields: [connectionId], references: [id])
+  phrase       String
+  active       Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([tenantId, active])
+  @@map("campaign_phrases")
+}
+
+model Tag {
+  id          String       @id @default(cuid())
+  tenantId    String
+  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name        String
+  source      TagSource
+  color       String?
+  contacts    ContactTag[]
+  deals       DealTag[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@unique([tenantId, name, source])
+  @@index([tenantId, source])
+  @@map("tags")
+}
+
+enum TagSource {
+  WHATSAPP
+  CRM
+}
+
+model Contact {
+  id        String       @id @default(cuid())
+  tenantId  String
+  tenant    Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String
+  phone     String?
+  email     String?
+  avatar    String?
+  source    String
+  meta      Json?
+  tags      ContactTag[]
+  deals     Deal[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@index([tenantId, phone])
+  @@map("contacts")
+}
+
+model ContactTag {
+  contactId String
+  contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  tagId     String
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([contactId, tagId])
+  @@map("contact_tags")
+}
+
+model Stage {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String
+  order     Int
+  color     String?
+  deals     Deal[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, order])
+  @@index([tenantId])
+  @@map("stages")
+}
+
+model Deal {
+  id        String    @id @default(cuid())
+  tenantId  String
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  contactId String
+  contact   Contact   @relation(fields: [contactId], references: [id])
+  stageId   String
+  stage     Stage     @relation(fields: [stageId], references: [id])
+  amount    Decimal?  @db.Decimal(10, 2)
+  tags      DealTag[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([tenantId, stageId])
+  @@map("deals")
+}
+
+model DealTag {
+  dealId    String
+  deal      Deal     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  tagId     String
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([dealId, tagId])
+  @@map("deal_tags")
+}
+
+model Broadcast {
+  id        String          @id @default(cuid())
+  tenantId  String
+  tenant    Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String
+  filters   Json
+  script    Json
+  status    BroadcastStatus @default(DRAFT)
+  stats     Json?
+  config    Json?
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@index([tenantId, status])
+  @@map("broadcasts")
+}
+
+enum BroadcastStatus {
+  DRAFT
+  RUNNING
+  PAUSED
+  DONE
+  FAILED
+}
+
+model FollowUp {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String
+  filters   Json
+  triggers  Json
+  actions   Json
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId, active])
+  @@map("follow_ups")
+}
+
+model MessageLog {
+  id        String           @id @default(cuid())
+  tenantId  String
+  tenant    Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  channel   ConnectionType
+  direction MessageDirection
+  contact   String
+  payload   Json
+  createdAt DateTime         @default(now())
+
+  @@index([tenantId, channel, createdAt])
+  @@map("message_logs")
+}
+
+enum MessageDirection {
+  IN
+  OUT
+}

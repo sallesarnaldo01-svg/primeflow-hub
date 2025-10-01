@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist/worker",
+    "rootDir": "./src/worker"
+  },
+  "include": ["src/worker/**/*", "src/shared/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
