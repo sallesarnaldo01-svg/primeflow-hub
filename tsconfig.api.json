@@ -2,8 +2,12 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist/api",
-    "rootDir": "./src/api"
+    "rootDir": "./apps/api/src",
+    "baseUrl": ".",
+    "paths": {
+      "@primeflow/shared": ["./packages/shared/src"]
+    }
   },
-  "include": ["src/api/**/*", "src/shared/**/*"],
+  "include": ["apps/api/src/**/*", "packages/shared/src/**/*"],
   "exclude": ["node_modules", "dist"]
 }

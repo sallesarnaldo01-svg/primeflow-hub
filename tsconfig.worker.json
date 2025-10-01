@@ -2,8 +2,12 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist/worker",
-    "rootDir": "./src/worker"
+    "rootDir": "./apps/worker/src",
+    "baseUrl": ".",
+    "paths": {
+      "@primeflow/shared": ["./packages/shared/src"]
+    }
   },
-  "include": ["src/worker/**/*", "src/shared/**/*"],
+  "include": ["apps/worker/src/**/*", "packages/shared/src/**/*"],
   "exclude": ["node_modules", "dist"]
 }
