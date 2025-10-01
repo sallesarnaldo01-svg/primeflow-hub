@@ -6,123 +6,41 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import {
-  GitBranch,
   Calendar,
   Target,
-  Users,
-  Clock,
-  BarChart3,
-  Plus,
   Play,
   Pause,
-  CheckCircle,
 } from 'lucide-react';
-
-const sprintData = {
-  current: {
-    name: 'Sprint 23',
-    startDate: '2024-01-15',
-    endDate: '2024-01-29',
-    progress: 65,
-    totalStoryPoints: 42,
-    completedStoryPoints: 27,
-    remainingDays: 5,
-  },
-  team: {
-    velocity: 38,
-    capacity: 42,
-    members: [
-      { name: 'João Santos', capacity: 8, allocated: 7 },
-      { name: 'Ana Costa', capacity: 8, allocated: 8 },
-      { name: 'Pedro Lima', capacity: 8, allocated: 6 },
-      { name: 'Maria Silva', capacity: 8, allocated: 6 },
-    ],
-  },
-};
-
-const backlogItems = [
-  {
-    id: 1,
-    type: 'story',
-    title: 'Implementar autenticação de usuário',
-    description: 'Como usuário, quero fazer login para acessar o sistema',
-    points: 8,
-    priority: 'high',
-    status: 'todo',
-    assignee: 'João Santos',
-    epic: 'Autenticação',
-  },
-  {
-    id: 2,
-    type: 'story',
-    title: 'Dashboard de métricas',
-    description: 'Como gestor, quero visualizar KPIs em tempo real',
-    points: 13,
-    priority: 'high',
-    status: 'in-progress',
-    assignee: 'Ana Costa',
-    epic: 'Dashboard',
-  },
-  {
-    id: 3,
-    type: 'bug',
-    title: 'Corrigir erro no formulário de contato',
-    description: 'Campos não estão sendo validados corretamente',
-    points: 3,
-    priority: 'medium',
-    status: 'done',
-    assignee: 'Pedro Lima',
-    epic: 'Bugs',
-  },
-];
-
-const ceremonies = [
-  {
-    name: 'Daily Standup',
-    nextDate: '2024-01-16 09:00',
-    duration: '15 min',
-    participants: 4,
-    status: 'scheduled',
-  },
-  {
-    name: 'Sprint Review',
-    nextDate: '2024-01-29 14:00',
-    duration: '2 horas',
-    participants: 8,
-    status: 'scheduled',
-  },
-  {
-    name: 'Retrospectiva',
-    nextDate: '2024-01-29 16:00',
-    duration: '1 hora',
-    participants: 4,
-    status: 'scheduled',
-  },
-];
+import { useScrum } from '@/hooks/useScrum';
+import { CreateBacklogItemDialog } from '@/components/scrum/CreateBacklogItemDialog';
+import { CreateSprintDialog } from '@/components/scrum/CreateSprintDialog';
+import { BurndownChart } from '@/components/scrum/BurndownChart';
+import { VelocityChart } from '@/components/scrum/VelocityChart';
+import { SprintBoard } from '@/components/scrum/SprintBoard';
 
 const getTypeColor = (type: string) => {
   switch (type) {
     case 'story':
-      return 'bg-blue-100 text-blue-800';
+      return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
     case 'bug':
-      return 'bg-red-100 text-red-800';
+      return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
     case 'task':
-      return 'bg-green-100 text-green-800';
+      return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
     default:
-      return 'bg-gray-100 text-gray-800';
+      return 'bg-muted';
   }
 };
 
 const getPriorityColor = (priority: string) => {
   switch (priority) {
     case 'high':
-      return 'text-red-600';
+      return 'text-red-600 dark:text-red-400';
     case 'medium':
-      return 'text-yellow-600';
+      return 'text-yellow-600 dark:text-yellow-400';
     case 'low':
-      return 'text-green-600';
+      return 'text-green-600 dark:text-green-400';
     default:
-      return 'text-gray-600';
+      return 'text-muted-foreground';
   }
 };
 
@@ -133,13 +51,41 @@ const getStatusColor = (status: string) => {
     case 'in-progress':
       return 'bg-blue-500';
     case 'todo':
-      return 'bg-gray-400';
+      return 'bg-muted-foreground';
     default:
-      return 'bg-gray-400';
+      return 'bg-muted-foreground';
   }
 };
 
 export default function Scrum() {
+  const {
+    activeSprint,
+    backlogItems,
+    ceremonies,
+    createBacklogItem,
+    createSprint,
+    moveItemToStatus,
+  } = useScrum();
+
+  const sprintProgress = activeSprint
+    ? (activeSprint.completedStoryPoints / activeSprint.totalStoryPoints) * 100
+    : 0;
+
+  const remainingDays = activeSprint
+    ? Math.max(0, Math.ceil((new Date(activeSprint.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))
+    : 0;
+
+  const teamData = {
+    velocity: 38,
+    capacity: 42,
+    members: [
+      { name: 'João Santos', capacity: 8, allocated: 7 },
+      { name: 'Ana Costa', capacity: 8, allocated: 8 },
+      { name: 'Pedro Lima', capacity: 8, allocated: 6 },
+      { name: 'Maria Silva', capacity: 8, allocated: 6 },
+    ],
+  };
+
   return (
     <Layout>
       <motion.div
@@ -155,93 +101,89 @@ export default function Scrum() {
             </p>
           </div>
           <div className="flex items-center space-x-2">
-            <Button variant="outline">
-              <Calendar className="h-4 w-4 mr-2" />
-              Novo Sprint
-            </Button>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Nova História
-            </Button>
+            <CreateSprintDialog onCreateSprint={(data) => createSprint.mutate(data)} />
+            <CreateBacklogItemDialog onCreateItem={(data) => createBacklogItem.mutate(data)} />
           </div>
         </div>
 
         {/* Sprint Atual */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center">
-                <Target className="h-5 w-5 mr-2" />
-                {sprintData.current.name} - Sprint Ativo
-              </CardTitle>
-              <div className="flex items-center space-x-2">
-                <Badge variant="secondary">
-                  {sprintData.current.remainingDays} dias restantes
-                </Badge>
-                <Button variant="outline" size="sm">
-                  <Pause className="h-4 w-4 mr-2" />
-                  Encerrar Sprint
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Progresso</p>
-                <div className="space-y-1">
-                  <div className="flex justify-between text-sm">
-                    <span>Story Points</span>
-                    <span>{sprintData.current.completedStoryPoints}/{sprintData.current.totalStoryPoints}</span>
-                  </div>
-                  <Progress value={sprintData.current.progress} className="h-2" />
+        {activeSprint && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center">
+                  <Target className="h-5 w-5 mr-2" />
+                  {activeSprint.name} - Sprint Ativo
+                </CardTitle>
+                <div className="flex items-center space-x-2">
+                  <Badge variant="secondary">
+                    {remainingDays} dias restantes
+                  </Badge>
+                  <Button variant="outline" size="sm">
+                    <Pause className="h-4 w-4 mr-2" />
+                    Encerrar Sprint
+                  </Button>
                 </div>
               </div>
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Velocidade da Equipe</p>
-                <p className="text-2xl font-bold">{sprintData.team.velocity}</p>
-                <p className="text-xs text-muted-foreground">pontos por sprint</p>
-              </div>
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Capacidade</p>
-                <p className="text-2xl font-bold">{sprintData.team.capacity}</p>
-                <p className="text-xs text-muted-foreground">pontos disponíveis</p>
-              </div>
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Período</p>
-                <p className="text-sm font-medium">
-                  {new Date(sprintData.current.startDate).toLocaleDateString('pt-BR')} -{' '}
-                  {new Date(sprintData.current.endDate).toLocaleDateString('pt-BR')}
-                </p>
-              </div>
-            </div>
-
-            {/* Capacidade da Equipe */}
-            <div className="space-y-3">
-              <h4 className="font-semibold">Capacidade da Equipe</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {sprintData.team.members.map((member) => (
-                  <div key={member.name} className="flex items-center justify-between p-3 border rounded">
-                    <span className="font-medium">{member.name}</span>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-20 bg-muted rounded-full h-2">
-                        <div
-                          className={`h-2 rounded-full ${
-                            member.allocated > member.capacity ? 'bg-red-500' : 'bg-green-500'
-                          }`}
-                          style={{ width: `${(member.allocated / member.capacity) * 100}%` }}
-                        />
-                      </div>
-                      <span className="text-sm text-muted-foreground">
-                        {member.allocated}/{member.capacity}h
-                      </span>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Progresso</p>
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-sm">
+                      <span>Story Points</span>
+                      <span>{activeSprint.completedStoryPoints}/{activeSprint.totalStoryPoints}</span>
                     </div>
+                    <Progress value={sprintProgress} className="h-2" />
                   </div>
-                ))}
+                </div>
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Velocidade da Equipe</p>
+                  <p className="text-2xl font-bold">{teamData.velocity}</p>
+                  <p className="text-xs text-muted-foreground">pontos por sprint</p>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Capacidade</p>
+                  <p className="text-2xl font-bold">{teamData.capacity}</p>
+                  <p className="text-xs text-muted-foreground">pontos disponíveis</p>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Período</p>
+                  <p className="text-sm font-medium">
+                    {new Date(activeSprint.startDate).toLocaleDateString('pt-BR')} -{' '}
+                    {new Date(activeSprint.endDate).toLocaleDateString('pt-BR')}
+                  </p>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+
+              {/* Capacidade da Equipe */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Capacidade da Equipe</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {teamData.members.map((member) => (
+                    <div key={member.name} className="flex items-center justify-between p-3 border rounded">
+                      <span className="font-medium">{member.name}</span>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-20 bg-muted rounded-full h-2">
+                          <div
+                            className={`h-2 rounded-full ${
+                              member.allocated > member.capacity ? 'bg-red-500' : 'bg-green-500'
+                            }`}
+                            style={{ width: `${(member.allocated / member.capacity) * 100}%` }}
+                          />
+                        </div>
+                        <span className="text-sm text-muted-foreground">
+                          {member.allocated}/{member.capacity}h
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <Tabs defaultValue="backlog" className="space-y-4">
           <TabsList>
@@ -293,70 +235,7 @@ export default function Scrum() {
           </TabsContent>
 
           <TabsContent value="board">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">A Fazer</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {backlogItems.filter(item => item.status === 'todo').map((item) => (
-                      <div key={item.id} className="p-3 border rounded-lg">
-                        <h4 className="font-medium text-sm">{item.title}</h4>
-                        <div className="flex items-center justify-between mt-2">
-                          <Badge className={getTypeColor(item.type)} variant="secondary">
-                            {item.type}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground">{item.points} pts</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Em Progresso</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {backlogItems.filter(item => item.status === 'in-progress').map((item) => (
-                      <div key={item.id} className="p-3 border rounded-lg bg-blue-50">
-                        <h4 className="font-medium text-sm">{item.title}</h4>
-                        <div className="flex items-center justify-between mt-2">
-                          <Badge className={getTypeColor(item.type)} variant="secondary">
-                            {item.type}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground">{item.points} pts</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Concluído</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {backlogItems.filter(item => item.status === 'done').map((item) => (
-                      <div key={item.id} className="p-3 border rounded-lg bg-green-50">
-                        <h4 className="font-medium text-sm">{item.title}</h4>
-                        <div className="flex items-center justify-between mt-2">
-                          <Badge className={getTypeColor(item.type)} variant="secondary">
-                            {item.type}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground">{item.points} pts</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <SprintBoard items={backlogItems} onMoveItem={moveItemToStatus} />
           </TabsContent>
 
           <TabsContent value="ceremonies">
@@ -399,39 +278,8 @@ export default function Scrum() {
 
           <TabsContent value="reports">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <BarChart3 className="h-5 w-5 mr-2" />
-                    Burndown Chart
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-12">
-                    <BarChart3 className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">
-                      Gráfico de burndown será implementado aqui
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Users className="h-5 w-5 mr-2" />
-                    Velocity Chart
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-12">
-                    <BarChart3 className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">
-                      Gráfico de velocidade será implementado aqui
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
+              <BurndownChart />
+              <VelocityChart />
             </div>
           </TabsContent>
         </Tabs>
