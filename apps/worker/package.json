@@ -1,0 +1,29 @@
+{
+  "name": "@primeflow/worker",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --clear-screen=false src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@primeflow/shared": "workspace:*",
+    "@prisma/client": "^6.16.3",
+    "bullmq": "^5.59.0",
+    "ioredis": "^5.4.1",
+    "pino": "^9.12.0",
+    "pino-pretty": "^13.1.1",
+    "mustache": "^4.2.0",
+    "dotenv": "^17.2.3",
+    "zod": "^3.22.4",
+    "@whiskeysockets/baileys": "^6.7.9"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.5",
+    "@types/mustache": "^4.2.6",
+    "typescript": "^5.3.3",
+    "tsx": "^4.20.6"
+  }
+}
