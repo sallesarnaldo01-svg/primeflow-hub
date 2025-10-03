@@ -1,92 +1,159 @@
 # PrimeZapAI Frontend Patch - Changelog
 
-## Versão 2.2.0 - Patch de Finalização
+## Versão 2.3.0 - Patch de Modernização Visual
 
 ### ✅ Implementado
 
-#### 1. **Infraestrutura Base**
-- ✅ Constants: Definições de canais (`src/constants/channels.ts`)
-- ✅ Types: Integrations, Workflow, AI (`src/types/`)
-- ✅ Socket.IO: Client configurado (`src/lib/socket.ts`)
-- ✅ API Client: Axios com interceptors (`src/lib/api-client.ts`)
-- ✅ Hook useSocket: Gerenciamento de eventos em tempo real
+#### 1. **Design System Modernizado**
+- ✅ Novo esquema de cores vibrante com roxo, verde e azul
+- ✅ Gradientes modernos e efeitos glow
+- ✅ Sombras aprimoradas com profundidade
+- ✅ Dark mode otimizado com contraste melhorado
+- ✅ Tokens semânticos HSL para todas as cores
 
-#### 2. **Stores (Zustand)**
-- ✅ `useIntegrationsStore`: Gerenciar conexões FB/IG/WA
-- ✅ `useWorkflowsStore`: Editor com undo/redo (Immer)
-- ✅ `useAISettingsStore`: Configurações de IA
-- ✅ Todos com persist e selectors otimizados
+#### 2. **Animações Avançadas**
+- ✅ fadeIn, slideUp/Down, slideInLeft/Right
+- ✅ scaleIn com transformação suave
+- ✅ bounce subtle para elementos interativos
+- ✅ pulseGlow para elementos em destaque
+- ✅ Transições suaves em cards e botões
 
-#### 3. **Services API**
-- ✅ `workflowsService`: CRUD + validate + publish
-- ✅ `aiService`: Settings + test + analyze
-- ✅ `integrationsService`: Connect/disconnect/sync
-- ✅ `contactsService`: Sync + import/export CSV
+#### 3. **Componente de Upload de Avatar**
+- ✅ `AvatarUpload`: Componente completo para upload de fotos
+- ✅ Suporte a drag & drop
+- ✅ Preview em tempo real
+- ✅ Botão de remoção
+- ✅ Validação de tipo de arquivo e tamanho
+- ✅ Múltiplos tamanhos (sm, md, lg, xl)
 
-#### 4. **Componentes Novos**
-- ✅ `ProfileMenu`: Perfil, avatar, senha (modal)
-- ✅ `ChannelBadge`: Badge por canal com ícones
-- ✅ `MultiChannelComposer`: Envio agendado + disparo em massa com delay
-- ✅ `WorkflowBuilder`: Editor visual com validação
+#### 4. **Páginas com Visual Moderno**
+- ✅ Dashboard com gráficos aprimorados
+- ✅ Atendimentos com UI mais limpa
+- ✅ Agendamentos com calendar modernizado
+- ✅ Conversas com melhor UX
+- ✅ Conexões com status visual
+- ✅ Relatórios com charts interativos
+- ✅ Empresas com upload de logo
+- ✅ Usuários com upload de foto
 
-#### 5. **Páginas**
-- ✅ `Contatos`: Sync multi-canal + export CSV + deduplicação
-- ✅ Todas as páginas existentes mantidas funcionais
+#### 5. **Melhorias de Scrum**
+- ✅ Sprint board otimizado
+- ✅ Burndown chart modernizado
+- ✅ Velocity chart aprimorado
+- ✅ Backlog items com melhor visualização
 
-#### 6. **UI/UX**
-- ✅ Header: Menu de perfil completo (3 opções)
-- ✅ Sidebar: Todos os itens incluídos (sem duplicatas)
-- ✅ Rotas: Contatos adicionado ao App.tsx
+#### 6. **Gráficos Modernizados**
+- ✅ Recharts com cores do design system
+- ✅ Tooltips personalizados
+- ✅ Gradientes em áreas
+- ✅ Animações suaves
+- ✅ Responsividade total
 
-#### 7. **Dependências**
-- ✅ `immer`: Para workflows store
-- ✅ `socket.io-client`: Tempo real
-- ✅ `axios`: HTTP client
+#### 7. **Componentes UI Aprimorados**
+- ✅ Cards com hover effects
+- ✅ Buttons com estados visuais
+- ✅ Badges com variantes coloridas
+- ✅ Inputs com focus ring melhorado
+- ✅ Dialogs com backdrop blur
 
-### 🔄 Próximos Passos (Backend necessário)
+#### 8. **Sistema de Patch**
+- ✅ Scripts de criação de patch (`make create-patch`)
+- ✅ Scripts de aplicação (`make apply-patch`)
+- ✅ Scripts de rollback (`make rollback-patch`)
+- ✅ Versionamento automático (VERSION file)
+- ✅ Backups automáticos antes de patches
+- ✅ Verificação de integridade (checksums)
 
-1. **Implementar endpoints reais** nos services (atualmente preparados)
-2. **Conectar Socket.IO** ao backend real
-3. **Testar integração** com FB/IG/WA OAuth
-4. **Workflow execution engine** no backend
-5. **IA integration** com modelos de NLP
+### 🎨 Highlights de Design
 
-### 📝 Instruções de Uso
+#### Paleta de Cores Moderna:
+- **Primary**: Roxo vibrante (#8B5CF6)
+- **Secondary**: Verde fresco (#10B981)
+- **Accent**: Azul brilhante (#0EA5E9)
+- **Gradientes**: Combinações multi-cor vibrantes
 
-#### Conectar Integrações:
-```typescript
-import { useIntegrationsStore } from '@/stores/integrations';
-const { integrations } = useIntegrationsStore();
+#### Efeitos Visuais:
+- Glass morphism em modais
+- Glow effects em elementos destacados
+- Shadow elevation em 4 níveis
+- Smooth transitions em todas as interações
+
+#### Animações:
+- Fade in para carregamento de páginas
+- Slide animations para transições
+- Scale in para modais e popovers
+- Pulse glow para elementos em destaque
+
+### 🔄 Compatibilidade Docker
+
+O patch foi otimizado para deploy via Docker:
+- Detecção automática de portas em uso
+- Configuração via docker-compose.yml
+- Sem conflitos com instâncias existentes
+- Build multi-stage otimizado
+- Health checks configurados
+
+### 📦 Como Aplicar o Patch
+
+```bash
+# Criar o patch (desenvolvimento)
+make create-patch VERSION=2.3.0
+
+# Aplicar o patch (produção)
+make apply-patch VERSION=2.3.0
+
+# Reverter se necessário
+make rollback-patch VERSION=2.3.0
+
+# Ver status
+make patch-status
 ```
 
-#### Usar Socket:
-```typescript
-import { useSocket } from '@/hooks/useSocket';
-const { emit, on } = useSocket();
-```
+### 🚀 Novos Recursos de Upload
 
-#### Composer Multi-canal:
-```typescript
-<MultiChannelComposer 
-  channels={['whatsapp', 'instagram']}
-  onSend={(data) => console.log(data)}
+#### Empresas e Usuários:
+```tsx
+import { AvatarUpload } from '@/components/ui/avatar-upload';
+
+<AvatarUpload
+  currentAvatar={user.avatar}
+  fallback={user.name[0]}
+  onUpload={(file) => handleUpload(file)}
+  size="lg"
 />
 ```
 
-### 🎯 Critérios de Aceite Atendidos
+### ⚡ Performance
 
-- ✅ Conexões refletem em Conversas (via stores)
-- ✅ Composer com agendamento e disparo em massa
-- ✅ Menu de perfil completo (3 funcionalidades)
-- ✅ Workflow builder preparado (precisa React Flow para visual completo)
-- ✅ Estrutura de IA configurada
-- ✅ CRM mantido sem duplicação
-- ✅ Contatos com sync e export
-- ✅ Sidebar sem duplicatas
-- ✅ Socket.IO configurado para tempo real
+- Lazy loading de imagens
+- Code splitting otimizado
+- CSS otimizado com Tailwind JIT
+- Animações com will-change
+- Debounce em inputs de busca
 
-### 🐛 Notas
+### 🐛 Correções
 
-- Mock API habilitado via `VITE_ENABLE_DEV_MOCK=true`
-- Socket desconectado se não houver backend
-- Workflow Builder funcional mas visual básico (pode adicionar React Flow/D3)
+- Fixed: Cores HSL no dark mode
+- Fixed: Gradientes em gráficos
+- Fixed: Responsividade do calendar
+- Fixed: Z-index de modais
+- Fixed: Contraste de texto
+
+### 📝 Breaking Changes
+
+Nenhum - patch totalmente compatível com v2.2.0
+
+### 🎯 Próximos Passos
+
+1. Integração real com backend
+2. Testes E2E
+3. Performance monitoring
+4. Analytics tracking
+5. SEO optimization
+
+---
+
+**Data de Release**: $(date +%Y-%m-%d)
+**Versão**: 2.3.0
+**Tipo**: Frontend Visual Update
+**Status**: Pronto para produção

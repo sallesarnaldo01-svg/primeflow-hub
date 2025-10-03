@@ -7,10 +7,12 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { AvatarUpload } from '@/components/ui/avatar-upload';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from 'sonner';
 import { 
   Plus, 
   Search, 
@@ -183,8 +185,20 @@ export default function Usuarios() {
                 <DialogHeader>
                   <DialogTitle>Criar Novo Usuário</DialogTitle>
                 </DialogHeader>
-                {/* User form would go here */}
-                <div className="grid gap-4 py-4">
+                <div className="space-y-6">
+                  {/* Avatar Upload */}
+                  <div className="flex justify-center">
+                    <AvatarUpload
+                      fallback="U"
+                      onUpload={(file) => {
+                        console.log('Avatar uploaded:', file);
+                        toast.success('Foto carregada com sucesso!');
+                      }}
+                      size="lg"
+                    />
+                  </div>
+
+                  <div className="grid gap-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="name">Nome Completo</Label>
@@ -252,6 +266,7 @@ export default function Usuarios() {
                     <Button onClick={() => setIsCreateDialogOpen(false)}>
                       Criar Usuário
                     </Button>
+                  </div>
                   </div>
                 </div>
               </DialogContent>

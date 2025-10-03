@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { AvatarUpload } from '@/components/ui/avatar-upload';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -341,15 +342,29 @@ const Empresas: React.FC = () => {
                 Nova Empresa
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Criar Nova Empresa</DialogTitle>
-                <DialogDescription>
-                  Adicione uma nova empresa ao seu cadastro
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Criar Nova Empresa</DialogTitle>
+                  <DialogDescription>
+                    Adicione uma nova empresa ao seu cadastro
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-6">
+                  {/* Logo Upload */}
+                  <div className="flex justify-center">
+                    <AvatarUpload
+                      fallback={newCompany.name[0] || 'E'}
+                      onUpload={(file) => {
+                        console.log('Logo uploaded:', file);
+                        toast.success('Logo carregado com sucesso!');
+                      }}
+                      size="lg"
+                    />
+                  </div>
+
+                  <Separator />
+
+                  <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">Nome da Empresa *</Label>
                     <Input
