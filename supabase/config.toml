@@ -1,0 +1,10 @@
+project_id = "spanwhewvcqsbpgwerck"
+
+[functions.ai-chat]
+verify_jwt = false
+
+[functions.ai-function-call]
+verify_jwt = true
+
+[functions.rag-search]
+verify_jwt = true
