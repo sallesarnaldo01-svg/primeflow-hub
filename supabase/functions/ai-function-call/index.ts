@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,66 +11,69 @@ serve(async (req) => {
   }
 
   try {
-    const { toolId, parameters } = await req.json();
+    const { toolName, parameters, agentId } = await req.json();
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
-    );
-
-    // Buscar configuração da tool
-    const { data: tool, error: toolError } = await supabaseClient
-      .from("ai_tools")
-      .select("*")
-      .eq("id", toolId)
-      .single();
-
-    if (toolError || !tool) {
-      throw new Error("Tool não encontrada");
+    if (!LOVABLE_API_KEY) {
+      throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    console.log("Executing tool:", tool.name, "with parameters:", parameters);
+    console.log("Executing AI function call", { toolName, parameters });
 
-    // Executar chamada HTTP para o endpoint da tool
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-      ...(tool.headers || {}),
-    };
-
-    const fetchOptions: RequestInit = {
-      method: tool.method,
-      headers,
-    };
-
-    if (tool.method !== "GET") {
-      fetchOptions.body = JSON.stringify(parameters);
-    }
-
-    const response = await fetch(tool.endpoint, fetchOptions);
-    const result = await response.json();
-
-    console.log("Tool execution result:", result);
-
-    // Registrar execução
-    await supabaseClient.from("ai_tool_executions").insert({
-      tool_id: toolId,
-      parameters,
-      result,
-      success: response.ok,
-      executed_at: new Date().toISOString(),
+    // Chamar LLM para executar a função
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          {
+            role: "system",
+            content: `You are an AI assistant that executes function calls. Call the function ${toolName} with the provided parameters.`
+          },
+          {
+            role: "user",
+            content: JSON.stringify(parameters)
+          }
+        ],
+        tools: [
+          {
+            type: "function",
+            function: {
+              name: toolName,
+              description: `Execute ${toolName} with parameters`,
+              parameters: {
+                type: "object",
+                properties: parameters
+              }
+            }
+          }
+        ]
+      }),
     });
 
-    return new Response(JSON.stringify({ success: true, result }), {
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("AI gateway error:", response.status, errorText);
+      return new Response(JSON.stringify({ error: "Erro ao executar função" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const data = await response.json();
+    
+    return new Response(JSON.stringify({ result: data }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
     console.error("Error in ai-function-call:", e);
-    return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : "Erro ao executar function call" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Erro desconhecido" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });

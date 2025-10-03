@@ -15,17 +15,12 @@ export async function processFollowUpCadence(job: Job<FollowUpCadenceJob>) {
   try {
     logger.info('Processing follow-up cadence', { cadenceId, leadIds, stepIndex });
 
-    // Buscar a cadência
     const cadence = await prisma.followUpCadence.findFirst({
-      where: {
-        id: cadenceId,
-        tenantId,
-        active: true
-      }
+      where: { id: cadenceId, tenantId }
     });
 
     if (!cadence) {
-      throw new Error('Cadence not found or inactive');
+      throw new Error('Cadence not found');
     }
 
     const steps = cadence.steps as any[];
@@ -33,25 +28,17 @@ export async function processFollowUpCadence(job: Job<FollowUpCadenceJob>) {
 
     if (!currentStep) {
       logger.info('No more steps in cadence', { cadenceId, stepIndex });
-      return { success: true, message: 'Cadence completed' };
+      return { success: true, completed: true };
     }
 
-    // Para cada lead, processar o step atual
+    // Processar cada lead
     for (const leadId of leadIds) {
       try {
-        // TODO: Enviar mensagem via canal apropriado
-        // Por enquanto, apenas log
-        logger.info('Processing cadence step for lead', {
-          leadId,
-          step: currentStep.message,
-          delay: currentStep.delay
-        });
-
-        // Registrar evento na conversa
+        // Registrar evento
         await prisma.conversationEvent.create({
           data: {
             tenantId,
-            conversationId: leadId, // Usando leadId como conversationId por simplicidade
+            conversationId: leadId, // Usar leadId como conversationId por enquanto
             type: 'ai_action',
             actor: 'system',
             actorName: 'Follow-up Cadence',
@@ -59,34 +46,35 @@ export async function processFollowUpCadence(job: Job<FollowUpCadenceJob>) {
             metadata: {
               cadenceId,
               cadenceName: cadence.name,
-              stepIndex
+              stepIndex,
+              delay: currentStep.delay
             }
           }
         });
+
+        // TODO: Enviar mensagem real via WhatsApp/Facebook/Instagram
+        logger.info('Follow-up message queued', { leadId, stepIndex });
       } catch (error) {
-        logger.error('Failed to process step for lead', { error, leadId });
+        logger.error('Failed to process lead in cadence', { error, leadId });
       }
     }
 
-    // Se houver próximo step, agendar
-    if (stepIndex + 1 < steps.length) {
-      const nextStep = steps[stepIndex + 1];
-      const delayMs = nextStep.delay * 60 * 1000; // Converter minutos para ms
-
-      // TODO: Agendar próximo job com delay
-      logger.info('Next step scheduled', {
+    // Agendar próxima etapa se existir
+    const nextStepIndex = stepIndex + 1;
+    if (nextStepIndex < steps.length) {
+      const nextStep = steps[nextStepIndex];
+      logger.info('Scheduling next cadence step', {
         cadenceId,
-        nextStepIndex: stepIndex + 1,
-        delayMs
+        nextStepIndex,
+        delay: nextStep.delay
       });
+      // TODO: Agendar próximo job com delay
     }
-
-    logger.info('Follow-up cadence processed successfully', { cadenceId });
 
     return {
       success: true,
       processedLeads: leadIds.length,
-      nextStepIndex: stepIndex + 1 < steps.length ? stepIndex + 1 : null
+      nextStepIndex: nextStepIndex < steps.length ? nextStepIndex : null
     };
   } catch (error) {
     logger.error('Failed to process follow-up cadence', { error, cadenceId });

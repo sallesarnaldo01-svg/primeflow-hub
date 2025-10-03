@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,54 +11,66 @@ serve(async (req) => {
   }
 
   try {
-    const { query, agentId, limit = 5 } = await req.json();
+    const { query, agentId, topK = 5 } = await req.json();
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
-    );
-
-    console.log("RAG search for query:", query);
-
-    // Buscar documentos relevantes (por enquanto busca simples por texto)
-    let dbQuery = supabaseClient
-      .from("knowledge_documents")
-      .select("*")
-      .or(`name.ilike.%${query}%,content.ilike.%${query}%`)
-      .limit(limit);
-
-    if (agentId) {
-      dbQuery = dbQuery.eq("agent_id", agentId);
+    if (!LOVABLE_API_KEY) {
+      throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const { data: documents, error } = await dbQuery;
+    console.log("Performing RAG search", { query, agentId, topK });
 
-    if (error) {
-      throw error;
-    }
-
-    console.log("Found", documents?.length || 0, "relevant documents");
-
-    // TODO: Implementar busca semântica com embeddings
-    // Por enquanto retorna busca por texto simples
-
-    return new Response(
-      JSON.stringify({
-        results: documents || [],
-        query,
+    // TODO: Implementar busca vetorial real
+    // Por enquanto, retorna mock
+    
+    // 1. Gerar embedding da query
+    const embeddingResponse = await fetch("https://ai.gateway.lovable.dev/v1/embeddings", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        input: query
       }),
+    });
+
+    if (!embeddingResponse.ok) {
+      throw new Error("Failed to generate embedding");
+    }
+
+    const embeddingData = await embeddingResponse.json();
+    
+    // 2. Buscar documentos similares
+    // TODO: Implementar busca vetorial no banco de dados
+    const mockResults = [
       {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        id: "doc1",
+        content: "Conteúdo relevante do documento 1...",
+        score: 0.92,
+        metadata: { source: "manual.pdf", page: 1 }
+      },
+      {
+        id: "doc2",
+        content: "Conteúdo relevante do documento 2...",
+        score: 0.87,
+        metadata: { source: "faq.docx", page: 3 }
       }
-    );
+    ];
+
+    return new Response(JSON.stringify({
+      results: mockResults.slice(0, topK),
+      query,
+      embedding: embeddingData
+    }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (e) {
     console.error("Error in rag-search:", e);
-    return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : "Erro na busca RAG" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Erro desconhecido" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });

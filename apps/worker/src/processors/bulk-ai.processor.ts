@@ -6,51 +6,37 @@ interface BulkAIJob {
   tenantId: string;
   leadIds: string[];
   prompt: string;
-  agentId: string;
+  agentId?: string;
 }
 
 export async function processBulkAI(job: Job<BulkAIJob>) {
   const { tenantId, leadIds, prompt, agentId } = job.data;
 
   try {
-    logger.info('Processing bulk AI action', { leadIds: leadIds.length, agentId });
+    logger.info('Processing bulk AI action', { tenantId, leadCount: leadIds.length });
 
-    // Buscar o agente
-    const agent = await prisma.aIAgent.findFirst({
-      where: {
-        id: agentId,
-        tenantId,
-        active: true
-      },
-      include: {
-        provider: true
-      }
-    });
-
-    if (!agent) {
-      throw new Error('Agent not found or inactive');
-    }
+    // Buscar agente de IA se especificado
+    const agent = agentId ? await prisma.aIProvider.findFirst({
+      where: { id: agentId, tenantId }
+    }) : null;
 
     const results = [];
 
-    // Processar cada lead
     for (const leadId of leadIds) {
       try {
         // TODO: Buscar contexto do lead (histórico, dados)
         const leadContext = {
-          leadId,
-          // Adicionar dados do lead aqui
+          id: leadId,
+          // Buscar dados do lead do banco
         };
 
-        // TODO: Chamar o LLM com prompt + contexto
-        const llmResponse = {
-          success: true,
+        // TODO: Chamar LLM com prompt + contexto
+        // Por enquanto, mock
+        const mockResponse = {
           action: 'send_message',
-          message: `Processado com IA: ${prompt}`
+          message: `Resposta automática para lead ${leadId}`,
+          updateStatus: 'qualified'
         };
-
-        // Executar a ação retornada
-        logger.info('AI action executed for lead', { leadId, action: llmResponse.action });
 
         // Registrar evento
         await prisma.conversationEvent.create({
@@ -59,22 +45,25 @@ export async function processBulkAI(job: Job<BulkAIJob>) {
             conversationId: leadId,
             type: 'ai_action',
             actor: 'ai_agent',
-            actorId: agentId,
-            actorName: agent.name,
-            content: llmResponse.message,
+            actorName: agent?.name || 'Bulk AI',
+            content: mockResponse.message,
             metadata: {
               bulkAction: true,
-              originalPrompt: prompt
+              prompt,
+              response: mockResponse
             }
           }
         });
 
         results.push({
           leadId,
-          success: true
+          success: true,
+          action: mockResponse.action
         });
+
+        logger.info('Bulk AI processed lead', { leadId });
       } catch (error) {
-        logger.error('Failed to process lead in bulk action', { error, leadId });
+        logger.error('Failed to process lead in bulk AI', { error, leadId });
         results.push({
           leadId,
           success: false,
@@ -83,13 +72,12 @@ export async function processBulkAI(job: Job<BulkAIJob>) {
       }
     }
 
-    logger.info('Bulk AI action completed', { totalProcessed: results.length });
-
     return {
       success: true,
-      results,
+      totalLeads: leadIds.length,
       successCount: results.filter(r => r.success).length,
-      failureCount: results.filter(r => !r.success).length
+      failureCount: results.filter(r => !r.success).length,
+      results
     };
   } catch (error) {
     logger.error('Failed to process bulk AI action', { error });
