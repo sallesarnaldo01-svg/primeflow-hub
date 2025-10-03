@@ -27,12 +27,12 @@ interface CreateBacklogItemDialogProps {
 export function CreateBacklogItemDialog({ onCreateItem }: CreateBacklogItemDialogProps) {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
-    type: 'story' as BacklogItem['type'],
+    type: 'STORY' as BacklogItem['type'],
     title: '',
     description: '',
     points: 0,
-    priority: 'medium' as BacklogItem['priority'],
-    status: 'todo' as BacklogItem['status'],
+    priority: 'MEDIUM' as BacklogItem['priority'],
+    status: 'TODO' as BacklogItem['status'],
     assignee: '',
     epic: '',
   });
@@ -43,12 +43,12 @@ export function CreateBacklogItemDialog({ onCreateItem }: CreateBacklogItemDialo
 
     onCreateItem(formData);
     setFormData({
-      type: 'story',
+      type: 'STORY',
       title: '',
       description: '',
       points: 0,
-      priority: 'medium',
-      status: 'todo',
+      priority: 'MEDIUM',
+      status: 'TODO',
       assignee: '',
       epic: '',
     });
@@ -81,9 +81,9 @@ export function CreateBacklogItemDialog({ onCreateItem }: CreateBacklogItemDialo
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="story">História</SelectItem>
-                  <SelectItem value="bug">Bug</SelectItem>
-                  <SelectItem value="task">Tarefa</SelectItem>
+                  <SelectItem value="STORY">História</SelectItem>
+                  <SelectItem value="BUG">Bug</SelectItem>
+                  <SelectItem value="TASK">Tarefa</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -100,9 +100,9 @@ export function CreateBacklogItemDialog({ onCreateItem }: CreateBacklogItemDialo
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="high">Alta</SelectItem>
-                  <SelectItem value="medium">Média</SelectItem>
-                  <SelectItem value="low">Baixa</SelectItem>
+                  <SelectItem value="HIGH">Alta</SelectItem>
+                  <SelectItem value="MEDIUM">Média</SelectItem>
+                  <SelectItem value="LOW">Baixa</SelectItem>
                 </SelectContent>
               </Select>
             </div>

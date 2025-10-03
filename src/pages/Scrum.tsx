@@ -18,13 +18,16 @@ import { BurndownChart } from '@/components/scrum/BurndownChart';
 import { VelocityChart } from '@/components/scrum/VelocityChart';
 import { SprintBoard } from '@/components/scrum/SprintBoard';
 
+// TODO: Substituir por seleção de equipe real
+const DEFAULT_TEAM_ID = 'default-team-id';
+
 const getTypeColor = (type: string) => {
   switch (type) {
-    case 'story':
+    case 'STORY':
       return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
-    case 'bug':
+    case 'BUG':
       return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
-    case 'task':
+    case 'TASK':
       return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
     default:
       return 'bg-muted';
@@ -101,7 +104,10 @@ export default function Scrum() {
             </p>
           </div>
           <div className="flex items-center space-x-2">
-            <CreateSprintDialog onCreateSprint={(data) => createSprint.mutate(data)} />
+            <CreateSprintDialog 
+              teamId={DEFAULT_TEAM_ID}
+              onCreateSprint={(data) => createSprint.mutate(data)} 
+            />
             <CreateBacklogItemDialog onCreateItem={(data) => createBacklogItem.mutate(data)} />
           </div>
         </div>
@@ -255,14 +261,14 @@ export default function Scrum() {
                         <div>
                           <h4 className="font-semibold">{ceremony.name}</h4>
                           <p className="text-sm text-muted-foreground">
-                            {new Date(ceremony.nextDate).toLocaleString('pt-BR')}
+                            {new Date(ceremony.scheduledAt).toLocaleString('pt-BR')}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center space-x-4">
                         <div className="text-right text-sm text-muted-foreground">
-                          <p>{ceremony.duration}</p>
-                          <p>{ceremony.participants} participantes</p>
+                          <p>{ceremony.duration} min</p>
+                          <p>{ceremony.participants.length} participantes</p>
                         </div>
                         <Button variant="outline" size="sm">
                           <Play className="h-4 w-4 mr-2" />

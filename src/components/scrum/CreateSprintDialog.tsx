@@ -13,32 +13,34 @@ import { Calendar } from 'lucide-react';
 import { Sprint } from '@/hooks/useScrum';
 
 interface CreateSprintDialogProps {
-  onCreateSprint: (sprint: Omit<Sprint, 'id'>) => void;
+  teamId: string;
+  onCreateSprint: (sprint: Omit<Sprint, 'id' | 'completedStoryPoints'>) => void;
 }
 
-export function CreateSprintDialog({ onCreateSprint }: CreateSprintDialogProps) {
+export function CreateSprintDialog({ teamId, onCreateSprint }: CreateSprintDialogProps) {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     startDate: '',
     endDate: '',
     totalStoryPoints: 0,
-    completedStoryPoints: 0,
-    status: 'planned' as Sprint['status'],
+    status: 'PLANNED' as Sprint['status'],
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim() || !formData.startDate || !formData.endDate) return;
 
-    onCreateSprint(formData);
+    onCreateSprint({
+      ...formData,
+      teamId
+    });
     setFormData({
       name: '',
       startDate: '',
       endDate: '',
       totalStoryPoints: 0,
-      completedStoryPoints: 0,
-      status: 'planned',
+      status: 'PLANNED',
     });
     setOpen(false);
   };

@@ -19,11 +19,11 @@ interface SprintBoardProps {
 
 const getTypeColor = (type: string) => {
   switch (type) {
-    case 'story':
+    case 'STORY':
       return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
-    case 'bug':
+    case 'BUG':
       return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
-    case 'task':
+    case 'TASK':
       return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
     default:
       return 'bg-muted';
@@ -31,9 +31,9 @@ const getTypeColor = (type: string) => {
 };
 
 const columns: { id: BacklogItem['status']; title: string; bgClass: string }[] = [
-  { id: 'todo', title: 'A Fazer', bgClass: '' },
-  { id: 'in-progress', title: 'Em Progresso', bgClass: 'bg-blue-50 dark:bg-blue-950' },
-  { id: 'done', title: 'Concluído', bgClass: 'bg-green-50 dark:bg-green-950' },
+  { id: 'TODO', title: 'A Fazer', bgClass: '' },
+  { id: 'IN_PROGRESS', title: 'Em Progresso', bgClass: 'bg-blue-50 dark:bg-blue-950' },
+  { id: 'DONE', title: 'Concluído', bgClass: 'bg-green-50 dark:bg-green-950' },
 ];
 
 export function SprintBoard({ items, onMoveItem }: SprintBoardProps) {

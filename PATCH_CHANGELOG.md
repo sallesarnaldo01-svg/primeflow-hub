@@ -1,5 +1,128 @@
 # PrimeZapAI Frontend Patch - Changelog
 
+## Versão 2.5.0 - Sistema Scrum Completo + Facebook + Instagram (2025-01-XX)
+
+### ✅ Scrum Completo com Backend Real
+
+#### Database (Prisma)
+- ✅ 8 novos modelos: ScrumTeam, TeamMember, Sprint, BacklogItem, Ceremony, VideoCall
+- ✅ Enums: BacklogItemType, Priority, BacklogStatus, SprintStatus, CeremonyType, CeremonyStatus
+- ✅ Relações completas entre modelos
+
+#### Backend API
+- ✅ `scrum.controller.ts`: CRUD completo para Teams, Sprints, Backlog, Ceremonies
+- ✅ `video-call.controller.ts`: Gerenciamento de salas Jitsi
+- ✅ Routes: `/api/scrum/*`, `/api/video-call/*`
+- ✅ WebSocket events para real-time
+
+#### Frontend Scrum
+- ✅ Hook `useScrum` conectado à API real (não mock)
+- ✅ `VideoCallDialog`: Integração com Jitsi Meet
+- ✅ Enums uppercase (STORY, BUG, TASK, HIGH, MEDIUM, LOW, TODO, IN_PROGRESS, DONE)
+- ✅ SprintBoard com drag-and-drop real
+
+### 📱 Facebook Messenger Integration
+
+#### Backend
+- ✅ `facebook.controller.ts`: Initiate, pages, bulk, status, disconnect
+- ✅ Routes: `/api/facebook/*`
+- ✅ Redis Pub/Sub: `facebook:connect`, `facebook:disconnect`
+
+#### Worker
+- ✅ `facebook.provider.ts`: Login via facebook-chat-api (não oficial)
+- ✅ `facebook-mass.queue.ts`: Disparo em massa com delay + jitter anti-ban
+- ✅ Recebimento de mensagens em tempo real
+- ✅ Logging de mensagens no banco
+
+#### Frontend
+- ✅ `FacebookConnectDialog`: Login com email/senha
+- ✅ Serviço: `facebook.ts` com métodos completos
+- ✅ Status em tempo real
+
+### 📸 Instagram Integration
+
+#### Backend
+- ✅ `instagram.controller.ts`: Initiate, accounts, bulk, status, disconnect
+- ✅ Routes: `/api/instagram/*`
+- ✅ Redis Pub/Sub: `instagram:connect`, `instagram:disconnect`
+
+#### Worker
+- ✅ `instagram.provider.ts`: Login via instagram-private-api
+- ✅ `instagram-mass.queue.ts`: Disparo de DMs em massa com anti-ban
+- ✅ Detecção de username para envio
+- ✅ Logging de mensagens
+
+#### Frontend
+- ✅ `InstagramConnectDialog`: Login com username/senha
+- ✅ Serviço: `instagram.ts` com métodos completos
+- ✅ Status em tempo real
+
+### 🎥 Sistema de Vídeo Chamadas
+
+- ✅ Integração com Jitsi Meet
+- ✅ JWT tokens para salas seguras
+- ✅ Registro de participantes e duração
+- ✅ `VideoCallDialog`: UI moderna para chamadas
+- ✅ Deep link para abrir Jitsi em nova aba
+
+### 🔧 Melhorias Técnicas
+
+#### Novos Arquivos Backend
+- `apps/api/src/controllers/scrum.controller.ts`
+- `apps/api/src/controllers/video-call.controller.ts`
+- `apps/api/src/controllers/facebook.controller.ts`
+- `apps/api/src/controllers/instagram.controller.ts`
+- `apps/api/src/routes/scrum.routes.ts`
+- `apps/api/src/routes/video-call.routes.ts`
+- `apps/api/src/routes/facebook.routes.ts`
+- `apps/api/src/routes/instagram.routes.ts`
+
+#### Novos Arquivos Worker
+- `apps/worker/src/providers/facebook/facebook.provider.ts`
+- `apps/worker/src/providers/instagram/instagram.provider.ts`
+- `apps/worker/src/queues/facebook-mass.queue.ts`
+- `apps/worker/src/queues/instagram-mass.queue.ts`
+
+#### Novos Arquivos Frontend
+- `src/services/scrum.ts`
+- `src/services/videoCall.ts`
+- `src/services/facebook.ts`
+- `src/services/instagram.ts`
+- `src/components/scrum/VideoCallDialog.tsx`
+- `src/components/integrations/FacebookConnectDialog.tsx`
+- `src/components/integrations/InstagramConnectDialog.tsx`
+- `src/hooks/useScrum.ts` (refatorado para usar API real)
+
+### 📦 Dependências Adicionadas
+
+```json
+{
+  "@jitsi/react-sdk": "^1.3.0",
+  "facebook-chat-api": "^1.7.0",
+  "instagram-private-api": "^1.45.0"
+}
+```
+
+### 🚀 Features Implementadas
+
+- [x] Scrum completo funcional com backend
+- [x] Facebook Messenger (não oficial)
+- [x] Instagram DMs (não oficial)
+- [x] Vídeo chamadas com Jitsi
+- [x] Disparo em massa multi-canal
+- [x] Anti-ban com jitter configurável
+- [x] Real-time via WebSocket
+- [x] Logging de todas as mensagens
+
+### ⚠️ Notas Importantes
+
+1. **APIs Não Oficiais**: Facebook e Instagram usam bibliotecas não oficiais que podem quebrar com atualizações
+2. **Anti-Ban**: Delay e jitter são essenciais para evitar bloqueios
+3. **Credenciais**: Senhas são codificadas em Base64 (usar criptografia real em produção)
+4. **Jitsi**: Usando jitsi.org público (considerar self-hosted em produção)
+
+---
+
 ## Versão 2.4.0 - WhatsApp Integration com Venom Bot
 
 ### ✅ Nova Funcionalidade: WhatsApp via QR Code e Disparo em Massa
