@@ -48,6 +48,10 @@ import aiProvidersRoutes from './routes/ai-providers.routes.js';
 import aiToolsRoutes from './routes/ai-tools.routes.js';
 import knowledgeRoutes from './routes/knowledge.routes.js';
 import productsRoutes from './routes/products.routes.js';
+import followupCadenceRoutes from './routes/followup-cadence.routes.js';
+import customFieldsRoutes from './routes/custom-fields.routes.js';
+import aiUsageRoutes from './routes/ai-usage.routes.js';
+import conversationEventsRoutes from './routes/conversation-events.routes.js';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/flows', flowsRoutes);
@@ -63,7 +67,11 @@ app.use('/api/instagram', instagramRoutes);
 app.use('/api/ai', aiProvidersRoutes);
 app.use('/api/ai/tools', aiToolsRoutes);
 app.use('/api/ai/knowledge', knowledgeRoutes);
+app.use('/api/ai/cadences', followupCadenceRoutes);
+app.use('/api/ai/usage', aiUsageRoutes);
+app.use('/api/custom-fields', customFieldsRoutes);
 app.use('/api/products', productsRoutes);
+app.use('/api/conversations', conversationEventsRoutes);
 
 // Error handler
 app.use(errorHandler);
