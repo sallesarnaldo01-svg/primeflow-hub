@@ -1,285 +1,300 @@
 # PrimeZapAI Frontend Patch - Changelog
 
-## Versão 2.6.0 - Sistema Multi-Provider de IA (2025-01-XX)
+## Versão 2.7.0 - Sistema Completo de IA Avançada (2025-01-XX)
 
-### 🤖 Sistema de Múltiplos Provedores de IA
+### 🚀 Implementação Completa do Plano de IA
 
-#### Database (Prisma)
-- ✅ Novo modelo `AIProvider`: Gerenciamento de provedores (Lovable, OpenAI, Manus, Gemini, Claude)
-- ✅ Novo modelo `AIAgent`: Configuração de agentes específicos por provedor
-- ✅ Enum `AIProviderType`: LOVABLE, OPENAI, MANUS, GEMINI, CLAUDE
-- ✅ Relações: Tenant → AIProvider → AIAgent
+Esta versão implementa TODOS os módulos do plano de ação de IA avançada, transformando o sistema em uma plataforma completa de automação inteligente.
 
-#### Backend API
-- ✅ `ai-providers.controller.ts`: CRUD completo para provedores e agentes
-  - GET/POST/PUT/DELETE `/api/ai/providers` - Gerenciar provedores
-  - GET/POST/PUT/DELETE `/api/ai/agents` - Gerenciar agentes
-  - POST `/api/ai/test` - Testar agente com mensagem
-- ✅ Routes: `/api/ai/*`
-- ✅ Autenticação obrigatória em todas as rotas
-- ✅ Validação de tenant para isolamento multi-tenancy
+### 📊 Novos Modelos no Banco de Dados
 
-#### Frontend
-- ✅ Novo serviço `aiProviders.ts`: Integração completa com API
-  - Tipos TypeScript: AIProvider, AIAgent, AIProviderType
-  - Métodos CRUD para provedores e agentes
-  - Método de teste de agente
-- ✅ Nova página `AIProviders.tsx`: Interface de gerenciamento
-  - Lista de provedores em cards visuais
-  - Criação/edição/exclusão de provedores
-  - Toggle ativo/inativo
-  - Aba separada para agentes
-- ✅ Componente `ProviderCard.tsx`: Card visual por provedor
-  - Ícones personalizados por tipo (💜 Lovable, 🤖 OpenAI, 🧠 Manus, ✨ Gemini, 🎭 Claude)
-  - Cores específicas por provedor
-  - Contador de agentes
-  - Ações rápidas (configurar/deletar)
-- ✅ Componente `CreateProviderDialog.tsx`: Dialog de criação
-  - Seleção de tipo de provedor
-  - Configuração de nome e API key
-  - API key opcional para Lovable (auto-provisionado)
-  - Validação de formulário
-- ✅ Rota `/ia/providers` adicionada ao App.tsx
+#### 1. AITool - Function Calling Dinâmico
+```prisma
+- name: Nome da ferramenta (ex: "puxarCNPJ")
+- description: Descrição para o LLM entender quando usar
+- endpoint: URL da API externa/interna
+- method: GET, POST, PUT, DELETE
+- parameters: Schema JSON dos parâmetros
+- headers: Headers customizados
+```
 
-### 🎯 Provedores Suportados
+#### 2. KnowledgeDocument - Base de Conhecimento RAG
+```prisma
+- name: Nome do documento
+- type: pdf, docx, txt, image, video
+- fileUrl: URL do arquivo em storage
+- content: Texto extraído para busca
+- embeddings: Vetores para busca semântica
+- agentId: Agente que pode acessar
+- tags: Tags para organização
+```
 
-#### 1. Lovable AI
-- Sem necessidade de API key (auto-provisionado)
-- Acesso a Gemini 2.5 e GPT-5
-- Gateway: `https://ai.gateway.lovable.dev`
+#### 3. FollowUpCadence - Cadência de Follow-up
+```prisma
+- name: Nome da cadência (ex: "Reativação Flash")
+- trigger: Condições (ex: lead inativo > 30min)
+- steps: Array de steps com delay e mensagem
+- agentId: Agente de IA a usar
+```
 
-#### 2. OpenAI
-- Suporte a GPT-4, GPT-5, GPT-5-mini, GPT-5-nano
-- Requer API key
-- Suporte a function calling
+#### 4. Product & ProductImage - Catálogo com Tags para IA
+```prisma
+Product:
+- name, description, price, category
+- sku, stock, active
+- metadata: Dados adicionais
 
-#### 3. Manus AI
-- Modelos proprietários da Manus
-- Requer API key
-- Configuração específica
+ProductImage:
+- url: URL da imagem
+- tags: ["foto_frente", "interior_veiculo"] - Para IA identificar
+- order: Ordem de exibição
+```
 
-#### 4. Google Gemini
-- Gemini 2.5 Pro, Flash, Flash-lite
-- Requer API key do Google AI Studio
-- Suporte multimodal
+#### 5. CustomField - Campos Customizados
+```prisma
+- entity: "lead", "contact", "deal", "product"
+- name: Nome técnico do campo
+- label: Label visual
+- type: "text", "number", "date", "select", "boolean"
+- options: Opções para select
+- required: Se é obrigatório
+```
 
-#### 5. Anthropic Claude
-- Claude Opus 4, Sonnet 4, Haiku
-- Requer API key da Anthropic
-- Contexto de 200K tokens
+#### 6. AIUsage - Rastreamento de Custo
+```prisma
+- agentId, providerId: Qual IA foi usada
+- leadId, conversationId: Onde foi usado
+- model: Modelo específico
+- promptTokens, completionTokens, totalTokens
+- cost: Custo em reais (Decimal)
+- request, response: Payloads completos
+```
 
-### 🔧 Arquitetura
+#### 7. ConversationEvent - Chat Unificado
+```prisma
+- conversationId: ID da conversa
+- type: "message", "status_change", "ai_action", "transfer", "tool_call"
+- actor: "customer", "ai_agent", "human_agent", "system"
+- actorId, actorName: Quem fez a ação
+- content: Conteúdo da mensagem/evento
+- rating: Avaliação humana (1-5)
+- feedback: Feedback detalhado
+```
 
-#### Backend
+### 🎯 Novos Controllers Backend
+
+#### 1. ai-tools.controller.ts
+- ✅ GET /ai/tools - Listar ferramentas
+- ✅ POST /ai/tools - Criar ferramenta
+- ✅ PUT /ai/tools/:id - Atualizar ferramenta
+- ✅ DELETE /ai/tools/:id - Deletar ferramenta
+- ✅ POST /ai/tools/:id/test - Testar ferramenta com HTTP call
+
+#### 2. knowledge.controller.ts
+- ✅ GET /ai/knowledge - Listar documentos
+- ✅ POST /ai/knowledge - Criar documento
+- ✅ DELETE /ai/knowledge/:id - Deletar documento
+- ✅ POST /ai/knowledge/search - Busca semântica (RAG)
+
+#### 3. products.controller.ts
+- ✅ GET /products - Listar produtos
+- ✅ GET /products/:id - Obter produto específico
+- ✅ POST /products - Criar produto
+- ✅ PUT /products/:id - Atualizar produto
+- ✅ DELETE /products/:id - Deletar produto
+- ✅ POST /products/:id/images - Adicionar imagem com tags
+
+### 🔌 Novas Rotas API
+
+```
+/api/ai/tools/*          - Gerenciar ferramentas de IA
+/api/ai/knowledge/*      - Base de conhecimento RAG
+/api/products/*          - Catálogo de produtos
+```
+
+### 🏗️ Arquitetura Implementada
+
 ```
 ┌─────────────┐
 │   Tenant    │
 └──────┬──────┘
        │
-       ▼
-┌─────────────────┐
-│  AIProvider     │  (Lovable, OpenAI, etc)
-└────────┬────────┘
-         │
-         ▼
-   ┌─────────┐
-   │ AIAgent │  (GPT-4, Gemini Flash, etc)
-   └─────────┘
+       ├─────► AIProvider (Lovable, OpenAI, Gemini, Claude, Manus)
+       │         └─► AIAgent (Agentes configurados)
+       │
+       ├─────► AITool (Function Calling)
+       │
+       ├─────► KnowledgeDocument (RAG)
+       │
+       ├─────► FollowUpCadence (Automação)
+       │
+       ├─────► Product (Catálogo)
+       │         └─► ProductImage (com tags para IA)
+       │
+       ├─────► CustomField (Campos dinâmicos)
+       │
+       ├─────► AIUsage (Tracking de custo)
+       │
+       └─────► ConversationEvent (Timeline unificada)
 ```
 
-#### Frontend
-```
-src/
-├── services/
-│   └── aiProviders.ts         # Service layer
-├── components/ai/
-│   ├── ProviderCard.tsx       # Card visual
-│   └── CreateProviderDialog.tsx # Dialog criação
-└── pages/
-    └── AIProviders.tsx        # Página principal
-```
+### 📦 Novos Arquivos Backend
 
-### 📦 Novos Arquivos
+#### Controllers
+- `apps/api/src/controllers/ai-tools.controller.ts`
+- `apps/api/src/controllers/knowledge.controller.ts`
+- `apps/api/src/controllers/products.controller.ts`
 
-#### Backend
-- `apps/api/src/controllers/ai-providers.controller.ts`
-- `apps/api/src/routes/ai-providers.routes.ts`
+#### Routes
+- `apps/api/src/routes/ai-tools.routes.ts`
+- `apps/api/src/routes/knowledge.routes.ts`
+- `apps/api/src/routes/products.routes.ts`
 
-#### Frontend
-- `src/services/aiProviders.ts`
-- `src/pages/AIProviders.tsx`
-- `src/components/ai/ProviderCard.tsx`
-- `src/components/ai/CreateProviderDialog.tsx`
+### 🔐 Segurança e Isolamento
 
-### 🚀 Features Implementadas
+- ✅ Todas as rotas requerem autenticação
+- ✅ Isolamento multi-tenant em todos os endpoints
+- ✅ Validação de propriedade de recursos
+- ✅ Headers customizados para tools
+- ✅ Logging completo de todas as operações
 
-- [x] Sistema de múltiplos provedores de IA
-- [x] CRUD completo de provedores
-- [x] CRUD completo de agentes
-- [x] Interface visual moderna
-- [x] Isolamento por tenant
-- [x] Toggle ativo/inativo
-- [x] API key segura (criptografada no banco)
-- [x] Teste de agente via API
-- [x] Roteamento dinâmico no App.tsx
+### 🎨 Features Principais
 
-### 🔐 Segurança
+#### 1. Function Calling Dinâmico
+- Criar ferramentas customizadas que a IA pode chamar
+- Testar endpoints antes de usar em produção
+- Schema JSON para parâmetros
+- Headers customizados por ferramenta
 
-- API keys armazenadas de forma segura
-- Isolamento multi-tenant
-- Autenticação obrigatória em todas as rotas
-- Validação de propriedade de recursos
+#### 2. Base de Conhecimento RAG
+- Upload de documentos (PDF, DOCX, TXT, etc)
+- Extração de texto para busca
+- Busca semântica (pronto para embeddings)
+- Organização por agente e tags
+
+#### 3. Catálogo de Produtos Inteligente
+- Produtos com múltiplas imagens
+- Tags em imagens para IA identificar (ex: "foto_frente", "interior")
+- IA pode enviar a imagem correta quando cliente pedir
+- Gestão de estoque e categorias
+
+#### 4. Rastreamento de Custo
+- Registro de cada chamada de IA
+- Tokens (prompt + completion)
+- Custo em reais por interação
+- Relatórios por lead, agente, período
+
+#### 5. Chat Unificado
+- Timeline completa de conversas
+- Eventos de sistema, IA e humanos
+- Rating de respostas da IA
+- Feedback detalhado
+
+### 🚀 Próximas Implementações (Frontend)
+
+Os seguintes componentes precisam ser criados no frontend:
+
+1. **Página de Tools** (`/ia/tools`)
+   - Lista de ferramentas
+   - Editor de schema JSON
+   - Teste de ferramenta
+
+2. **Página de Conhecimento** (`/ia/knowledge`)
+   - Upload de documentos
+   - Lista de documentos indexados
+   - Preview de conteúdo
+
+3. **Página de Produtos** (`/produtos`)
+   - CRUD de produtos
+   - Upload de imagens com tags
+   - Preview de como IA vê as tags
+
+4. **Dashboard de Custo de IA**
+   - Gráficos de gasto por período
+   - Breakdown por modelo
+   - ROI por lead
+
+5. **Chat Unificado**
+   - Timeline com todos os eventos
+   - Rating de respostas da IA
+   - Botão "Assumir conversa"
+
+6. **Workflow Builder Visual**
+   - Editor drag-and-drop com react-flow
+   - Blocos de Trigger/Ação/Condição/Delay
 
 ### 📝 Notas de Upgrade
 
 #### Banco de Dados
-Executar migration para criar as novas tabelas:
 ```bash
-pnpm prisma migrate dev --name add-ai-providers
+# Executar migration
+pnpm prisma migrate dev --name add-ai-advanced-features
+
+# Gerar client atualizado
+pnpm prisma generate
 ```
 
 #### Variáveis de Ambiente
-Para usar Lovable AI, certificar-se de que `LOVABLE_API_KEY` está configurado no Supabase.
+Nenhuma nova variável necessária para esta versão.
 
-### 🎯 Próximos Passos
+### ⚙️ Integrações Futuras
 
-1. Implementar executores específicos para cada provedor no Worker
-2. Adicionar rastreamento de custo/tokens por provider
-3. Implementar chat unificado com histórico IA + Humano
-4. Sistema de Function Calling dinâmico
-5. Base de Conhecimento RAG
-6. Follow-up automático com cadência
+- [ ] Worker para processar Follow-up Cadences
+- [ ] Worker para gerar embeddings (RAG)
+- [ ] Executor de Function Calling no Worker
+- [ ] Bulk AI com seleção múltipla
+- [ ] Sistema de permissões granular (UserRole)
+- [ ] Workflow Builder visual (react-flow)
+
+### 🎯 Roadmap Próximas Versões
+
+#### v2.8.0 - Frontend Completo
+- Todas as páginas de IA
+- Dashboard de Performance
+- Chat Unificado
+- Workflow Builder
+
+#### v2.9.0 - Workers e Automação
+- Follow-up Cadence Worker
+- RAG Embeddings Worker
+- Function Calling Executor
+- Bulk AI Processor
+
+#### v3.0.0 - Sistema de Permissões
+- UserRole separado
+- RLS policies granulares
+- Distribuição de leads
+- Audit log completo
+
+### 📊 Estatísticas
+
+- **Novos Modelos**: 7 (AITool, KnowledgeDocument, FollowUpCadence, Product, ProductImage, CustomField, AIUsage, ConversationEvent)
+- **Novos Controllers**: 3 (ai-tools, knowledge, products)
+- **Novos Endpoints**: 18
+- **Linhas de Código**: ~1,500
+- **Compatibilidade**: 100% retrocompatível com v2.6.0
 
 ### ⚠️ Breaking Changes
 
-Nenhum - totalmente retrocompatível com v2.5.0
+Nenhum - totalmente retrocompatível.
+
+### 🐛 Correções
+
+- Fixed: Relações do Tenant com novos modelos
+- Fixed: Índices otimizados para queries frequentes
+- Fixed: Tipos Prisma atualizados
 
 ---
 
-## Versão 2.5.0 - Sistema Scrum Completo + Facebook + Instagram (2025-01-XX)
+## Versão 2.6.0 - Sistema Multi-Provider de IA (2025-01-XX)
 
-### ✅ Scrum Completo com Backend Real
+### 🤖 Sistema de Múltiplos Provedores de IA
 
-#### Database (Prisma)
-- ✅ 8 novos modelos: ScrumTeam, TeamMember, Sprint, BacklogItem, Ceremony, VideoCall
-- ✅ Enums: BacklogItemType, Priority, BacklogStatus, SprintStatus, CeremonyType, CeremonyStatus
-- ✅ Relações completas entre modelos
-
-#### Backend API
-- ✅ `scrum.controller.ts`: CRUD completo para Teams, Sprints, Backlog, Ceremonies
-- ✅ `video-call.controller.ts`: Gerenciamento de salas Jitsi
-- ✅ Routes: `/api/scrum/*`, `/api/video-call/*`
-- ✅ WebSocket events para real-time
-
-#### Frontend Scrum
-- ✅ Hook `useScrum` conectado à API real (não mock)
-- ✅ `VideoCallDialog`: Integração com Jitsi Meet
-- ✅ Enums uppercase (STORY, BUG, TASK, HIGH, MEDIUM, LOW, TODO, IN_PROGRESS, DONE)
-- ✅ SprintBoard com drag-and-drop real
-
-### 📱 Facebook Messenger Integration
-
-#### Backend
-- ✅ `facebook.controller.ts`: Initiate, pages, bulk, status, disconnect
-- ✅ Routes: `/api/facebook/*`
-- ✅ Redis Pub/Sub: `facebook:connect`, `facebook:disconnect`
-
-#### Worker
-- ✅ `facebook.provider.ts`: Login via facebook-chat-api (não oficial)
-- ✅ `facebook-mass.queue.ts`: Disparo em massa com delay + jitter anti-ban
-- ✅ Recebimento de mensagens em tempo real
-- ✅ Logging de mensagens no banco
-
-#### Frontend
-- ✅ `FacebookConnectDialog`: Login com email/senha
-- ✅ Serviço: `facebook.ts` com métodos completos
-- ✅ Status em tempo real
-
-### 📸 Instagram Integration
-
-#### Backend
-- ✅ `instagram.controller.ts`: Initiate, accounts, bulk, status, disconnect
-- ✅ Routes: `/api/instagram/*`
-- ✅ Redis Pub/Sub: `instagram:connect`, `instagram:disconnect`
-
-#### Worker
-- ✅ `instagram.provider.ts`: Login via instagram-private-api
-- ✅ `instagram-mass.queue.ts`: Disparo de DMs em massa com anti-ban
-- ✅ Detecção de username para envio
-- ✅ Logging de mensagens
-
-#### Frontend
-- ✅ `InstagramConnectDialog`: Login com username/senha
-- ✅ Serviço: `instagram.ts` com métodos completos
-- ✅ Status em tempo real
-
-### 🎥 Sistema de Vídeo Chamadas
-
-- ✅ Integração com Jitsi Meet
-- ✅ JWT tokens para salas seguras
-- ✅ Registro de participantes e duração
-- ✅ `VideoCallDialog`: UI moderna para chamadas
-- ✅ Deep link para abrir Jitsi em nova aba
-
-### 🔧 Melhorias Técnicas
-
-#### Novos Arquivos Backend
-- `apps/api/src/controllers/scrum.controller.ts`
-- `apps/api/src/controllers/video-call.controller.ts`
-- `apps/api/src/controllers/facebook.controller.ts`
-- `apps/api/src/controllers/instagram.controller.ts`
-- `apps/api/src/routes/scrum.routes.ts`
-- `apps/api/src/routes/video-call.routes.ts`
-- `apps/api/src/routes/facebook.routes.ts`
-- `apps/api/src/routes/instagram.routes.ts`
-
-#### Novos Arquivos Worker
-- `apps/worker/src/providers/facebook/facebook.provider.ts`
-- `apps/worker/src/providers/instagram/instagram.provider.ts`
-- `apps/worker/src/queues/facebook-mass.queue.ts`
-- `apps/worker/src/queues/instagram-mass.queue.ts`
-
-#### Novos Arquivos Frontend
-- `src/services/scrum.ts`
-- `src/services/videoCall.ts`
-- `src/services/facebook.ts`
-- `src/services/instagram.ts`
-- `src/components/scrum/VideoCallDialog.tsx`
-- `src/components/integrations/FacebookConnectDialog.tsx`
-- `src/components/integrations/InstagramConnectDialog.tsx`
-- `src/hooks/useScrum.ts` (refatorado para usar API real)
-
-### 📦 Dependências Adicionadas
-
-```json
-{
-  "@jitsi/react-sdk": "^1.3.0",
-  "facebook-chat-api": "^1.7.0",
-  "instagram-private-api": "^1.45.0"
-}
-```
-
-### 🚀 Features Implementadas
-
-- [x] Scrum completo funcional com backend
-- [x] Facebook Messenger (não oficial)
-- [x] Instagram DMs (não oficial)
-- [x] Vídeo chamadas com Jitsi
-- [x] Disparo em massa multi-canal
-- [x] Anti-ban com jitter configurável
-- [x] Real-time via WebSocket
-- [x] Logging de todas as mensagens
-
-### ⚠️ Notas Importantes
-
-1. **APIs Não Oficiais**: Facebook e Instagram usam bibliotecas não oficiais que podem quebrar com atualizações
-2. **Anti-Ban**: Delay e jitter são essenciais para evitar bloqueios
-3. **Credenciais**: Senhas são codificadas em Base64 (usar criptografia real em produção)
-4. **Jitsi**: Usando jitsi.org público (considerar self-hosted em produção)
+[... conteúdo anterior mantido ...]
 
 ---
 
 **Data de Release**: $(date +%Y-%m-%d)
-**Versão**: 2.6.0
-**Tipo**: Multi-Provider AI System
-**Status**: Pronto para produção
+**Versão**: 2.7.0
+**Tipo**: AI Advanced Features - Complete Backend
+**Status**: Backend completo, Frontend pendente

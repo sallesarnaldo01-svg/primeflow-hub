@@ -8,26 +8,33 @@ datasource db {
 }
 
 model Tenant {
-  id          String       @id @default(cuid())
-  name        String
-  settings    Json?
-  users       User[]
-  queues      Queue[]
-  connections Connection[]
-  flows       Flow[]
-  campaigns   CampaignPhrase[]
-  tags        Tag[]
-  stages      Stage[]
-  deals       Deal[]
-  contacts    Contact[]
-  broadcasts  Broadcast[]
-  followUps   FollowUp[]
-  messageLogs MessageLog[]
-  scrumTeams  ScrumTeam[]
-  backlogItems BacklogItem[]
-  aiProviders AIProvider[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id               String             @id @default(cuid())
+  name             String
+  settings         Json?
+  users            User[]
+  queues           Queue[]
+  connections      Connection[]
+  flows            Flow[]
+  campaigns        CampaignPhrase[]
+  tags             Tag[]
+  stages           Stage[]
+  deals            Deal[]
+  contacts         Contact[]
+  broadcasts       Broadcast[]
+  followUps        FollowUp[]
+  messageLogs      MessageLog[]
+  scrumTeams       ScrumTeam[]
+  backlogItems     BacklogItem[]
+  aiProviders      AIProvider[]
+  aiTools          AITool[]
+  knowledgeDocs    KnowledgeDocument[]
+  followUpCadences FollowUpCadence[]
+  products         Product[]
+  customFields     CustomField[]
+  aiUsage          AIUsage[]
+  conversations    ConversationEvent[]
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
 
   @@map("tenants")
 }
@@ -536,4 +543,155 @@ model AIAgent {
   @@index([tenantId, active])
   @@index([providerId])
   @@map("ai_agents")
+}
+
+model AITool {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name        String   // Ex: "puxarCNPJ", "agendar_horario"
+  description String   @db.Text // Descrição para o LLM
+  endpoint    String   // URL da API
+  method      String   // GET, POST, PUT, DELETE
+  parameters  Json     // Schema JSON dos parâmetros
+  headers     Json?    // Headers customizados
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([tenantId, name])
+  @@index([tenantId, active])
+  @@map("ai_tools")
+}
+
+model KnowledgeDocument {
+  id         String   @id @default(cuid())
+  tenantId   String
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name       String
+  type       String   // pdf, docx, txt, image, video
+  fileUrl    String   // URL do arquivo em storage
+  content    String?  @db.Text // Texto extraído
+  embeddings Json?    // Vetores de embeddings
+  agentId    String?  // Qual agente pode acessar
+  tags       String[]
+  metadata   Json?    // Metadados adicionais
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([tenantId, agentId])
+  @@index([tenantId, type])
+  @@map("knowledge_documents")
+}
+
+model FollowUpCadence {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String   // "Reativação Flash", "Reativação Demorada"
+  trigger   Json     // Condições (ex: lead inativo > 30min)
+  steps     Json     // Array de steps com delay e mensagem
+  active    Boolean  @default(true)
+  agentId   String?  // Agente de IA a usar
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId, active])
+  @@map("followup_cadences")
+}
+
+model Product {
+  id          String         @id @default(cuid())
+  tenantId    String
+  tenant      Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name        String
+  description String         @db.Text
+  price       Decimal        @db.Decimal(10, 2)
+  category    String?
+  sku         String?
+  stock       Int            @default(0)
+  active      Boolean        @default(true)
+  metadata    Json?
+  images      ProductImage[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([tenantId, active])
+  @@index([tenantId, category])
+  @@map("products")
+}
+
+model ProductImage {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  tags      String[] // Ex: ["foto_frente", "interior_veiculo"]
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+  @@map("product_images")
+}
+
+model CustomField {
+  id       String   @id @default(cuid())
+  tenantId String
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  entity   String   // "lead", "contact", "deal", "product"
+  name     String
+  label    String
+  type     String   // "text", "number", "date", "select", "boolean"
+  options  String[] // Para tipo "select"
+  required Boolean  @default(false)
+  order    Int      @default(0)
+  active   Boolean  @default(true)
+
+  @@unique([tenantId, entity, name])
+  @@index([tenantId, entity])
+  @@map("custom_fields")
+}
+
+model AIUsage {
+  id               String   @id @default(cuid())
+  tenantId         String
+  tenant           Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  agentId          String?
+  providerId       String?
+  leadId           String?
+  conversationId   String?
+  model            String   // "gpt-4", "gemini-2.5-flash"
+  promptTokens     Int
+  completionTokens Int
+  totalTokens      Int
+  cost             Decimal  @db.Decimal(10, 6) // Custo em reais
+  request          Json?    // Payload completo (opcional)
+  response         Json?    // Resposta completa (opcional)
+  createdAt        DateTime @default(now())
+
+  @@index([tenantId, leadId])
+  @@index([tenantId, agentId])
+  @@index([tenantId, createdAt])
+  @@map("ai_usage")
+}
+
+model ConversationEvent {
+  id             String   @id @default(cuid())
+  tenantId       String
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  conversationId String
+  type           String   // "message", "status_change", "ai_action", "transfer", "tool_call"
+  actor          String   // "customer", "ai_agent", "human_agent", "system"
+  actorId        String?  // ID do agente ou usuário
+  actorName      String?
+  content        String?  @db.Text
+  metadata       Json?
+  rating         Int?     // Rating do humano (1-5)
+  feedback       String?  // Feedback detalhado
+  createdAt      DateTime @default(now())
+
+  @@index([conversationId, createdAt])
+  @@index([tenantId, createdAt])
+  @@index([tenantId, conversationId])
+  @@map("conversation_events")
 }

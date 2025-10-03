@@ -45,6 +45,9 @@ import videoCallRoutes from './routes/video-call.routes.js';
 import facebookRoutes from './routes/facebook.routes.js';
 import instagramRoutes from './routes/instagram.routes.js';
 import aiProvidersRoutes from './routes/ai-providers.routes.js';
+import aiToolsRoutes from './routes/ai-tools.routes.js';
+import knowledgeRoutes from './routes/knowledge.routes.js';
+import productsRoutes from './routes/products.routes.js';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/flows', flowsRoutes);
@@ -58,6 +61,9 @@ app.use('/api/video-call', videoCallRoutes);
 app.use('/api/facebook', facebookRoutes);
 app.use('/api/instagram', instagramRoutes);
 app.use('/api/ai', aiProvidersRoutes);
+app.use('/api/ai/tools', aiToolsRoutes);
+app.use('/api/ai/knowledge', knowledgeRoutes);
+app.use('/api/products', productsRoutes);
 
 // Error handler
 app.use(errorHandler);
