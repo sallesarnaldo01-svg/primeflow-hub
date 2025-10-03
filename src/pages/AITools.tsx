@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Plus, Play, Trash2, Edit } from 'lucide-react';
 import { aiToolsService, AITool } from '@/services/aiTools';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import {
   Dialog,
   DialogContent,
@@ -85,12 +86,26 @@ export default function AITools() {
   };
 
   const handleTest = async (tool: AITool) => {
+    const toastId = toast.loading('Testando ferramenta...');
+    
     try {
-      toast.loading('Testando ferramenta...');
-      await aiToolsService.test(tool.id, {});
-      toast.success('Ferramenta testada com sucesso');
-    } catch (error) {
-      toast.error('Erro ao testar ferramenta');
+      const { data, error } = await supabase.functions.invoke('ai-function-call', {
+        body: {
+          tool_id: tool.id,
+          parameters: {}
+        }
+      });
+
+      if (error) throw error;
+
+      toast.success('Resultado: ' + JSON.stringify(data?.result, null, 2), { 
+        id: toastId,
+        duration: 5000 
+      });
+      console.log('Tool result:', data);
+    } catch (error: any) {
+      toast.error('Erro: ' + error.message, { id: toastId });
+      console.error(error);
     }
   };
 

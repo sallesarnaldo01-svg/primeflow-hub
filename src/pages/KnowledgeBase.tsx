@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function KnowledgeBase() {
   const [documents, setDocuments] = useState<KnowledgeDocument[]>([]);
@@ -41,20 +42,31 @@ export default function KnowledgeBase() {
       return;
     }
 
+    const toastId = toast.loading('Fazendo upload...');
+    
     try {
-      toast.loading('Processando documento...');
+      // 1. Upload para Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('knowledge-docs')
+        .upload(`${Date.now()}_${selectedFile.name}`, selectedFile);
+
+      if (uploadError) throw uploadError;
+
+      // 2. Criar registro no banco
       await knowledgeService.create({
         name: selectedFile.name,
         type: selectedFile.type,
-        fileUrl: '', // Will be uploaded separately
+        fileUrl: uploadData.path,
         tags: [],
       });
-      toast.success('Documento processado com sucesso');
+
+      toast.success('Documento processado com sucesso', { id: toastId });
       setUploadDialogOpen(false);
       setSelectedFile(null);
       loadDocuments();
-    } catch (error) {
-      toast.error('Erro ao processar documento');
+    } catch (error: any) {
+      toast.error('Erro ao processar documento: ' + error.message, { id: toastId });
+      console.error(error);
     }
   };
 
@@ -72,10 +84,21 @@ export default function KnowledgeBase() {
     if (!searchQuery) return;
 
     try {
-      const results = await knowledgeService.search(searchQuery);
+      const { data, error } = await supabase.functions.invoke('rag-search', {
+        body: {
+          query: searchQuery,
+          limit: 10
+        }
+      });
+
+      if (error) throw error;
+      
+      const results = data?.results || [];
       toast.success(`${results.length} resultados encontrados`);
-    } catch (error) {
-      toast.error('Erro na busca');
+      console.log('Resultados da busca:', results);
+    } catch (error: any) {
+      toast.error('Erro na busca: ' + error.message);
+      console.error(error);
     }
   };
 

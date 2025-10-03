@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,76 +25,27 @@ import {
   AlertCircle,
   Hash,
 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { useAuthStore } from '@/stores/auth';
 
-const conversations = [
-  {
-    id: 1,
-    contact: 'Maria Silva',
-    phone: '+55 11 99999-9999',
-    lastMessage: 'Obrigada pelo atendimento!',
-    time: '10:30',
-    unread: 0,
-    status: 'closed',
-    channel: 'whatsapp',
-    tags: ['Cliente VIP', 'Suporte'],
-    agent: 'João Santos',
-  },
-  {
-    id: 2,
-    contact: 'Carlos Oliveira',
-    phone: '+55 21 88888-8888',
-    lastMessage: 'Preciso de ajuda com meu pedido',
-    time: '09:45',
-    unread: 3,
-    status: 'open',
-    channel: 'facebook',
-    tags: ['Vendas'],
-    agent: 'Ana Costa',
-  },
-  {
-    id: 3,
-    contact: 'Fernanda Lima',
-    phone: '+55 31 77777-7777',
-    lastMessage: 'Quando posso agendar uma visita?',
-    time: '08:20',
-    unread: 1,
-    status: 'pending',
-    channel: 'instagram',
-    tags: ['Lead'],
-    agent: null,
-  },
-];
+interface Conversation {
+  id: string;
+  contact: { name: string; phone: string } | null;
+  last_message: { content: string; created_at: string } | null;
+  unread_count: number;
+  status: string;
+  channel: string;
+  updated_at: string;
+}
 
-const messages = [
-  {
-    id: 1,
-    sender: 'contact',
-    content: 'Olá! Gostaria de saber mais sobre seus produtos.',
-    time: '09:30',
-    type: 'text',
-  },
-  {
-    id: 2,
-    sender: 'agent',
-    content: 'Olá Carlos! Ficamos felizes com seu interesse. Temos várias opções disponíveis. Sobre qual produto você gostaria de saber?',
-    time: '09:32',
-    type: 'text',
-  },
-  {
-    id: 3,
-    sender: 'contact',
-    content: 'Estou interessado nos planos corporativos.',
-    time: '09:35',
-    type: 'text',
-  },
-  {
-    id: 4,
-    sender: 'agent',
-    content: 'Perfeito! Vou enviar nossa apresentação completa dos planos corporativos.',
-    time: '09:37',
-    type: 'text',
-  },
-];
+interface Message {
+  id: string;
+  content: string;
+  direction: 'inbound' | 'outbound';
+  created_at: string;
+  status: string;
+}
 
 const getChannelIcon = (channel: string) => {
   switch (channel) {
@@ -123,22 +74,127 @@ const getStatusColor = (status: string) => {
 };
 
 export default function Conversas() {
-  const [selectedConversation, setSelectedConversation] = useState(conversations[1]);
+  const { user } = useAuthStore();
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [messageText, setMessageText] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
 
-  const filteredConversations = conversations.filter(conv =>
-    conv.contact.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    conv.phone.includes(searchTerm) ||
-    conv.lastMessage.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  useEffect(() => {
+    loadConversations();
+  }, []);
 
-  const handleSendMessage = () => {
-    if (messageText.trim()) {
-      console.log('Enviando mensagem:', messageText);
-      setMessageText('');
+  useEffect(() => {
+    if (selectedConversation) {
+      loadMessages(selectedConversation.id);
+    }
+  }, [selectedConversation]);
+
+  useEffect(() => {
+    // Realtime updates
+    const channel = supabase
+      .channel('conversations')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'conversations'
+      }, () => loadConversations())
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'messages',
+        filter: `conversation_id=eq.${selectedConversation?.id}`
+      }, (payload) => {
+        setMessages(prev => [...prev, payload.new as Message]);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [selectedConversation]);
+
+  const loadConversations = async () => {
+    try {
+      // @ts-ignore - Table exists in database
+      const { data, error } = await supabase
+        .from('conversations')
+        .select(`
+          id,
+          status,
+          channel,
+          unread_count,
+          updated_at,
+          contact:contact_id(name, phone),
+          last_message:messages(content, created_at)
+        `)
+        .order('updated_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+      setConversations(data || []);
+      if (data && data.length > 0 && !selectedConversation) {
+        setSelectedConversation(data[0]);
+      }
+    } catch (error: any) {
+      toast.error('Erro ao carregar conversas');
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
+
+  const loadMessages = async (conversationId: string) => {
+    try {
+      // @ts-ignore - Table exists in database
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      setMessages(data || []);
+    } catch (error: any) {
+      toast.error('Erro ao carregar mensagens');
+      console.error(error);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!messageText.trim() || !selectedConversation) return;
+
+    try {
+      // @ts-ignore - Table exists in database
+      const { data, error } = await supabase
+        .from('messages')
+        .insert({
+          conversation_id: selectedConversation.id,
+          content: messageText,
+          direction: 'outbound',
+          status: 'sent'
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setMessages(prev => [...prev, data]);
+      setMessageText('');
+      toast.success('Mensagem enviada');
+    } catch (error: any) {
+      toast.error('Erro ao enviar mensagem');
+      console.error(error);
+    }
+  };
+
+  const filteredConversations = conversations.filter(conv =>
+    conv.contact?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    conv.contact?.phone?.includes(searchTerm) ||
+    conv.last_message?.content?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <Layout>
@@ -191,66 +247,72 @@ export default function Conversas() {
                 </TabsList>
                 <TabsContent value="all" className="mt-0">
                   <div className="space-y-1">
-                    {filteredConversations.map((conversation) => (
-                      <div
-                        key={conversation.id}
-                        className={`p-4 cursor-pointer hover:bg-muted/50 transition-colors ${
-                          selectedConversation?.id === conversation.id ? 'bg-muted' : ''
-                        }`}
-                        onClick={() => setSelectedConversation(conversation)}
-                      >
-                        <div className="flex items-start space-x-3">
-                          <div className="relative">
-                            <Avatar className="h-10 w-10">
-                              <AvatarImage src="" />
-                              <AvatarFallback>{conversation.contact.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div className="absolute -bottom-1 -right-1">
-                              {getChannelIcon(conversation.channel)}
-                            </div>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between">
-                              <h4 className="font-medium text-sm truncate">
-                                {conversation.contact}
-                              </h4>
-                              <div className="flex items-center space-x-1">
-                                <span className="text-xs text-muted-foreground">
-                                  {conversation.time}
-                                </span>
-                                {conversation.unread > 0 && (
-                                  <Badge variant="destructive" className="h-5 w-5 p-0 text-xs">
-                                    {conversation.unread}
-                                  </Badge>
-                                )}
+                    {loading ? (
+                      <div className="p-4 text-center text-muted-foreground">Carregando...</div>
+                    ) : filteredConversations.length === 0 ? (
+                      <div className="p-4 text-center text-muted-foreground">Nenhuma conversa encontrada</div>
+                    ) : (
+                      filteredConversations.map((conversation) => (
+                        <div
+                          key={conversation.id}
+                          className={`p-4 cursor-pointer hover:bg-muted/50 transition-colors ${
+                            selectedConversation?.id === conversation.id ? 'bg-muted' : ''
+                          }`}
+                          onClick={() => setSelectedConversation(conversation)}
+                        >
+                          <div className="flex items-start space-x-3">
+                            <div className="relative">
+                              <Avatar className="h-10 w-10">
+                                <AvatarImage src="" />
+                                <AvatarFallback>
+                                  {typeof conversation.contact === 'object' && conversation.contact?.name 
+                                    ? conversation.contact.name.charAt(0) 
+                                    : 'U'}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="absolute -bottom-1 -right-1">
+                                {getChannelIcon(conversation.channel)}
                               </div>
                             </div>
-                            <p className="text-sm text-muted-foreground truncate mt-1">
-                              {conversation.lastMessage}
-                            </p>
-                            <div className="flex items-center justify-between mt-2">
-                              <div className="flex items-center space-x-2">
-                                <div
-                                  className={`w-2 h-2 rounded-full ${getStatusColor(conversation.status)}`}
-                                />
-                                <span className="text-xs text-muted-foreground">
-                                  {conversation.agent || 'Não atribuído'}
-                                </span>
-                              </div>
-                              {conversation.tags.length > 0 && (
-                                <div className="flex space-x-1">
-                                  {conversation.tags.slice(0, 2).map((tag) => (
-                                    <Badge key={tag} variant="outline" className="text-xs">
-                                      {tag}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between">
+                                <h4 className="font-medium text-sm truncate">
+                                  {typeof conversation.contact === 'object' && conversation.contact?.name 
+                                    ? conversation.contact.name 
+                                    : 'Sem nome'}
+                                </h4>
+                                <div className="flex items-center space-x-1">
+                                  <span className="text-xs text-muted-foreground">
+                                    {conversation.last_message?.created_at ? 
+                                      new Date(conversation.last_message.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : 
+                                      '--:--'
+                                    }
+                                  </span>
+                                  {conversation.unread_count > 0 && (
+                                    <Badge variant="destructive" className="h-5 w-5 p-0 text-xs">
+                                      {conversation.unread_count}
                                     </Badge>
-                                  ))}
+                                  )}
                                 </div>
-                              )}
+                              </div>
+                              <p className="text-sm text-muted-foreground truncate mt-1">
+                                {conversation.last_message?.content || 'Sem mensagens'}
+                              </p>
+                              <div className="flex items-center justify-between mt-2">
+                                <div className="flex items-center space-x-2">
+                                  <div
+                                    className={`w-2 h-2 rounded-full ${getStatusColor(conversation.status)}`}
+                                  />
+                                  <span className="text-xs text-muted-foreground">
+                                    {conversation.status}
+                                  </span>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </div>
                 </TabsContent>
               </Tabs>
@@ -274,8 +336,16 @@ export default function Conversas() {
                         </div>
                       </div>
                       <div>
-                        <h3 className="font-semibold">{selectedConversation.contact}</h3>
-                        <p className="text-sm text-muted-foreground">{selectedConversation.phone}</p>
+                        <h3 className="font-semibold">
+                          {typeof selectedConversation.contact === 'object' && selectedConversation.contact?.name 
+                            ? selectedConversation.contact.name 
+                            : 'Sem nome'}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          {typeof selectedConversation.contact === 'object' && selectedConversation.contact?.phone 
+                            ? selectedConversation.contact.phone 
+                            : ''}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -294,43 +364,40 @@ export default function Conversas() {
                       </Button>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    {selectedConversation.tags.map((tag) => (
-                      <Badge key={tag} variant="secondary">
-                        <Tag className="h-3 w-3 mr-1" />
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
+                  {/* Tags removidas para dados reais */}
                 </CardHeader>
 
                 <CardContent className="flex-1 flex flex-col p-0">
                   <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                    {messages.map((message) => (
-                      <div
-                        key={message.id}
-                        className={`flex ${message.sender === 'agent' ? 'justify-end' : 'justify-start'}`}
-                      >
+                    {messages.length === 0 ? (
+                      <div className="text-center text-muted-foreground">Nenhuma mensagem ainda</div>
+                    ) : (
+                      messages.map((message) => (
                         <div
-                          className={`max-w-[70%] p-3 rounded-lg ${
-                            message.sender === 'agent'
-                              ? 'bg-primary text-primary-foreground'
-                              : 'bg-muted'
-                          }`}
+                          key={message.id}
+                          className={`flex ${message.direction === 'outbound' ? 'justify-end' : 'justify-start'}`}
                         >
-                          <p className="text-sm">{message.content}</p>
-                          <span
-                            className={`text-xs mt-1 block ${
-                              message.sender === 'agent'
-                                ? 'text-primary-foreground/70'
-                                : 'text-muted-foreground'
+                          <div
+                            className={`max-w-[70%] p-3 rounded-lg ${
+                              message.direction === 'outbound'
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-muted'
                             }`}
                           >
-                            {message.time}
-                          </span>
+                            <p className="text-sm">{message.content}</p>
+                            <span
+                              className={`text-xs mt-1 block ${
+                                message.direction === 'outbound'
+                                  ? 'text-primary-foreground/70'
+                                  : 'text-muted-foreground'
+                              }`}
+                            >
+                              {new Date(message.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </div>
 
                   <Separator />

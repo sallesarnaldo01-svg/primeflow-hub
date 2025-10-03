@@ -9,9 +9,13 @@ export const aiService = {
   async streamChat(
     messages: AIMessage[],
     onDelta: (chunk: string) => void,
-    onDone: () => void
+    onDone: () => void,
+    metadata?: { conversationId?: string; agentId?: string }
   ): Promise<void> {
     const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`;
+    const startTime = Date.now();
+    let promptTokens = 0;
+    let completionTokens = 0;
 
     const resp = await fetch(CHAT_URL, {
       method: "POST",
@@ -61,6 +65,12 @@ export const aiService = {
           const parsed = JSON.parse(jsonStr);
           const content = parsed.choices?.[0]?.delta?.content as string | undefined;
           if (content) onDelta(content);
+          
+          // Capturar informações de uso
+          if (parsed.usage) {
+            promptTokens = parsed.usage.prompt_tokens || 0;
+            completionTokens = parsed.usage.completion_tokens || 0;
+          }
         } catch {
           textBuffer = line + "\n" + textBuffer;
           break;
@@ -82,6 +92,27 @@ export const aiService = {
           if (content) onDelta(content);
         } catch { /* ignore */ }
       }
+    }
+
+    // Log de uso de IA
+    const latencyMs = Date.now() - startTime;
+    const totalTokens = promptTokens + completionTokens;
+    const estimatedCost = (totalTokens / 1000) * 0.002; // Exemplo: $0.002 por 1K tokens
+
+    try {
+      // @ts-ignore - Table exists in database
+      await supabase.from('ai_usage').insert({
+        conversation_id: metadata?.conversationId,
+        agent_id: metadata?.agentId,
+        model: 'google/gemini-2.5-flash',
+        prompt_tokens: promptTokens,
+        completion_tokens: completionTokens,
+        total_tokens: totalTokens,
+        cost: estimatedCost,
+        latency_ms: latencyMs
+      });
+    } catch (error) {
+      console.error('Erro ao registrar uso de IA:', error);
     }
 
     onDone();

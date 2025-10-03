@@ -4,6 +4,7 @@ import { aiUsageService, UsageStats } from '@/services/aiUsage';
 import { ModernBarChart } from '@/components/charts/ModernBarChart';
 import { ModernPieChart } from '@/components/charts/ModernPieChart';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function IAPerformance() {
   const [stats, setStats] = useState<UsageStats | null>(null);
@@ -15,10 +16,58 @@ export default function IAPerformance() {
 
   const loadStats = async () => {
     try {
-      const data = await aiUsageService.stats();
-      setStats(data);
-    } catch (error) {
-      toast.error('Erro ao carregar estatísticas');
+      // @ts-ignore - Table exists in database
+      const { data: usageData, error } = await supabase
+        .from('ai_usage')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1000);
+
+      if (error) throw error;
+
+      if (!usageData || usageData.length === 0) {
+        setStats({
+          totalInteractions: 0,
+          totalTokens: 0,
+          totalCost: 0,
+          totalPromptTokens: 0,
+          totalCompletionTokens: 0,
+          byModel: []
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Agrupar por modelo
+      const byModel = usageData.reduce((acc: any, usage: any) => {
+        const model = usage.model || 'unknown';
+        if (!acc[model]) {
+          acc[model] = { 
+            model, 
+            interactions: 0, 
+            totalTokens: 0, 
+            totalCost: 0 
+          };
+        }
+        acc[model].interactions++;
+        acc[model].totalTokens += usage.total_tokens || 0;
+        acc[model].totalCost += parseFloat(usage.cost?.toString() || '0');
+        return acc;
+      }, {});
+
+      const processedStats = {
+        totalInteractions: usageData.length,
+        totalTokens: usageData.reduce((sum: number, u: any) => sum + (u.total_tokens || 0), 0),
+        totalCost: usageData.reduce((sum: number, u: any) => sum + parseFloat(u.cost?.toString() || '0'), 0),
+        totalPromptTokens: usageData.reduce((sum: number, u: any) => sum + (u.prompt_tokens || 0), 0),
+        totalCompletionTokens: usageData.reduce((sum: number, u: any) => sum + (u.completion_tokens || 0), 0),
+        byModel: Object.values(byModel)
+      };
+
+      setStats(processedStats);
+    } catch (error: any) {
+      toast.error('Erro ao carregar estatísticas: ' + error.message);
+      console.error(error);
     } finally {
       setLoading(false);
     }
