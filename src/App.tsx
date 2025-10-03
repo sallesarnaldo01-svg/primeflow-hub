@@ -24,6 +24,7 @@ const Empresas = lazy(() => import("./pages/Empresas"));
 const Tags = lazy(() => import("./pages/Tags"));
 const Workflows = lazy(() => import("./pages/Workflows"));
 const IA = lazy(() => import("./pages/IA"));
+const AIProviders = lazy(() => import("./pages/AIProviders"));
 const Integracoes = lazy(() => import("./pages/Integracoes"));
 const Financeiro = lazy(() => import("./pages/Financeiro"));
 const ConfiguracoesAvancadas = lazy(() => import("./pages/ConfiguracoesAvancadas"));
@@ -245,6 +246,16 @@ const App = () => {
                     <ProtectedRoute>
                       <Suspense fallback={<PageSkeleton />}>
                         <IA />
+                      </Suspense>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/ia/providers"
+                  element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<PageSkeleton />}>
+                        <AIProviders />
                       </Suspense>
                     </ProtectedRoute>
                   }

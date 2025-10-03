@@ -44,6 +44,7 @@ import scrumRoutes from './routes/scrum.routes.js';
 import videoCallRoutes from './routes/video-call.routes.js';
 import facebookRoutes from './routes/facebook.routes.js';
 import instagramRoutes from './routes/instagram.routes.js';
+import aiProvidersRoutes from './routes/ai-providers.routes.js';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/flows', flowsRoutes);
@@ -56,6 +57,7 @@ app.use('/api/scrum', scrumRoutes);
 app.use('/api/video-call', videoCallRoutes);
 app.use('/api/facebook', facebookRoutes);
 app.use('/api/instagram', instagramRoutes);
+app.use('/api/ai', aiProvidersRoutes);
 
 // Error handler
 app.use(errorHandler);

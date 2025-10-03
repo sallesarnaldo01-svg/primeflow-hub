@@ -25,6 +25,7 @@ model Tenant {
   messageLogs MessageLog[]
   scrumTeams  ScrumTeam[]
   backlogItems BacklogItem[]
+  aiProviders AIProvider[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
@@ -487,4 +488,52 @@ model VideoCall {
 
   @@index([teamId])
   @@map("video_calls")
+}
+
+// ============= AI MODELS =============
+
+model AIProvider {
+  id          String        @id @default(cuid())
+  tenantId    String
+  tenant      Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  type        AIProviderType
+  name        String
+  apiKey      String?       // Encrypted
+  config      Json?         // Additional settings
+  active      Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  agents      AIAgent[]
+
+  @@unique([tenantId, type])
+  @@index([tenantId, active])
+  @@map("ai_providers")
+}
+
+enum AIProviderType {
+  LOVABLE
+  OPENAI
+  MANUS
+  GEMINI
+  CLAUDE
+}
+
+model AIAgent {
+  id          String      @id @default(cuid())
+  tenantId    String
+  providerId  String
+  provider    AIProvider  @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  name        String
+  model       String      // "gpt-4", "gemini-2.5-flash", "claude-opus-4", etc
+  systemPrompt String     @db.Text
+  temperature Float       @default(0.7)
+  maxTokens   Int         @default(2000)
+  active      Boolean     @default(true)
+  config      Json?       // Tools, functions, etc
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([tenantId, active])
+  @@index([providerId])
+  @@map("ai_agents")
 }

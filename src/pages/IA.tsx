@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import {
   Brain,
   MessageSquare,
@@ -20,12 +21,14 @@ import {
   Settings,
   Play,
   Pause,
-  Download
+  Download,
+  Sparkles
 } from 'lucide-react';
 
 const IA: React.FC = () => {
   const [message, setMessage] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const navigate = useNavigate();
 
   const suggestResponse = async () => {
     setIsProcessing(true);
@@ -42,6 +45,10 @@ const IA: React.FC = () => {
             <h1 className="text-3xl font-bold">Inteligência Artificial</h1>
             <p className="text-muted-foreground">Automação inteligente para atendimento e análises</p>
           </div>
+          <Button onClick={() => navigate('/ia/providers')} variant="outline">
+            <Sparkles className="h-4 w-4 mr-2" />
+            Provedores de IA
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
