@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,6 +9,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { WhatsAppQRDialog } from '@/components/WhatsAppQRDialog';
+import { MultiChannelComposer } from '@/components/MultiChannelComposer';
+import { whatsappService } from '@/services/whatsapp';
+import { integrationsService } from '@/services/integrations';
+import { useSocket } from '@/hooks/useSocket';
+import { toast } from 'sonner';
 import {
   Phone,
   MessageCircle,
@@ -23,6 +30,7 @@ import {
   Settings,
   Activity,
   Instagram,
+  Send,
 } from 'lucide-react';
 
 const connections = [
@@ -76,6 +84,84 @@ const getStatusIcon = (status: string) => {
 };
 
 export default function Conexoes() {
+  const [qrDialogOpen, setQrDialogOpen] = useState(false);
+  const [selectedConnectionId, setSelectedConnectionId] = useState<string>('');
+  const [whatsappConnections, setWhatsappConnections] = useState<any[]>([]);
+  const [showComposer, setShowComposer] = useState(false);
+  const socket = useSocket();
+
+  useEffect(() => {
+    loadConnections();
+
+    // Listen for real-time updates
+    socket.on('connection:status', (data: any) => {
+      loadConnections();
+    });
+
+    return () => {
+      socket.off('connection:status');
+    };
+  }, []);
+
+  const loadConnections = async () => {
+    try {
+      const integrations = await integrationsService.getIntegrations();
+      const whatsapp = integrations.filter((i: any) => i.provider === 'whatsapp');
+      setWhatsappConnections(whatsapp);
+    } catch (error) {
+      console.error('Failed to load connections', error);
+    }
+  };
+
+  const handleConnectWhatsApp = async () => {
+    try {
+      const connection = await whatsappService.initiateConnection('WhatsApp Principal');
+      setSelectedConnectionId(connection.id);
+      setQrDialogOpen(true);
+      toast.success('Conexão iniciada. Aguarde o QR Code...');
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao iniciar conexão');
+    }
+  };
+
+  const handleShowQR = (connectionId: string) => {
+    setSelectedConnectionId(connectionId);
+    setQrDialogOpen(true);
+  };
+
+  const handleDisconnect = async (connectionId: string) => {
+    try {
+      await whatsappService.disconnect(connectionId);
+      toast.success('WhatsApp desconectado');
+      loadConnections();
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao desconectar');
+    }
+  };
+
+  const handleSendMessage = async (data: any) => {
+    try {
+      const whatsappConnection = whatsappConnections.find(c => c.status === 'connected');
+      
+      if (!whatsappConnection) {
+        toast.error('Nenhuma conexão WhatsApp disponível');
+        return;
+      }
+
+      if (data.bulkContacts && data.bulkContacts.length > 0) {
+        await whatsappService.sendBulkMessages(whatsappConnection.id, {
+          contacts: data.bulkContacts,
+          message: {
+            text: data.content,
+          },
+          delayMs: data.delayBetweenMs || 1000,
+        });
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao enviar mensagem');
+    }
+  };
+
   return (
     <Layout>
       <motion.div
@@ -209,14 +295,30 @@ export default function Conexoes() {
                       </div>
 
                       <div className="flex items-center space-x-4">
-                        <Button variant="outline" size="sm">
-                          <QrCode className="h-4 w-4 mr-2" />
-                          Mostrar QR Code
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          <Activity className="h-4 w-4 mr-2" />
-                          Ver Logs
-                        </Button>
+                        {connection.status === 'connected' ? (
+                          <>
+                            <Button variant="outline" size="sm" onClick={() => handleShowQR(connection.id)}>
+                              <QrCode className="h-4 w-4 mr-2" />
+                              Ver QR Code
+                            </Button>
+                            <Button variant="outline" size="sm" onClick={() => setShowComposer(true)}>
+                              <Send className="h-4 w-4 mr-2" />
+                              Enviar Mensagens
+                            </Button>
+                            <Button 
+                              variant="destructive" 
+                              size="sm" 
+                              onClick={() => handleDisconnect(connection.id)}
+                            >
+                              Desconectar
+                            </Button>
+                          </>
+                        ) : (
+                          <Button onClick={handleConnectWhatsApp}>
+                            <QrCode className="h-4 w-4 mr-2" />
+                            Conectar WhatsApp
+                          </Button>
+                        )}
                       </div>
                     </div>
                   )}
@@ -304,6 +406,31 @@ export default function Conexoes() {
             );
           })}
         </div>
+
+        {/* WhatsApp QR Dialog */}
+        <WhatsAppQRDialog
+          open={qrDialogOpen}
+          onOpenChange={setQrDialogOpen}
+          connectionId={selectedConnectionId}
+          onConnected={loadConnections}
+        />
+
+        {/* Bulk Message Composer */}
+        {showComposer && (
+          <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="w-full max-w-2xl">
+              <div className="flex justify-end mb-2">
+                <Button variant="ghost" size="sm" onClick={() => setShowComposer(false)}>
+                  Fechar
+                </Button>
+              </div>
+              <MultiChannelComposer
+                channels={['whatsapp']}
+                onSend={handleSendMessage}
+              />
+            </div>
+          </div>
+        )}
       </motion.div>
     </Layout>
   );

@@ -11,6 +11,7 @@ import { initializeSocket } from './lib/socket.js';
 import { errorHandler } from './middleware/error.js';
 import authRoutes from './routes/auth.routes.js';
 import flowsRoutes from './routes/flows.routes.js';
+import whatsappRoutes from './routes/whatsapp.routes.js';
 
 const app = express();
 const httpServer = createServer(app);
@@ -46,6 +47,7 @@ app.use('/api/connections', connectionsRoutes);
 app.use('/api/queues', queuesRoutes);
 app.use('/api/broadcasts', broadcastsRoutes);
 app.use('/api/campaigns', campaignsRoutes);
+app.use('/api/whatsapp', whatsappRoutes);
 
 // Error handler
 app.use(errorHandler);

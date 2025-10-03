@@ -1,5 +1,24 @@
 # PrimeZapAI Frontend Patch - Changelog
 
+## Versão 2.4.0 - WhatsApp Integration com Venom Bot
+
+### ✅ Nova Funcionalidade: WhatsApp via QR Code e Disparo em Massa
+
+#### Backend
+- Venom Bot provider com QR Code automático
+- Sistema de disparo em massa com fila BullMQ
+- Delay configurável + jitter anti-ban
+- API endpoints WhatsApp completos
+- Redis Pub/Sub para comunicação real-time
+
+#### Frontend  
+- Dialog QR Code com auto-refresh
+- Integração com MultiChannelComposer
+- Status em tempo real via WebSocket
+- UI moderna para conexões WhatsApp
+
+---
+
 ## Versão 2.3.0 - Patch de Modernização Visual
 
 ### ✅ Implementado

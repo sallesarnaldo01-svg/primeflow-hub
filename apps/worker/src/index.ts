@@ -3,6 +3,8 @@ import { connectDatabase } from './lib/prisma.js';
 import { redis } from './lib/redis.js';
 import { flowWorker } from './queues/flow.queue.js';
 import { broadcastWorker } from './queues/broadcast.queue.js';
+import { broadcastMassWorker } from './queues/broadcast-mass.queue.js';
+import { venomProvider } from './providers/whatsapp/venom.provider.js';
 
 async function start() {
   try {
@@ -10,7 +12,20 @@ async function start() {
     await redis.ping();
 
     logger.info('🚀 Worker started');
-    logger.info('📝 Workers registered: flow:run, broadcast:run');
+    logger.info('📝 Workers registered: flow:run, broadcast:run, broadcast-mass');
+    
+    // Redis subscribers for WhatsApp commands
+    redis.subscribe('whatsapp:connect', 'whatsapp:disconnect', 'broadcast:mass');
+    
+    redis.on('message', async (channel, message) => {
+      if (channel === 'whatsapp:connect') {
+        const { connectionId } = JSON.parse(message);
+        await venomProvider.connect(connectionId, {});
+      } else if (channel === 'whatsapp:disconnect') {
+        const { connectionId } = JSON.parse(message);
+        await venomProvider.disconnect(connectionId);
+      }
+    });
   } catch (error) {
     logger.error('Failed to start worker', { error });
     process.exit(1);
