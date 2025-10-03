@@ -23,6 +23,8 @@ model Tenant {
   broadcasts  Broadcast[]
   followUps   FollowUp[]
   messageLogs MessageLog[]
+  scrumTeams  ScrumTeam[]
+  backlogItems BacklogItem[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
@@ -338,4 +340,151 @@ model MessageLog {
 enum MessageDirection {
   IN
   OUT
+}
+
+// ============= SCRUM MODELS =============
+
+model ScrumTeam {
+  id          String        @id @default(cuid())
+  tenantId    String
+  tenant      Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  members     TeamMember[]
+  sprints     Sprint[]
+  ceremonies  Ceremony[]
+  videoCalls  VideoCall[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([tenantId])
+  @@map("scrum_teams")
+}
+
+model TeamMember {
+  id        String     @id @default(cuid())
+  teamId    String
+  team      ScrumTeam  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  userId    String
+  name      String
+  email     String
+  role      String?
+  avatar    String?
+  createdAt DateTime   @default(now())
+
+  @@index([teamId])
+  @@map("team_members")
+}
+
+model Sprint {
+  id                    String        @id @default(cuid())
+  teamId                String
+  team                  ScrumTeam     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  name                  String
+  startDate             DateTime
+  endDate               DateTime
+  status                SprintStatus  @default(PLANNED)
+  goal                  String?
+  totalStoryPoints      Int           @default(0)
+  completedStoryPoints  Int           @default(0)
+  backlogItems          BacklogItem[]
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  @@index([teamId, status])
+  @@map("sprints")
+}
+
+enum SprintStatus {
+  PLANNED
+  ACTIVE
+  COMPLETED
+}
+
+model BacklogItem {
+  id          String           @id @default(cuid())
+  tenantId    String
+  sprintId    String?
+  sprint      Sprint?          @relation(fields: [sprintId], references: [id])
+  type        BacklogItemType
+  title       String
+  description String
+  points      Int              @default(0)
+  priority    Priority         @default(MEDIUM)
+  status      BacklogStatus    @default(TODO)
+  assignee    String?
+  epic        String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([tenantId, status])
+  @@index([sprintId])
+  @@map("backlog_items")
+}
+
+enum BacklogItemType {
+  STORY
+  BUG
+  TASK
+}
+
+enum Priority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum BacklogStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+model Ceremony {
+  id           String        @id @default(cuid())
+  teamId       String
+  team         ScrumTeam     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  name         String
+  type         CeremonyType
+  scheduledAt  DateTime
+  duration     Int           // minutes
+  participants String[]
+  status       CeremonyStatus @default(SCHEDULED)
+  notes        String?
+  videoCallId  String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([teamId, scheduledAt])
+  @@map("ceremonies")
+}
+
+enum CeremonyType {
+  DAILY
+  PLANNING
+  REVIEW
+  RETROSPECTIVE
+}
+
+enum CeremonyStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model VideoCall {
+  id          String    @id @default(cuid())
+  teamId      String
+  team        ScrumTeam @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  roomId      String    @unique
+  topic       String
+  startedAt   DateTime
+  endedAt     DateTime?
+  participants String[]
+  recordingUrl String?
+  createdAt   DateTime  @default(now())
+
+  @@index([teamId])
+  @@map("video_calls")
 }

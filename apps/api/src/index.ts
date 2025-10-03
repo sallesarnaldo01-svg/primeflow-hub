@@ -40,6 +40,10 @@ import connectionsRoutes from './routes/connections.routes.js';
 import queuesRoutes from './routes/queues.routes.js';
 import broadcastsRoutes from './routes/broadcasts.routes.js';
 import campaignsRoutes from './routes/campaigns.routes.js';
+import scrumRoutes from './routes/scrum.routes.js';
+import videoCallRoutes from './routes/video-call.routes.js';
+import facebookRoutes from './routes/facebook.routes.js';
+import instagramRoutes from './routes/instagram.routes.js';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/flows', flowsRoutes);
@@ -48,6 +52,10 @@ app.use('/api/queues', queuesRoutes);
 app.use('/api/broadcasts', broadcastsRoutes);
 app.use('/api/campaigns', campaignsRoutes);
 app.use('/api/whatsapp', whatsappRoutes);
+app.use('/api/scrum', scrumRoutes);
+app.use('/api/video-call', videoCallRoutes);
+app.use('/api/facebook', facebookRoutes);
+app.use('/api/instagram', instagramRoutes);
 
 // Error handler
 app.use(errorHandler);
