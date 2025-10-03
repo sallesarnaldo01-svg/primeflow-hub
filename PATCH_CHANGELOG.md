@@ -1,5 +1,12 @@
 # PrimeZapAI Frontend Patch - Changelog
 
+## Versão 2.8.0 - Frontend Completo do Sistema de IA (2025-01-03)
+
+### ✅ Páginas e Componentes Implementados
+- AITools, KnowledgeBase, FollowUp, Produtos, IAPerformance, CamposCustomizados
+- WorkflowCanvas, EventTimeline, ToolBuilder
+- Todas as rotas integradas no App.tsx
+
 ## Versão 2.7.0 - Sistema Completo de IA Avançada (2025-01-XX)
 
 ### 🚀 Implementação Completa do Plano de IA
