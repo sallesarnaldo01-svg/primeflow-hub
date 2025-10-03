@@ -77,7 +77,20 @@ const menuItems = [
   { icon: Building2, label: 'Empresas', href: '/empresas', badge: null },
   { icon: Tag, label: 'Tags', href: '/tags', badge: null },
   { icon: Workflow, label: 'Workflows', href: '/workflows', badge: null },
-  { icon: Sparkles, label: 'IA', href: '/ia', badge: 'NOVO' },
+  {
+    icon: Sparkles,
+    label: 'IA',
+    href: '/ia',
+    badge: 'NOVO',
+    hasDropdown: true,
+    subItems: [
+      { label: 'Agentes de IA', href: '/ia' },
+      { label: 'AI Tools', href: '/ia/tools' },
+      { label: 'Base de Conhecimento', href: '/ia/knowledge' },
+      { label: 'Follow-up / Cadências', href: '/ia/followup' },
+      { label: 'Performance de IA', href: '/ia/performance' },
+    ]
+  },
   { icon: Plug, label: 'Integrações', href: '/integracoes', badge: null },
   { icon: BarChart3, label: 'Relatórios & Analytics', href: '/relatorios', badge: null },
   { icon: UserCheck, label: 'Usuários & Times', href: '/usuarios', badge: null },

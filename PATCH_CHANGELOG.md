@@ -1,6 +1,48 @@
-# PrimeZapAI Frontend Patch - Changelog
+# Changelog de Patches
 
-## Versão 2.8.0 - Frontend Completo do Sistema de IA (2025-01-03)
+## Versão 2.9.0 - Sistema Avançado de IA (Integrações e UX)
+**Data**: 2025-01-03
+
+### Atualizações de UI/UX
+1. **Sidebar**:
+   - Adicionado dropdown de IA com submenu completo
+   - Links organizados: Agentes, Tools, Base Conhecimento, Follow-up, Performance
+
+2. **CRM / Pipeline**:
+   - ✅ Checkboxes de seleção múltipla em cada card
+   - ✅ Botão "Ação em Massa com IA" quando há seleções
+   - ✅ Dialog BulkAI com textarea para prompt customizado
+   - ✅ Barra de progresso durante processamento em lote
+   - ✅ Checkbox "Selecionar todos" nos filtros
+
+3. **Conversas**:
+   - Preparado para integração com EventTimeline (próxima versão)
+   - Estrutura pronta para chat unificado (mensagens + eventos)
+
+4. **Workflows**:
+   - Preparado para integração com WorkflowCanvas visual
+   - Editor drag-and-drop React Flow (próxima implementação)
+
+### Componentes Novos
+- `BulkAIDialog.tsx`: Dialog completo para execução em massa com IA
+
+### Sistema de Permissões
+1. **Migration SQL**: `20250103_user_roles.sql`
+   - Enum `app_role` (admin, manager, agent, viewer)
+   - Tabela `user_roles` com RLS
+   - Função `has_role()` security definer
+   - Policies para proteção
+
+### Próximas Etapas (v3.0.0)
+- [ ] Integração Lovable AI (edge functions + streaming)
+- [ ] Implementar EventTimeline completo em Conversas
+- [ ] Implementar WorkflowCanvas visual drag-and-drop
+- [ ] Conectar frontend com backend (API calls reais)
+- [ ] Testes end-to-end
+
+---
+
+## Versão 2.8.0 - Sistema Avançado de IA (Frontend)
 
 ### ✅ Páginas e Componentes Implementados
 - AITools, KnowledgeBase, FollowUp, Produtos, IAPerformance, CamposCustomizados

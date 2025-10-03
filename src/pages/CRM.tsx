@@ -11,6 +11,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Checkbox } from '@/components/ui/checkbox';
+import { BulkAIDialog } from '@/components/crm/BulkAIDialog';
 import { 
   Plus, 
   Search, 
@@ -26,7 +28,8 @@ import {
   Trash2,
   Eye,
   Target,
-  TrendingUp
+  TrendingUp,
+  Sparkles
 } from 'lucide-react';
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, closestCorners } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -108,9 +111,11 @@ const stages = [
 interface DealCardProps {
   deal: typeof mockDeals[0];
   onEdit: (deal: typeof mockDeals[0]) => void;
+  isSelected: boolean;
+  onSelectChange: (id: string, selected: boolean) => void;
 }
 
-function DealCard({ deal, onEdit }: DealCardProps) {
+function DealCard({ deal, onEdit, isSelected, onSelectChange }: DealCardProps) {
   const {
     attributes,
     listeners,
@@ -137,6 +142,16 @@ function DealCard({ deal, onEdit }: DealCardProps) {
       className="p-4 bg-card border rounded-lg cursor-grab hover:shadow-md transition-all"
     >
       <div className="space-y-3">
+        {/* Checkbox de seleção */}
+        <div className="flex items-center gap-2">
+          <Checkbox
+            checked={isSelected}
+            onCheckedChange={(checked) => onSelectChange(deal.id, checked as boolean)}
+            onClick={(e) => e.stopPropagation()}
+          />
+          <span className="text-xs text-muted-foreground">Selecionar para ação em massa</span>
+        </div>
+
         {/* Company and Value */}
         <div className="flex items-start justify-between">
           <div className="flex-1">
@@ -223,6 +238,24 @@ export default function CRM() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [editingDeal, setEditingDeal] = useState<typeof mockDeals[0] | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [selectedDeals, setSelectedDeals] = useState<string[]>([]);
+  const [isBulkAIDialogOpen, setIsBulkAIDialogOpen] = useState(false);
+
+  const handleSelectDeal = (dealId: string, selected: boolean) => {
+    setSelectedDeals(prev => 
+      selected 
+        ? [...prev, dealId]
+        : prev.filter(id => id !== dealId)
+    );
+  };
+
+  const handleSelectAll = (selected: boolean) => {
+    setSelectedDeals(selected ? filteredDeals.map(d => d.id) : []);
+  };
+
+  const handleBulkAIComplete = () => {
+    setSelectedDeals([]);
+  };
 
   const filteredDeals = deals.filter(deal => {
     const matchesSearch = 
@@ -288,6 +321,15 @@ export default function CRM() {
             </p>
           </div>
           <div className="flex items-center space-x-2">
+            {selectedDeals.length > 0 && (
+              <Button
+                variant="secondary"
+                onClick={() => setIsBulkAIDialogOpen(true)}
+              >
+                <Sparkles className="mr-2 h-4 w-4" />
+                Ação em Massa com IA ({selectedDeals.length})
+              </Button>
+            )}
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
                 <Button>
@@ -411,6 +453,13 @@ export default function CRM() {
         <Card>
           <CardContent className="p-4">
             <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  checked={selectedDeals.length === filteredDeals.length && filteredDeals.length > 0}
+                  onCheckedChange={handleSelectAll}
+                />
+                <span className="text-sm text-muted-foreground">Selecionar todos</span>
+              </div>
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -470,7 +519,13 @@ export default function CRM() {
                   <CardContent className="space-y-3">
                     <SortableContext items={dealsByStage[stage.id]?.map(d => d.id) || []} strategy={verticalListSortingStrategy}>
                       {dealsByStage[stage.id]?.map((deal) => (
-                        <DealCard key={deal.id} deal={deal} onEdit={setEditingDeal} />
+                        <DealCard 
+                          key={deal.id} 
+                          deal={deal} 
+                          onEdit={setEditingDeal}
+                          isSelected={selectedDeals.includes(deal.id)}
+                          onSelectChange={handleSelectDeal}
+                        />
                       ))}
                     </SortableContext>
 
@@ -494,7 +549,9 @@ export default function CRM() {
               <div className="rotate-3 opacity-80">
                 <DealCard 
                   deal={deals.find(d => d.id === activeId)!} 
-                  onEdit={() => {}} 
+                  onEdit={() => {}}
+                  isSelected={selectedDeals.includes(activeId)}
+                  onSelectChange={() => {}}
                 />
               </div>
             ) : null}
