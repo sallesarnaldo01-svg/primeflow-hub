@@ -1,5 +1,18 @@
 import { apiClient } from '@/lib/api-client';
 
+export interface KnowledgeDocument {
+  id: string;
+  tenantId: string;
+  name: string;
+  type: string;
+  fileUrl: string;
+  content?: string;
+  embeddings?: any;
+  agentId?: string;
+  tags: string[];
+  createdAt: string;
+}
+
 export const knowledgeService = {
   async list(agentId?: string) {
     const { data } = await apiClient.get(`/ai/knowledge${agentId ? `?agentId=${agentId}` : ''}`);

@@ -180,9 +180,9 @@ export default function AITools() {
               <p className="text-sm text-muted-foreground mb-3">
                 {tool.description}
               </p>
-              <div className="flex gap-2 text-xs text-muted-foreground mb-3">
+              <div className="flex gap-2 text-xs text-muted-foreground mb-3 items-center">
                 <Badge variant="outline">{tool.method}</Badge>
-                <span className="truncate">{tool.endpoint}</span>
+                <span className="truncate flex-1">{tool.endpoint}</span>
               </div>
               <Button
                 size="sm"

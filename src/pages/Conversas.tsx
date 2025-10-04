@@ -329,7 +329,11 @@ export default function Conversas() {
                       <div className="relative">
                         <Avatar>
                           <AvatarImage src="" />
-                          <AvatarFallback>{selectedConversation.contact.charAt(0)}</AvatarFallback>
+                          <AvatarFallback>
+                            {typeof selectedConversation.contact === 'string' 
+                              ? selectedConversation.contact.charAt(0) 
+                              : selectedConversation.contact?.name?.charAt(0) || 'C'}
+                          </AvatarFallback>
                         </Avatar>
                         <div className="absolute -bottom-1 -right-1">
                           {getChannelIcon(selectedConversation.channel)}
@@ -349,7 +353,7 @@ export default function Conversas() {
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Select defaultValue={selectedConversation.agent}>
+                      <Select defaultValue="joao">
                         <SelectTrigger className="w-40">
                           <SelectValue placeholder="Atribuir agente" />
                         </SelectTrigger>
