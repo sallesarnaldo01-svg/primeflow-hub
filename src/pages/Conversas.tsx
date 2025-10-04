@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -197,12 +196,11 @@ export default function Conversas() {
   );
 
   return (
-    <Layout>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="h-full flex flex-col"
-      >
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="h-full flex flex-col"
+    >
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold">Conversas</h1>
@@ -442,6 +440,5 @@ export default function Conversas() {
           </Card>
         </div>
       </motion.div>
-    </Layout>
   );
 }

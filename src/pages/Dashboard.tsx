@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -314,13 +313,12 @@ export default function Dashboard() {
   };
 
   return (
-    <Layout>
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="space-y-6"
-      >
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="space-y-6"
+    >
         {/* Header */}
         <motion.div variants={itemVariants} className="flex items-center justify-between">
           <div>
@@ -575,6 +573,5 @@ export default function Dashboard() {
           </motion.div>
         </div>
       </motion.div>
-    </Layout>
   );
 }

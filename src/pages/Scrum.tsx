@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion';
-import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -90,12 +89,11 @@ export default function Scrum() {
   };
 
   return (
-    <Layout>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="space-y-6"
-      >
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-6"
+    >
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Scrum</h1>
@@ -290,6 +288,5 @@ export default function Scrum() {
           </TabsContent>
         </Tabs>
       </motion.div>
-    </Layout>
   );
 }

@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -305,13 +304,12 @@ export default function CRM() {
     : 0;
 
   return (
-    <Layout>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="space-y-6"
-      >
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-6"
+    >
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -669,6 +667,5 @@ export default function CRM() {
           </DialogContent>
         </Dialog>
       </motion.div>
-    </Layout>
   );
 }
