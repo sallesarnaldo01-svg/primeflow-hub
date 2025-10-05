@@ -117,10 +117,10 @@ export default function Conversas() {
 
   const loadConversations = async () => {
     try {
-      // @ts-ignore - Table exists in database
-      const { data, error } = await supabase
-        .from('conversations')
-        .select(`
+      // @ts-ignore - Supabase types not regenerated
+    const { data, error } = await (supabase as any)
+      .from('conversations')
+      .select(`
           id,
           status,
           channel,
@@ -147,8 +147,8 @@ export default function Conversas() {
 
   const loadMessages = async (conversationId: string) => {
     try {
-      // @ts-ignore - Table exists in database
-      const { data, error } = await supabase
+      // @ts-ignore - Supabase types not regenerated
+      const { data, error } = await (supabase as any)
         .from('messages')
         .select('*')
         .eq('conversation_id', conversationId)
@@ -166,11 +166,11 @@ export default function Conversas() {
     if (!messageText.trim() || !selectedConversation) return;
 
     try {
-      // @ts-ignore - Table exists in database
-      const { data, error } = await supabase
+      // @ts-ignore - Supabase types not regenerated
+      const { data, error } = await (supabase as any)
         .from('messages')
         .insert({
-          conversation_id: selectedConversation.id,
+          conversation_id: (selectedConversation as any).id,
           content: messageText,
           direction: 'outbound',
           status: 'sent'
@@ -328,9 +328,9 @@ export default function Conversas() {
                         <Avatar>
                           <AvatarImage src="" />
                           <AvatarFallback>
-                            {typeof selectedConversation.contact === 'string' 
-                              ? selectedConversation.contact.charAt(0) 
-                              : selectedConversation.contact?.name?.charAt(0) || 'C'}
+                          {typeof (selectedConversation as any).contact === 'string' 
+                            ? ((selectedConversation as any).contact as string).charAt(0) 
+                            : (selectedConversation as any).contact?.name?.charAt(0) || 'C'}
                           </AvatarFallback>
                         </Avatar>
                         <div className="absolute -bottom-1 -right-1">

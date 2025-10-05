@@ -16,8 +16,8 @@ export default function IAPerformance() {
 
   const loadStats = async () => {
     try {
-      // @ts-ignore - Table exists in database
-      const { data: usageData, error } = await supabase
+      // @ts-ignore - Supabase types not regenerated
+      const { data: usageData, error } = await (supabase as any)
         .from('ai_usage')
         .select('*')
         .order('created_at', { ascending: false })
@@ -55,13 +55,13 @@ export default function IAPerformance() {
         return acc;
       }, {});
 
-      const processedStats = {
+      const processedStats: UsageStats = {
         totalInteractions: usageData.length,
         totalTokens: usageData.reduce((sum: number, u: any) => sum + (u.total_tokens || 0), 0),
         totalCost: usageData.reduce((sum: number, u: any) => sum + parseFloat(u.cost?.toString() || '0'), 0),
         totalPromptTokens: usageData.reduce((sum: number, u: any) => sum + (u.prompt_tokens || 0), 0),
         totalCompletionTokens: usageData.reduce((sum: number, u: any) => sum + (u.completion_tokens || 0), 0),
-        byModel: Object.values(byModel)
+        byModel: Object.values(byModel) as { model: string; interactions: number; totalTokens: number; totalCost: number; }[]
       };
 
       setStats(processedStats);

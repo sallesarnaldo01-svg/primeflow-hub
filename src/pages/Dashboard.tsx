@@ -213,20 +213,20 @@ export default function Dashboard() {
       startOfMonth.setDate(1);
       startOfMonth.setHours(0, 0, 0, 0);
 
-      // @ts-ignore - Table exists in database
-      const { count: leadsCount } = await supabase
+      // @ts-ignore - Supabase types not regenerated
+      const { count: leadsCount } = await (supabase as any)
         .from('contacts')
         .select('*', { count: 'exact', head: true })
         .gte('created_at', startOfMonth.toISOString());
 
       // Taxa de conversão
-      // @ts-ignore - Table exists in database
-      const { count: totalContacts } = await supabase
-        .from('contacts')
-        .select('*', { count: 'exact', head: true });
+      // @ts-ignore - Supabase types not regenerated
+    const { count: totalContacts } = await (supabase as any)
+      .from('contacts')
+      .select('*', { count: 'exact', head: true });
 
-      // @ts-ignore - Table exists in database
-      const { count: dealsCount } = await supabase
+      // @ts-ignore - Supabase types not regenerated
+      const { count: dealsCount } = await (supabase as any)
         .from('deals')
         .select('*', { count: 'exact', head: true });
 
@@ -235,17 +235,17 @@ export default function Dashboard() {
         : 0;
 
       // Atendimentos
-      // @ts-ignore - Table exists in database
-      const { count: conversationsCount } = await supabase
+      // @ts-ignore - Supabase types not regenerated
+      const { count: conversationsCount } = await (supabase as any)
         .from('conversations')
         .select('*', { count: 'exact', head: true })
         .gte('created_at', startOfMonth.toISOString());
 
       // Receita
-      // @ts-ignore - Table exists in database
-      const { data: deals } = await supabase
-        .from('deals')
-        .select('value')
+      // @ts-ignore - Supabase types not regenerated
+    const { data: deals } = await (supabase as any)
+      .from('deals')
+      .select('value')
         .eq('stage', 'won')
         .gte('closed_at', startOfMonth.toISOString());
 

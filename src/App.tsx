@@ -13,7 +13,12 @@ import { useEffect, useState, Suspense, lazy } from "react";
 import { PageSkeleton } from "@/components/PageSkeleton";
 
 // Lazy-loaded pages for better performance
+// Lazy-loaded pages for better performance
 const Dashboard = lazy(() => import("./pages/Dashboard"));
+const CRM = lazy(() => import("./pages/CRM"));
+const Leads = lazy(() => import("./pages/Leads"));
+const ListasContatos = lazy(() => import("./pages/ListasContatos"));
+const CampanhasFacebook = lazy(() => import("./pages/CampanhasFacebook"));
 const Kanban = lazy(() => import("./pages/Kanban"));
 const Agendamentos = lazy(() => import("./pages/Agendamentos"));
 const Conversas = lazy(() => import("./pages/Conversas"));
@@ -44,7 +49,6 @@ import ResetPassword from "./pages/ResetPassword";
 import AuthCallback from "./pages/AuthCallback";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
-import CRM from "./pages/CRM";
 import Conexoes from "./pages/Conexoes";
 import Scrum from "./pages/Scrum";
 import NotFound from "./pages/NotFound";

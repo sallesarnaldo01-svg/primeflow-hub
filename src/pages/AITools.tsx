@@ -127,7 +127,7 @@ export default function AITools() {
       endpoint: tool.endpoint,
       method: tool.method,
       parameters: JSON.stringify(tool.parameters, null, 2),
-      headers: tool.headers ? JSON.stringify(tool.headers, null, 2) : '{}',
+      headers: (tool as any).headers ? JSON.stringify((tool as any).headers, null, 2) : '{}',
     });
     setDialogOpen(true);
   };

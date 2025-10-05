@@ -69,8 +69,8 @@ export default function WorkflowCanvas({
 
   const loadWorkflow = async (id: string) => {
     try {
-      // @ts-ignore - Table exists in database
-      const { data: flowData, error: flowError } = await supabase
+      // @ts-ignore - Supabase types not regenerated
+      const { data: flowData, error: flowError } = await (supabase as any)
         .from('flows')
         .select('*')
         .eq('id', id)
@@ -78,16 +78,16 @@ export default function WorkflowCanvas({
 
       if (flowError) throw flowError;
 
-      // @ts-ignore - Table exists in database
-      const { data: nodesData, error: nodesError } = await supabase
+      // @ts-ignore - Supabase types not regenerated
+      const { data: nodesData, error: nodesError } = await (supabase as any)
         .from('flow_nodes')
         .select('*')
         .eq('flow_id', id);
 
       if (nodesError) throw nodesError;
 
-      // @ts-ignore - Table exists in database
-      const { data: edgesData, error: edgesError } = await supabase
+      // @ts-ignore - Supabase types not regenerated
+      const { data: edgesData, error: edgesError } = await (supabase as any)
         .from('flow_edges')
         .select('*')
         .eq('flow_id', id);
@@ -124,8 +124,8 @@ export default function WorkflowCanvas({
 
       if (!flowId) {
         // Criar novo flow
-        // @ts-ignore - Table exists in database
-        const { data: newFlow, error: flowError } = await supabase
+        // @ts-ignore - Supabase types not regenerated
+        const { data: newFlow, error: flowError } = await (supabase as any)
           .from('flows')
           .insert({
             name: workflowName,
@@ -140,8 +140,8 @@ export default function WorkflowCanvas({
       }
 
       // Salvar nodes
-      // @ts-ignore - Table exists in database
-      const { error: nodesError } = await supabase
+      // @ts-ignore - Supabase types not regenerated
+      const { error: nodesError } = await (supabase as any)
         .from('flow_nodes')
         .upsert(
           nodes.map(node => ({
@@ -157,8 +157,8 @@ export default function WorkflowCanvas({
       if (nodesError) throw nodesError;
 
       // Salvar edges
-      // @ts-ignore - Table exists in database
-      const { error: edgesError } = await supabase
+      // @ts-ignore - Supabase types not regenerated
+      const { error: edgesError } = await (supabase as any)
         .from('flow_edges')
         .upsert(
           edges.map(edge => ({

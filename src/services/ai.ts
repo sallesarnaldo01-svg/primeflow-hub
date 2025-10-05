@@ -100,8 +100,8 @@ export const aiService = {
     const estimatedCost = (totalTokens / 1000) * 0.002; // Exemplo: $0.002 por 1K tokens
 
     try {
-      // @ts-ignore - Table will be created in migration
-      await supabase.from('ai_usage').insert({
+      // @ts-ignore - Supabase types not regenerated
+      await (supabase as any).from('ai_usage').insert({
         conversation_id: metadata?.conversationId,
         agent_id: metadata?.agentId,
         model: 'google/gemini-2.5-flash',
