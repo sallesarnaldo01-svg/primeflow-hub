@@ -420,6 +420,41 @@ const App = () => {
                   }
                 />
 
+                {/* CRM */}
+                <Route
+                  path="/crm/leads"
+                  element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<PageSkeleton />}
+                      >
+                        <Leads />
+                      </Suspense>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/crm/listas"
+                  element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<PageSkeleton />}
+                      >
+                        <ListasContatos />
+                      </Suspense>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/crm/campanhas-facebook"
+                  element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<PageSkeleton />}
+                      >
+                        <CampanhasFacebook />
+                      </Suspense>
+                    </ProtectedRoute>
+                  }
+                />
+
                 {/* Fallback route */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
