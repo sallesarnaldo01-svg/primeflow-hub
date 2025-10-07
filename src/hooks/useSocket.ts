@@ -4,12 +4,12 @@ import { useAuthStore } from '@/stores/auth';
 import { useIntegrationsStore } from '@/stores/integrations';
 
 export function useSocket() {
-  const { token, isAuthenticated } = useAuthStore();
+  const { session, isAuthenticated } = useAuthStore();
 
   useEffect(() => {
-    if (!isAuthenticated || !token) return;
+    if (!isAuthenticated || !session?.access_token) return;
 
-    const socket = socketClient.connect(token);
+    const socket = socketClient.connect(session.access_token);
 
     // Integration updates
     socket.on('integrations:updated', (data: any) => {
@@ -43,7 +43,7 @@ export function useSocket() {
     return () => {
       socketClient.disconnect();
     };
-  }, [isAuthenticated, token]);
+  }, [isAuthenticated, session]);
 
   return {
     connected: socketClient.connected,

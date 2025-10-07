@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,10 +8,13 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
+import { useAuthStore } from '@/stores/auth';
 import { ArrowLeft, Eye, EyeOff, CheckCircle2, XCircle } from 'lucide-react';
 
 export default function Register() {
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { signUp, isAuthenticated } = useAuthStore();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -39,6 +42,12 @@ export default function Register() {
     validatePassword(password);
   };
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -62,14 +71,33 @@ export default function Register() {
 
     setIsLoading(true);
     
-    // Simular registro
-    setTimeout(() => {
+    try {
+      const { error } = await signUp(formData.email, formData.password, formData.name);
+
+      if (error) {
+        toast({
+          title: 'Erro ao criar conta',
+          description: error.message || 'Ocorreu um erro ao criar sua conta.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       toast({
         title: 'Sucesso!',
-        description: 'E-mail de verificação enviado com sucesso! Verifique sua caixa de entrada.',
+        description: 'Conta criada com sucesso! Você já está logado.',
       });
+      
+      navigate('/dashboard', { replace: true });
+    } catch (error: any) {
+      toast({
+        title: 'Erro',
+        description: error?.message || 'Ocorreu um erro inesperado.',
+        variant: 'destructive',
+      });
+    } finally {
       setIsLoading(false);
-    }, 2000);
+    }
   };
 
   const getStrengthColor = () => {

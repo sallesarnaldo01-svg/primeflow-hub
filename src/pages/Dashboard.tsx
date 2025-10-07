@@ -167,7 +167,7 @@ const upcomingTasks = [
 ];
 
 export default function Dashboard() {
-  const { user } = useAuthStore();
+  const { profile } = useAuthStore();
   const [metrics, setMetrics] = useState([
     {
       title: 'Leads Gerados',
@@ -323,7 +323,7 @@ export default function Dashboard() {
         <motion.div variants={itemVariants} className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">
-              Bom dia, {user?.name?.split(' ')[0] || 'Usuário'}! 👋
+              Bom dia, {profile?.name?.split(' ')[0] || 'Usuário'}! 👋
             </h1>
             <p className="text-muted-foreground">
               Aqui está o resumo das suas atividades hoje

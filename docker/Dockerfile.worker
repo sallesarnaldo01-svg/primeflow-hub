@@ -25,4 +25,4 @@ COPY --from=builder /app/package.json ./
 
 RUN mkdir -p /app/uploads /app/.wwebjs_auth
 
-CMD ["pnpm", "start:worker"]
+CMD ["node", "dist/index.js"]

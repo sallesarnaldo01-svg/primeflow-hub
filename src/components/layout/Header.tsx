@@ -32,7 +32,7 @@ import { motion } from 'framer-motion';
 
 export function Header() {
   const { theme, setTheme } = useTheme();
-  const { user, logout } = useAuthStore();
+  const { profile, roles, signOut } = useAuthStore();
   const { setSidebarOpen, sidebarOpen } = useUIStore();
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [profileMode, setProfileMode] = useState<'profile' | 'avatar' | 'password'>('profile');
@@ -118,14 +118,14 @@ export function Header() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center space-x-2 px-2">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={user?.avatar} />
+                  <AvatarImage src={profile?.avatar_url} />
                   <AvatarFallback>
-                    {user?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
+                    {profile?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden md:block text-left">
-                  <p className="text-sm font-medium">{user?.name || 'Usuário'}</p>
-                  <p className="text-xs text-muted-foreground capitalize">{user?.role || 'agent'}</p>
+                  <p className="text-sm font-medium">{profile?.name || 'Usuário'}</p>
+                  <p className="text-xs text-muted-foreground capitalize">{roles[0]?.role || 'agent'}</p>
                 </div>
               </Button>
             </DropdownMenuTrigger>
@@ -161,7 +161,7 @@ export function Header() {
                 Ajuda
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={logout} className="text-destructive">
+              <DropdownMenuItem onClick={signOut} className="text-destructive">
                 <LogOut className="mr-2 h-4 w-4" />
                 Sair
               </DropdownMenuItem>

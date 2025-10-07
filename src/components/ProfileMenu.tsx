@@ -21,8 +21,8 @@ interface ProfileMenuProps {
 }
 
 export function ProfileMenu({ open, onOpenChange, mode }: ProfileMenuProps) {
-  const { user, updateUser } = useAuthStore();
-  const [name, setName] = useState(user?.name || '');
+  const { profile, updateProfile } = useAuthStore();
+  const [name, setName] = useState(profile?.name || '');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -38,10 +38,13 @@ export function ProfileMenu({ open, onOpenChange, mode }: ProfileMenuProps) {
 
     setLoading(true);
     try {
-      // TODO: Implementar chamada real à API
-      // await api.put('/auth/profile', { name });
+      const { error } = await updateProfile({ name });
       
-      updateUser({ name });
+      if (error) {
+        toast.error('Erro ao atualizar perfil');
+        return;
+      }
+      
       toast.success('Perfil atualizado com sucesso');
       onOpenChange(false);
     } catch (error) {
@@ -81,7 +84,13 @@ export function ProfileMenu({ open, onOpenChange, mode }: ProfileMenuProps) {
       // formData.append('avatar', avatarFile);
       // await api.put('/auth/avatar', formData);
 
-      updateUser({ avatar: previewUrl || undefined });
+      const { error } = await updateProfile({ avatar_url: previewUrl || undefined });
+      
+      if (error) {
+        toast.error('Erro ao atualizar foto');
+        return;
+      }
+      
       toast.success('Foto atualizada com sucesso');
       onOpenChange(false);
       setAvatarFile(null);
@@ -151,7 +160,7 @@ export function ProfileMenu({ open, onOpenChange, mode }: ProfileMenuProps) {
                 <Label htmlFor="email">E-mail</Label>
                 <Input
                   id="email"
-                  value={user?.email || ''}
+                  value={profile?.email || ''}
                   disabled
                   className="bg-muted"
                 />
@@ -183,9 +192,9 @@ export function ProfileMenu({ open, onOpenChange, mode }: ProfileMenuProps) {
             <div className="space-y-4 py-4">
               <div className="flex flex-col items-center gap-4">
                 <Avatar className="w-32 h-32">
-                  <AvatarImage src={previewUrl || user?.avatar} />
+                  <AvatarImage src={previewUrl || profile?.avatar_url} />
                   <AvatarFallback className="text-2xl">
-                    {user?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
+                    {profile?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex gap-2">

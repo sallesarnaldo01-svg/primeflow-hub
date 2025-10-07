@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -21,7 +21,7 @@ const loginSchema = z.object({
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login, setLoading } = useAuthStore();
+  const { signIn, isAuthenticated } = useAuthStore();
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
@@ -61,41 +61,37 @@ export default function Login() {
     }
   };
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!validateForm()) return;
     
     setIsLoading(true);
-    setLoading(true);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Mock successful login
-      const mockUser = {
-        id: '1',
-        name: 'João Silva',
-        email: formData.email,
-        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face',
-        role: 'admin' as const,
-        workspace: 'Minha Empresa',
-      };
+      const { error } = await signIn(formData.email, formData.password);
 
-      login(mockUser, 'mock-jwt-token');
+      if (error) {
+        setLoginError(error.message || 'E-mail ou senha incorretos. Tente novamente.');
+        return;
+      }
       
       toast({
         title: 'Login realizado com sucesso!',
-        description: `Bem-vindo, ${mockUser.name}`,
+        description: 'Bem-vindo de volta!',
       });
 
-      navigate('/');
-    } catch (error) {
-      setLoginError('E-mail ou senha incorretos. Tente novamente.');
+      navigate('/dashboard', { replace: true });
+    } catch (error: any) {
+      setLoginError(error?.message || 'E-mail ou senha incorretos. Tente novamente.');
     } finally {
       setIsLoading(false);
-      setLoading(false);
     }
   };
 

@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 export default function AuthCallback() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { login } = useAuthStore();
+  const { signIn } = useAuthStore();
   const { toast } = useToast();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState('');
@@ -54,25 +54,12 @@ export default function AuthCallback() {
       }
 
       try {
-        // Simular callback SSO (em produção seria uma chamada real)
-        const response = await authService.ssoCallback({
-          provider,
-          code,
-          state: state || '',
-        });
-
-        login(response.user, response.token);
-        setStatus('success');
-        
         toast({
-          title: 'Login realizado com sucesso!',
-          description: `Bem-vindo, ${response.user.name}!`,
+          title: 'Funcionalidade em desenvolvimento',
+          description: 'Login social será implementado em breve.',
         });
-
-        // Aguardar um pouco para mostrar sucesso, depois redirecionar
-        setTimeout(() => {
-          navigate('/', { replace: true });
-        }, 2000);
+        setStatus('error');
+        setErrorMessage('Login social não implementado ainda');
       } catch (error: any) {
         console.error('SSO callback error:', error);
         setErrorMessage(
@@ -83,7 +70,7 @@ export default function AuthCallback() {
     };
 
     handleCallback();
-  }, [provider, code, error, state, login, navigate, toast]);
+  }, [provider, code, error, state, signIn, navigate, toast]);
 
   const handleRetry = () => {
     if (provider) {
