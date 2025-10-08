@@ -1,6 +1,18 @@
 import { io, Socket } from 'socket.io-client';
 
-const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3001';
+// Auto-detect WebSocket URL based on current location
+const getWsUrl = () => {
+  if (import.meta.env.VITE_WS_URL) {
+    return import.meta.env.VITE_WS_URL;
+  }
+  
+  // In production, use same origin with auto-detected protocol
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const host = window.location.host;
+  return `${protocol}//${host}`;
+};
+
+const WS_URL = getWsUrl();
 
 class SocketClient {
   private socket: Socket | null = null;

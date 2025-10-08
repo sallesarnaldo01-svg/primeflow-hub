@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { LoadingSplash } from "@/components/LoadingSplash";
 import { CommandPalette, useCommandPalette } from "@/components/CommandPalette";
 import { useAuthStore } from "@/stores/auth";
@@ -81,15 +82,16 @@ const App = () => {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <CommandPalette open={open} onOpenChange={setOpen} />
-          <BrowserRouter>
-            <AnimatePresence mode="wait">
-              <Routes>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <CommandPalette open={open} onOpenChange={setOpen} />
+            <BrowserRouter>
+              <AnimatePresence mode="wait">
+                <Routes>
                 {/* Public routes */}
                 <Route 
                   path="/login" 
@@ -128,6 +130,10 @@ const App = () => {
                 {/* Protected routes */}
                 <Route
                   path="/"
+                  element={<Navigate to="/dashboard" replace />}
+                />
+                <Route
+                  path="/dashboard"
                   element={
                     <ProtectedRoute>
                       <Suspense fallback={<PageSkeleton />}>
@@ -425,8 +431,7 @@ const App = () => {
                   path="/crm/leads"
                   element={
                     <ProtectedRoute>
-                      <Suspense fallback={<PageSkeleton />}
-                      >
+                      <Suspense fallback={<PageSkeleton />}>
                         <Leads />
                       </Suspense>
                     </ProtectedRoute>
@@ -436,8 +441,7 @@ const App = () => {
                   path="/crm/listas"
                   element={
                     <ProtectedRoute>
-                      <Suspense fallback={<PageSkeleton />}
-                      >
+                      <Suspense fallback={<PageSkeleton />}>
                         <ListasContatos />
                       </Suspense>
                     </ProtectedRoute>
@@ -447,8 +451,7 @@ const App = () => {
                   path="/crm/campanhas-facebook"
                   element={
                     <ProtectedRoute>
-                      <Suspense fallback={<PageSkeleton />}
-                      >
+                      <Suspense fallback={<PageSkeleton />}>
                         <CampanhasFacebook />
                       </Suspense>
                     </ProtectedRoute>
@@ -457,12 +460,13 @@ const App = () => {
 
                 {/* Fallback route */}
                 <Route path="*" element={<NotFound />} />
-              </Routes>
-            </AnimatePresence>
-          </BrowserRouter>
-        </TooltipProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+                </Routes>
+              </AnimatePresence>
+            </BrowserRouter>
+          </TooltipProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 
