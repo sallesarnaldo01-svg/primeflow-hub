@@ -14,6 +14,299 @@ export type Database = {
   }
   public: {
     Tables: {
+      broadcasts: {
+        Row: {
+          channel: string
+          created_at: string
+          id: string
+          message: string
+          name: string
+          scheduled_at: string | null
+          sent_count: number | null
+          status: string | null
+          total_contacts: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          channel: string
+          created_at?: string
+          id?: string
+          message: string
+          name: string
+          scheduled_at?: string | null
+          sent_count?: number | null
+          status?: string | null
+          total_contacts?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          id?: string
+          message?: string
+          name?: string
+          scheduled_at?: string | null
+          sent_count?: number | null
+          status?: string | null
+          total_contacts?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      conversation_events: {
+        Row: {
+          actor: string
+          actor_id: string | null
+          actor_name: string | null
+          content: string | null
+          conversation_id: string
+          created_at: string
+          feedback: string | null
+          id: string
+          metadata: Json | null
+          rating: number | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          actor: string
+          actor_id?: string | null
+          actor_name?: string | null
+          content?: string | null
+          conversation_id: string
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          metadata?: Json | null
+          rating?: number | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          actor?: string
+          actor_id?: string | null
+          actor_name?: string | null
+          content?: string | null
+          conversation_id?: string
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          metadata?: Json | null
+          rating?: number | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_events_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          channel: string
+          contact_name: string | null
+          contact_phone: string | null
+          created_at: string
+          id: string
+          last_message_at: string | null
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          channel: string
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          channel?: string
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      facebook_connections: {
+        Row: {
+          created_at: string
+          id: string
+          integration_id: string | null
+          meta: Json | null
+          name: string | null
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          integration_id?: string | null
+          meta?: Json | null
+          name?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          integration_id?: string | null
+          meta?: Json | null
+          name?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facebook_connections_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "integrations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      instagram_connections: {
+        Row: {
+          created_at: string
+          id: string
+          integration_id: string | null
+          meta: Json | null
+          name: string | null
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          integration_id?: string | null
+          meta?: Json | null
+          name?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          integration_id?: string | null
+          meta?: Json | null
+          name?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "instagram_connections_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "integrations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integrations: {
+        Row: {
+          config: Json | null
+          connected_at: string | null
+          created_at: string
+          error: string | null
+          id: string
+          last_sync_at: string | null
+          provider: string
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          config?: Json | null
+          connected_at?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          last_sync_at?: string | null
+          provider: string
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          config?: Json | null
+          connected_at?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          last_sync_at?: string | null
+          provider?: string
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          content: string | null
+          conversation_id: string
+          created_at: string
+          direction: string
+          id: string
+          media_url: string | null
+          type: string | null
+          user_id: string
+        }
+        Insert: {
+          content?: string | null
+          conversation_id: string
+          created_at?: string
+          direction: string
+          id?: string
+          media_url?: string | null
+          type?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: string | null
+          conversation_id?: string
+          created_at?: string
+          direction?: string
+          id?: string
+          media_url?: string | null
+          type?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -64,6 +357,56 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      whatsapp_connections: {
+        Row: {
+          connected_at: string | null
+          created_at: string
+          device: string | null
+          id: string
+          integration_id: string | null
+          name: string | null
+          phone: string | null
+          qr_code: string | null
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          connected_at?: string | null
+          created_at?: string
+          device?: string | null
+          id?: string
+          integration_id?: string | null
+          name?: string | null
+          phone?: string | null
+          qr_code?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          connected_at?: string | null
+          created_at?: string
+          device?: string | null
+          id?: string
+          integration_id?: string | null
+          name?: string | null
+          phone?: string | null
+          qr_code?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_connections_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "integrations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
