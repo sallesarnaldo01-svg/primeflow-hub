@@ -86,10 +86,10 @@ const App = () => {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <CommandPalette open={open} onOpenChange={setOpen} />
-            <BrowserRouter>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <CommandPalette open={open} onOpenChange={setOpen} />
               <AnimatePresence mode="wait">
                 <Routes>
                 {/* Public routes */}
