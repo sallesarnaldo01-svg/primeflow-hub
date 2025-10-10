@@ -137,16 +137,15 @@ export function Sidebar() {
 
       {/* Sidebar */}
       <motion.aside
-        initial={{ x: -280 }}
+        initial={false}
         animate={{ 
-          x: sidebarOpen || window.innerWidth >= 768 ? 0 : -280,
           width: sidebarCollapsed ? 80 : 280
         }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
         className={cn(
-          "fixed left-0 top-0 z-50 h-full bg-card border-r",
-          "md:relative md:translate-x-0",
-          sidebarCollapsed ? "w-20" : "w-70"
+          "fixed left-0 top-0 z-40 h-full bg-card border-r flex-shrink-0",
+          sidebarCollapsed ? "w-20" : "w-70",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}
       >
         <div className="flex flex-col h-full">
