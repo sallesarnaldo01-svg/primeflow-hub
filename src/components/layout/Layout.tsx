@@ -12,18 +12,18 @@ export function Layout({ children }: LayoutProps) {
   const { sidebarCollapsed } = useUIStore();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex min-h-screen bg-background">
       <Sidebar />
       
       <div className={cn(
-        "flex flex-col transition-all duration-300",
-        "md:ml-70",
-        sidebarCollapsed && "md:ml-20"
+        "flex flex-col flex-1 transition-all duration-300",
+        "md:pl-70",
+        sidebarCollapsed && "md:pl-20"
       )}>
         <Header />
         
         <motion.main 
-          className="flex-1 p-6"
+          className="flex-1 p-6 overflow-auto"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.1 }}
