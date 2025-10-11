@@ -45,10 +45,16 @@ const IA: React.FC = () => {
             <h1 className="text-3xl font-bold">Inteligência Artificial</h1>
             <p className="text-muted-foreground">Automação inteligente para atendimento e análises</p>
           </div>
-          <Button onClick={() => navigate('/ia/providers')} variant="outline">
-            <Sparkles className="h-4 w-4 mr-2" />
-            Provedores de IA
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => navigate('/ia/providers')} variant="outline">
+              <Sparkles className="h-4 w-4 mr-2" />
+              Provedores de IA
+            </Button>
+            <Button onClick={() => navigate('/ia/configuracoes')} variant="outline">
+              <Settings className="h-4 w-4 mr-2" />
+              Configurações
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

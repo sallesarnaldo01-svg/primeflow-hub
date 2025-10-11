@@ -33,6 +33,7 @@ const IA = lazy(() => import("./pages/IA"));
 const AIProviders = lazy(() => import("./pages/AIProviders"));
 const AITools = lazy(() => import("./pages/AITools"));
 const KnowledgeBase = lazy(() => import("./pages/KnowledgeBase"));
+const ConfiguracoesIA = lazy(() => import("./pages/ConfiguracoesIA"));
 const IAPerformance = lazy(() => import("./pages/IAPerformance"));
 const FollowUp = lazy(() => import("./pages/FollowUp"));
 const Produtos = lazy(() => import("./pages/Produtos"));
@@ -292,6 +293,16 @@ const App = () => {
                     <ProtectedRoute>
                       <Suspense fallback={<PageSkeleton />}>
                         <KnowledgeBase />
+                      </Suspense>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/ia/configuracoes"
+                  element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<PageSkeleton />}>
+                        <ConfiguracoesIA />
                       </Suspense>
                     </ProtectedRoute>
                   }
