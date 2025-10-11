@@ -330,11 +330,16 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="flex items-center space-x-2">
-            <Button variant="outline">
+            <Button 
+              variant="outline"
+              onClick={() => window.location.href = '/conexoes'}
+            >
               <Phone className="mr-2 h-4 w-4" />
               Conectar WhatsApp
             </Button>
-            <Button>
+            <Button
+              onClick={() => window.location.href = '/crm'}
+            >
               <Plus className="mr-2 h-4 w-4" />
               Novo Deal
             </Button>
