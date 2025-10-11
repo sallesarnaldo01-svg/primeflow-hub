@@ -142,7 +142,7 @@ const AIProviders: React.FC = () => {
         onOpenChange={setCreateDialogOpen}
         onSuccess={loadProviders}
       />
-    
+    </>
   );
 };
 

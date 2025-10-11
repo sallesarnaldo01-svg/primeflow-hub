@@ -38,7 +38,7 @@ const IA: React.FC = () => {
   };
 
   return (
-    
+    <>
       <div className="container mx-auto p-6 space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
@@ -294,7 +294,7 @@ const IA: React.FC = () => {
           </TabsContent>
         </Tabs>
       </div>
-    
+    </>
   );
 };
 

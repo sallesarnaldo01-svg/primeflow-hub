@@ -159,7 +159,7 @@ export default function Usuarios() {
   };
 
   return (
-    
+    <>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -560,6 +560,6 @@ export default function Usuarios() {
           </DialogContent>
         </Dialog>
       </motion.div>
-    
+    </>
   );
 }

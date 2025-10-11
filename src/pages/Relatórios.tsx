@@ -111,7 +111,7 @@ export default function Relatorios() {
   const [selectedReport, setSelectedReport] = useState('vendas');
 
   return (
-    
+    <>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -504,6 +504,6 @@ export default function Relatorios() {
           </TabsContent>
         </Tabs>
       </motion.div>
-    
+    </>
   );
 }
