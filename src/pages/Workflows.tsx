@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { WorkflowBuilder } from '@/components/WorkflowBuilder';
 import WorkflowCanvas from '@/components/workflows/WorkflowCanvas';
 import { Node, Edge } from 'react-flow-renderer';
 import { Badge } from '@/components/ui/badge';
@@ -298,6 +299,8 @@ const Workflows: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [editingWorkflow, setEditingWorkflow] = useState<WorkflowData | null>(null);
   const [newWorkflow, setNewWorkflow] = useState({
     name: '',
     description: '',
@@ -392,6 +395,33 @@ const Workflows: React.FC = () => {
       setSelectedWorkflow(null);
     }
     toast.success('Workflow excluído com sucesso!');
+  };
+
+  const openEditor = (workflow: WorkflowData) => {
+    setEditingWorkflow(workflow);
+    setIsEditorOpen(true);
+  };
+
+  const handleSaveWorkflow = (workflow: any) => {
+    setWorkflows(prev => prev.map(w => 
+      w.id === workflow.id ? { ...w, ...workflow, updatedAt: new Date() } : w
+    ));
+    toast.success('Workflow salvo!');
+  };
+
+  const handleValidateWorkflow = async (workflow: any) => {
+    // Simulated validation
+    return { valid: true, errors: [] };
+  };
+
+  const handlePublishWorkflow = (workflow: any) => {
+    setWorkflows(prev => prev.map(w => 
+      w.id === workflow.id 
+        ? { ...w, ...workflow, status: 'active' as const, updatedAt: new Date() } 
+        : w
+    ));
+    setIsEditorOpen(false);
+    toast.success('Workflow publicado com sucesso!');
   };
 
   const getStatusColor = (status: WorkflowData['status']) => {
@@ -758,7 +788,7 @@ const Workflows: React.FC = () => {
                             variant="ghost"
                             onClick={(e) => { 
                               e.stopPropagation();
-                              /* TODO: Edit workflow */ 
+                              openEditor(workflow);
                             }}
                           >
                             <Edit className="h-4 w-4" />
@@ -928,6 +958,20 @@ const Workflows: React.FC = () => {
             </Card>
           </div>
         </div>
+
+        {/* Editor Modal */}
+        <Dialog open={isEditorOpen} onOpenChange={setIsEditorOpen}>
+          <DialogContent className="max-w-7xl h-[90vh] p-0">
+            <div className="overflow-y-auto h-full p-6">
+              <WorkflowBuilder
+                workflow={editingWorkflow as any}
+                onSave={handleSaveWorkflow}
+                onValidate={handleValidateWorkflow}
+                onPublish={handlePublishWorkflow}
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
