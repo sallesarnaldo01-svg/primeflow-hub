@@ -199,7 +199,7 @@ export default function WorkflowCanvas({
   );
 
   return (
-    <div className="h-[600px] border rounded-lg bg-background">
+    <div className="h-[700px] border rounded-lg bg-background relative">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -209,10 +209,22 @@ export default function WorkflowCanvas({
         onNodeDragStop={onNodeDragStop}
         nodeTypes={nodeTypes}
         fitView
+        className="bg-muted/5"
       >
-        <Controls />
-        <MiniMap />
-        <Background />
+        <Controls className="bg-background border shadow-sm" />
+        <MiniMap 
+          className="bg-background border shadow-sm" 
+          nodeColor={(node) => {
+            switch (node.type) {
+              case 'trigger': return '#3b82f6';
+              case 'action': return '#22c55e';
+              case 'condition': return '#eab308';
+              case 'delay': return '#a855f7';
+              default: return '#64748b';
+            }
+          }}
+        />
+        <Background className="bg-muted/5" />
       </ReactFlow>
     </div>
   );

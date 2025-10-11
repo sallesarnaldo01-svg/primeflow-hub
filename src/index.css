@@ -328,3 +328,33 @@
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+/* React Flow Styles */
+@import 'react-flow-renderer/dist/style.css';
+@import 'react-flow-renderer/dist/theme-default.css';
+
+.react-flow__node {
+  @apply cursor-grab active:cursor-grabbing;
+}
+
+.react-flow__node.selected {
+  @apply ring-2 ring-primary ring-offset-2;
+}
+
+.react-flow__edge-path {
+  @apply stroke-primary;
+  stroke-width: 2;
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  @apply stroke-accent;
+  stroke-width: 3;
+}
+
+.react-flow__controls {
+  @apply shadow-lg rounded-lg;
+}
+
+.react-flow__minimap {
+  @apply shadow-lg rounded-lg;
+}
