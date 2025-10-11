@@ -405,10 +405,21 @@ export default function Usuarios() {
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="sm">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => toast.info('Configurações')}
+                              title="Configurações"
+                            >
                               <Settings className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="sm" className="text-destructive">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="text-destructive"
+                              onClick={() => toast.error('Remover usuário')}
+                              title="Remover"
+                            >
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>

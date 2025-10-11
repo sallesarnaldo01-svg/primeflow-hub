@@ -267,13 +267,27 @@ export default function Atendimentos() {
               </p>
             </div>
             <div className="flex items-center space-x-2">
-              <Button variant="ghost" size="sm">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => window.location.href = '/chamadas'}
+                title="Iniciar chamada de voz"
+              >
                 <Phone className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="sm">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => window.location.href = '/chamadas'}
+                title="Iniciar videochamada"
+              >
                 <Video className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="sm">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                title="Mais opções"
+              >
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </div>
@@ -340,16 +354,32 @@ export default function Atendimentos() {
                 />
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <Button variant="ghost" size="sm">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      title="Anexar arquivo"
+                    >
                       <Paperclip className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      title="Enviar imagem"
+                    >
                       <Image className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      title="Emoji"
+                    >
                       <Smile className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      title="Gravar áudio"
+                    >
                       <Mic className="h-4 w-4" />
                     </Button>
                   </div>

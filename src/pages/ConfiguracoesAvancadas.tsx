@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from 'sonner';
 import {
   Settings,
   Users,
@@ -100,7 +100,6 @@ const logs = [
 ];
 
 export default function ConfiguracoesAvancadas() {
-  const { toast } = useToast();
   const [configSistema, setConfigSistema] = useState({
     manutencao: false,
     registroPublico: true,
@@ -137,32 +136,20 @@ export default function ConfiguracoesAvancadas() {
   };
 
   const handleSalvarConfig = () => {
-    toast({
-      title: "Configurações salvas",
-      description: "As configurações do sistema foram atualizadas com sucesso."
-    });
+    toast.success("Configurações salvas com sucesso");
   };
 
   const handleCriarUsuario = () => {
-    toast({
-      title: "Usuário criado",
-      description: "O novo usuário foi criado e receberá um email de boas-vindas."
-    });
+    toast.success("Usuário criado - email de boas-vindas enviado");
     setIsNovoUsuarioOpen(false);
   };
 
   const handleBackup = () => {
-    toast({
-      title: "Backup iniciado",
-      description: "O backup foi iniciado e você será notificado quando concluído."
-    });
+    toast.info("Backup iniciado - você será notificado quando concluído");
   };
 
   const handleExportarLogs = () => {
-    toast({
-      title: "Logs exportados",
-      description: "O arquivo de logs foi baixado para sua pasta de downloads."
-    });
+    toast.success("Logs exportados com sucesso");
   };
 
   return (
@@ -306,13 +293,29 @@ export default function ConfiguracoesAvancadas() {
                       <TableCell>{usuario.ultimoAcesso}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => toast.info('Editar usuário')}
+                            title="Editar usuário"
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => toast.info('Redefinir senha')}
+                            title="Redefinir senha"
+                          >
                             <Key className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm" className="text-red-500">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-red-500"
+                            onClick={() => toast.error('Remover usuário')}
+                            title="Remover usuário"
+                          >
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>

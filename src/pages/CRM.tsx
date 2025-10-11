@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { BulkAIDialog } from '@/components/crm/BulkAIDialog';
+import { toast } from 'sonner';
 import { 
   Plus, 
   Search, 
@@ -201,10 +202,28 @@ function DealCard({ deal, onEdit, isSelected, onSelectChange }: DealCardProps) {
             </span>
           </div>
           <div className="flex space-x-1">
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-6 w-6 p-0"
+              onClick={(e) => {
+                e.stopPropagation();
+                toast.info('Funcionalidade de chamada em desenvolvimento');
+              }}
+              title="Ligar"
+            >
               <Phone className="h-3 w-3" />
             </Button>
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-6 w-6 p-0"
+              onClick={(e) => {
+                e.stopPropagation();
+                toast.info('Funcionalidade de email em desenvolvimento');
+              }}
+              title="Enviar email"
+            >
               <Mail className="h-3 w-3" />
             </Button>
             <Button 

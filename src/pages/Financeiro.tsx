@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useToast } from "@/hooks/use-toast";
+import { toast as toastNotification } from 'sonner';
 import {
   CreditCard,
   DollarSign,
@@ -128,7 +128,6 @@ const assinaturas = [
 ];
 
 export default function Financeiro() {
-  const { toast } = useToast();
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [termoBusca, setTermoBusca] = useState("");
   const [isNovaFaturaOpen, setIsNovaFaturaOpen] = useState(false);
@@ -164,18 +163,12 @@ export default function Financeiro() {
   const totalPropostas = propostas.reduce((acc, p) => acc + p.valor, 0);
 
   const handleGerarFatura = () => {
-    toast({
-      title: "Fatura gerada",
-      description: "A fatura foi criada e enviada para o cliente."
-    });
+    toastNotification.success("Fatura gerada e enviada para o cliente");
     setIsNovaFaturaOpen(false);
   };
 
   const handleExportarRelatorio = () => {
-    toast({
-      title: "Relatório exportado",
-      description: "O arquivo foi baixado para sua pasta de downloads."
-    });
+    toastNotification.success("Relatório exportado com sucesso");
   };
 
   return (
@@ -377,10 +370,20 @@ export default function Financeiro() {
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => toastNotification.info('Visualizar fatura')}
+                            title="Visualizar fatura"
+                          >
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => toastNotification.success('Download iniciado')}
+                            title="Baixar fatura"
+                          >
                             <Download className="h-4 w-4" />
                           </Button>
                         </div>
@@ -424,10 +427,20 @@ export default function Financeiro() {
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => toastNotification.info('Visualizar proposta')}
+                            title="Visualizar proposta"
+                          >
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => toastNotification.success('Download iniciado')}
+                            title="Baixar proposta"
+                          >
                             <Download className="h-4 w-4" />
                           </Button>
                         </div>
@@ -475,10 +488,20 @@ export default function Financeiro() {
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => toastNotification.info('Visualizar assinatura')}
+                            title="Visualizar detalhes"
+                          >
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => toastNotification.info('Configurações da assinatura')}
+                            title="Configurar assinatura"
+                          >
                             <Settings className="h-4 w-4" />
                           </Button>
                         </div>

@@ -26,6 +26,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { KanbanCard } from '@/components/KanbanCard';
+import { toast } from 'sonner';
 import {
   Plus,
   MoreHorizontal,
@@ -318,7 +319,12 @@ export default function Kanban() {
                         </CardTitle>
                         <div className="flex items-center space-x-2">
                           <Badge variant="secondary">{column.cards.length}</Badge>
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => toast.info('Funcionalidade de adicionar card em desenvolvimento')}
+                            title="Adicionar card"
+                          >
                             <Plus className="h-4 w-4" />
                           </Button>
                         </div>

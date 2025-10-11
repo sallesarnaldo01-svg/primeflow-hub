@@ -475,7 +475,11 @@ export default function Dashboard() {
                       Pipeline de vendas em andamento
                     </CardDescription>
                   </div>
-                  <Button variant="ghost" size="sm">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => window.location.href = '/crm'}
+                  >
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
                 </div>
@@ -483,7 +487,11 @@ export default function Dashboard() {
               <CardContent>
                 <div className="space-y-4">
                   {recentDeals.map((deal) => (
-                    <div key={deal.id} className="flex items-center space-x-4 p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer">
+                    <div 
+                      key={deal.id} 
+                      className="flex items-center space-x-4 p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer"
+                      onClick={() => window.location.href = '/crm'}
+                    >
                       <Avatar className="h-10 w-10">
                         <AvatarImage src={deal.avatar} />
                         <AvatarFallback>
@@ -509,7 +517,14 @@ export default function Dashboard() {
                         </div>
                       </div>
                       
-                      <Button variant="ghost" size="sm">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.location.href = '/crm';
+                        }}
+                      >
                         <ArrowUpRight className="h-4 w-4" />
                       </Button>
                     </div>
