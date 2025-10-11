@@ -101,19 +101,22 @@ export function WhatsAppQRDialog({
 
           {status === 'qr' && qrCode && (
             <>
-              <div className="bg-white p-4 rounded-lg">
+              <div className="bg-white p-6 rounded-xl shadow-lg border-2 border-primary/20">
                 <img
                   src={qrCode}
                   alt="QR Code WhatsApp"
-                  className="w-64 h-64"
+                  className="w-72 h-72 object-contain"
                 />
               </div>
-              <Alert>
-                <AlertDescription>
-                  1. Abra o WhatsApp no seu celular<br />
-                  2. Toque em Menu → Aparelhos conectados<br />
-                  3. Toque em Conectar um aparelho<br />
-                  4. Aponte seu celular para esta tela para capturar o código
+              <Alert className="bg-primary/5 border-primary/20">
+                <AlertDescription className="space-y-2">
+                  <p className="font-semibold text-primary">Como conectar:</p>
+                  <ol className="list-decimal list-inside space-y-1 text-sm">
+                    <li>Abra o WhatsApp no seu celular</li>
+                    <li>Toque em <strong>Menu</strong> (⋮) → <strong>Aparelhos conectados</strong></li>
+                    <li>Toque em <strong>Conectar um aparelho</strong></li>
+                    <li>Aponte a câmera do celular para o QR Code acima</li>
+                  </ol>
                 </AlertDescription>
               </Alert>
               <Button onClick={loadQRCode} variant="outline" size="sm">

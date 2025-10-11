@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Layout } from '@/components/layout/Layout';
+// Layout is provided by ProtectedRoute
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -141,34 +141,49 @@ export default function Conexoes() {
 
   const handleSendMessage = async (data: any) => {
     try {
-      const whatsappConnection = whatsappConnections.find(c => c.status === 'connected');
+      const whatsappConnection = whatsappConnections.find(
+        c => c.status === 'CONNECTED' || c.status === 'connected'
+      );
       
       if (!whatsappConnection) {
-        toast.error('Nenhuma conexão WhatsApp disponível');
+        toast.error('Nenhuma conexão WhatsApp disponível. Conecte seu WhatsApp primeiro.');
+        return;
+      }
+
+      if (!data.content || data.content.trim() === '') {
+        toast.error('Digite uma mensagem para enviar');
         return;
       }
 
       if (data.bulkContacts && data.bulkContacts.length > 0) {
-        await whatsappService.sendBulkMessages(whatsappConnection.id, {
+        const result = await whatsappService.sendBulkMessages(whatsappConnection.id, {
           contacts: data.bulkContacts,
           message: {
             text: data.content,
           },
           delayMs: data.delayBetweenMs || 1000,
         });
+
+        toast.success(
+          `Disparo iniciado! ${result.totalContacts} mensagens serão enviadas em aproximadamente ${result.estimatedTime} segundos.`
+        );
+        setShowComposer(false);
+        loadConnections();
+      } else {
+        toast.error('Adicione contatos para o disparo em massa');
       }
     } catch (error: any) {
+      console.error('Error sending bulk messages:', error);
       toast.error(error.message || 'Erro ao enviar mensagem');
     }
   };
 
   return (
-    <Layout>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="space-y-6"
-      >
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-6"
+    >
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Conexões</h1>
@@ -418,20 +433,22 @@ export default function Conexoes() {
         {/* Bulk Message Composer */}
         {showComposer && (
           <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="w-full max-w-2xl">
-              <div className="flex justify-end mb-2">
+            <div className="w-full max-w-2xl bg-background rounded-lg shadow-2xl border">
+              <div className="flex justify-between items-center p-4 border-b">
+                <h2 className="text-xl font-semibold">Disparo em Massa - WhatsApp</h2>
                 <Button variant="ghost" size="sm" onClick={() => setShowComposer(false)}>
                   Fechar
                 </Button>
               </div>
-              <MultiChannelComposer
-                channels={['whatsapp']}
-                onSend={handleSendMessage}
-              />
+              <div className="p-4">
+                <MultiChannelComposer
+                  channels={['whatsapp']}
+                  onSend={handleSendMessage}
+                />
+              </div>
             </div>
           </div>
         )}
-      </motion.div>
-    </Layout>
+    </motion.div>
   );
 }

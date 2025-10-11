@@ -74,6 +74,11 @@ export function MultiChannelComposer({ channels, onSend }: MultiChannelComposerP
       });
 
       toast.success(`Disparo em massa iniciado para ${contacts.length} contatos`);
+      
+      // Clear form
+      setContent('');
+      setAttachments([]);
+      setBulkContacts('');
     } else if (scheduledAt) {
       onSend({
         channel: selectedChannel,
@@ -83,6 +88,11 @@ export function MultiChannelComposer({ channels, onSend }: MultiChannelComposerP
       });
 
       toast.success('Mensagem agendada com sucesso');
+      
+      // Clear form
+      setContent('');
+      setAttachments([]);
+      setScheduledAt('');
     } else {
       onSend({
         channel: selectedChannel,
@@ -91,6 +101,10 @@ export function MultiChannelComposer({ channels, onSend }: MultiChannelComposerP
       });
 
       toast.success('Mensagem enviada');
+      
+      // Clear form
+      setContent('');
+      setAttachments([]);
     }
 
     // Clear form
@@ -178,11 +192,14 @@ export function MultiChannelComposer({ channels, onSend }: MultiChannelComposerP
             <div className="space-y-2">
               <Label>Contatos (um por linha)</Label>
               <Textarea
-                placeholder="+55 11 99999-9999&#10;+55 21 88888-8888"
+                placeholder="+5511999999999&#10;+5521888888888&#10;+5531777777777"
                 value={bulkContacts}
                 onChange={(e) => setBulkContacts(e.target.value)}
-                rows={4}
+                rows={5}
               />
+              <p className="text-xs text-muted-foreground">
+                Digite os números no formato: +55DDD9XXXXXXXX (um por linha)
+              </p>
             </div>
             <div className="space-y-2">
               <Label>Delay entre envios (ms)</Label>

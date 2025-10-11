@@ -84,15 +84,28 @@ export const whatsappService = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
+    // Validate contacts
+    if (!data.contacts || data.contacts.length === 0) {
+      throw new Error('Nenhum contato fornecido');
+    }
+
+    // Create broadcast record
     const { data: broadcast, error } = await supabase
       .from('broadcasts')
       .insert({
         user_id: user.id,
-        name: `Broadcast ${new Date().toISOString()}`,
+        name: `Disparo em Massa - ${new Date().toLocaleString('pt-BR')}`,
         message: data.message.text,
         channel: 'whatsapp',
         status: 'sending',
-        total_contacts: data.contacts.length
+        total_contacts: data.contacts.length,
+        config: {
+          connectionId,
+          delayMs: data.delayMs || 1000,
+          contacts: data.contacts,
+          mediaUrl: data.message.mediaUrl,
+          mediaType: data.message.mediaType
+        }
       })
       .select()
       .single();
@@ -102,7 +115,7 @@ export const whatsappService = {
     return {
       broadcastId: broadcast.id,
       totalContacts: data.contacts.length,
-      estimatedTime: data.contacts.length * (data.delayMs || 1000) / 1000
+      estimatedTime: Math.ceil(data.contacts.length * (data.delayMs || 1000) / 1000)
     };
   },
 
