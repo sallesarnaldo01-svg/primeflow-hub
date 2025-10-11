@@ -4,7 +4,7 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
-import { Layout } from '@/components/layout/Layout';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -144,7 +144,7 @@ export default function Agendamentos() {
   };
 
   return (
-    <Layout>
+    
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -497,6 +497,6 @@ export default function Agendamentos() {
           </TabsContent>
         </Tabs>
       </motion.div>
-    </Layout>
+    
   );
 }

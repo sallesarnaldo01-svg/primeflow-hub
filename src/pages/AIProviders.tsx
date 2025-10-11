@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Layout } from '@/components/layout/Layout';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -56,7 +56,8 @@ const AIProviders: React.FC = () => {
   };
 
   return (
-    <Layout>
+    <>
+    
       <div className="container mx-auto p-6 space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
@@ -141,7 +142,7 @@ const AIProviders: React.FC = () => {
         onOpenChange={setCreateDialogOpen}
         onSuccess={loadProviders}
       />
-    </Layout>
+    
   );
 };
 

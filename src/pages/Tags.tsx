@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Layout } from '@/components/layout/Layout';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -349,7 +349,7 @@ const Tags: React.FC = () => {
   };
 
   return (
-    <Layout>
+    
       <div className="container mx-auto p-6 space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -837,7 +837,7 @@ const Tags: React.FC = () => {
           </div>
         </div>
       </div>
-    </Layout>
+    
   );
 };
 

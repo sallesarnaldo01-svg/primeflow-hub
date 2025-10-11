@@ -46,13 +46,17 @@ export function WhatsAppQRDialog({
       setStatus('loading');
       const data = await whatsappService.getQRCode(connectionId);
       
-      if (data.status === 'CONNECTED') {
+      const statusUpper = String(data.status || '').toUpperCase();
+      if (statusUpper === 'CONNECTED') {
         setStatus('connected');
         toast.success('WhatsApp conectado!');
         onConnected?.();
         setTimeout(() => onOpenChange(false), 2000);
       } else {
-        setQrCode(data.qrCode);
+        const src = data.qrCode?.startsWith('data:image')
+          ? data.qrCode
+          : `data:image/png;base64,${data.qrCode || ''}`;
+        setQrCode(src);
         setStatus('qr');
       }
     } catch (error: any) {
@@ -68,7 +72,8 @@ export function WhatsAppQRDialog({
     try {
       const data = await whatsappService.getConnectionStatus(connectionId);
       
-      if (data.status === 'CONNECTED') {
+      const statusUpper = String(data.status || '').toUpperCase();
+      if (statusUpper === 'CONNECTED') {
         setStatus('connected');
         toast.success('WhatsApp conectado!');
         onConnected?.();

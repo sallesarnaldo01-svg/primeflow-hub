@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Layout } from '@/components/layout/Layout';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -102,7 +102,7 @@ const tagPerformance = [
 
 export default function FunilVendas() {
   return (
-    <Layout>
+    
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -355,6 +355,6 @@ export default function FunilVendas() {
           </TabsContent>
         </Tabs>
       </motion.div>
-    </Layout>
+    
   );
 }

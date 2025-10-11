@@ -159,7 +159,7 @@ export default function Integracoes() {
   };
 
   return (
-    <Layout>
+    
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -427,6 +427,6 @@ export default function Integracoes() {
           </DialogContent>
         </Dialog>
       </motion.div>
-    </Layout>
+    
   );
 }

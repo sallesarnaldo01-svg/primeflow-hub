@@ -15,7 +15,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Layout } from '@/components/layout/Layout';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -247,7 +247,7 @@ export default function Kanban() {
   };
 
   return (
-    <Layout>
+    
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -400,6 +400,6 @@ export default function Kanban() {
           </DialogContent>
         </Dialog>
       </motion.div>
-    </Layout>
+    
   );
 }
