@@ -806,21 +806,20 @@ const Workflows: React.FC = () => {
                         </div>
                       </div>
                     </motion.div>
-          ))}
-        </div>
-      )}
+                  ))}
 
-                {filteredWorkflows.length === 0 && (
-                  <div className="text-center py-12">
-                    <Workflow className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-medium">Nenhum workflow encontrado</h3>
-                    <p className="text-muted-foreground">
-                      {searchTerm || filterStatus !== 'all' || filterCategory !== 'all'
-                        ? 'Tente ajustar os filtros de busca'
-                        : 'Crie seu primeiro workflow usando o botão acima'}
-                    </p>
-                  </div>
-                )}
+                  {filteredWorkflows.length === 0 && (
+                    <div className="text-center py-12">
+                      <Workflow className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-lg font-medium">Nenhum workflow encontrado</h3>
+                      <p className="text-muted-foreground">
+                        {searchTerm || filterStatus !== 'all' || filterCategory !== 'all'
+                          ? 'Tente ajustar os filtros de busca'
+                          : 'Crie seu primeiro workflow usando o botão acima'}
+                      </p>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </div>
