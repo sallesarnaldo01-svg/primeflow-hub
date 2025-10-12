@@ -9,6 +9,11 @@ import { instagramMassWorker } from './queues/instagram-mass.queue.js';
 import { venomProvider } from './providers/whatsapp/venom.provider.js';
 import { facebookProvider } from './providers/facebook/facebook.provider.js';
 import { instagramProvider } from './providers/instagram/instagram.provider.js';
+import './queues/knowledge.queue.js';
+import './queues/followup-cadence.queue.js';
+import './queues/bulk-ai.queue.js';
+import './queues/leads.queue.js';
+import './queues/workflows.queue.js';
 
 async function start() {
   try {
@@ -16,7 +21,7 @@ async function start() {
     await redis.ping();
 
     logger.info('🚀 Worker started');
-    logger.info('📝 Workers registered: flow:run, broadcast:run, broadcast-mass, facebook-mass, instagram-mass');
+    logger.info('📝 Workers registered: flow, broadcast, broadcast-mass, facebook-mass, instagram-mass, knowledge, followup-cadence, bulk-ai, leads, workflows');
     
     // Redis subscribers for social media commands
     redis.subscribe(
