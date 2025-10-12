@@ -3,15 +3,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { SystemPromptEditor } from '@/components/ai/SystemPromptEditor';
 import { useAIAgent, useAIAgents } from '@/hooks/useAIAgent';
-import { Settings, Sparkles, Brain, Zap, ArrowLeft } from 'lucide-react';
+import { useUserRole } from '@/hooks/useUserRole';
+import { Settings, Sparkles, Brain, Zap, ArrowLeft, Shield, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 const ConfiguracoesIA: React.FC = () => {
   const navigate = useNavigate();
   const { agents, isLoading: isLoadingAgents } = useAIAgents();
+  const { isAdmin, roles, isLoading: isLoadingRole } = useUserRole();
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
   
   const { agent, isLoading, updateSystemPrompt, isUpdating } = useAIAgent(
@@ -29,7 +32,7 @@ const ConfiguracoesIA: React.FC = () => {
     await updateSystemPrompt(prompt);
   };
 
-  if (isLoadingAgents || isLoading) {
+  if (isLoadingAgents || isLoading || isLoadingRole) {
     return (
       <div className="container mx-auto p-6">
         <div className="flex items-center justify-center min-h-[400px]">
@@ -82,14 +85,29 @@ const ConfiguracoesIA: React.FC = () => {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
-              <h1 className="text-3xl font-bold">Configurações do Agente de IA</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-3xl font-bold">Configurações do Agente de IA</h1>
+                {isAdmin && (
+                  <Badge variant="default" className="gap-1">
+                    <Shield className="h-3 w-3" />
+                    Admin
+                  </Badge>
+                )}
+              </div>
               <p className="text-muted-foreground">Configure a persona e comportamento do seu agente</p>
             </div>
           </div>
-          <Badge variant={agent?.active ? "default" : "secondary"}>
-            {agent?.active ? "Ativo" : "Inativo"}
-          </Badge>
         </div>
+
+        {!isAdmin && (
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Você não tem permissões de administrador. Algumas configurações podem estar restritas.
+              Entre em contato com um administrador para obter acesso completo.
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* Agent Selector */}
         {agents.length > 1 && (

@@ -408,6 +408,36 @@ const App = () => {
                   }
                 />
                 <Route
+                  path="/leads"
+                  element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<PageSkeleton />}>
+                        <Leads />
+                      </Suspense>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/listas-contatos"
+                  element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<PageSkeleton />}>
+                        <ListasContatos />
+                      </Suspense>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/campanhas-facebook"
+                  element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<PageSkeleton />}>
+                        <CampanhasFacebook />
+                      </Suspense>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="/personalizacao"
                   element={
                     <ProtectedRoute>
