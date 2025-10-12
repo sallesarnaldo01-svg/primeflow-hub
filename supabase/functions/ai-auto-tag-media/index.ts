@@ -59,7 +59,7 @@ Retorne APENAS um array JSON com as tags, sem explicações. Exemplo: ["foto_fre
               },
             ],
           },
-        }),
+        ],
       }),
     });
 
