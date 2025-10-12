@@ -806,8 +806,9 @@ const Workflows: React.FC = () => {
                         </div>
                       </div>
                     </motion.div>
-                  ))}
-                </div>
+          ))}
+        </div>
+      )}
 
                 {filteredWorkflows.length === 0 && (
                   <div className="text-center py-12">
