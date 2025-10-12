@@ -11,8 +11,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
-import { BulkAIDialog } from '@/components/crm/BulkAIDialog';
 import { toast } from 'sonner';
+import { lazy, Suspense } from 'react';
+
+const BulkAIDialog = lazy(() => import('@/components/crm/BulkAIDialog').then(m => ({ default: m.BulkAIDialog })));
 import { 
   Plus, 
   Search, 
@@ -685,6 +687,16 @@ export default function CRM() {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Bulk AI Dialog */}
+        <Suspense fallback={<div>Carregando...</div>}>
+          <BulkAIDialog
+            open={isBulkAIDialogOpen}
+            onOpenChange={setIsBulkAIDialogOpen}
+            selectedLeads={selectedDeals}
+            onComplete={handleBulkAIComplete}
+          />
+        </Suspense>
       </motion.div>
   );
 }

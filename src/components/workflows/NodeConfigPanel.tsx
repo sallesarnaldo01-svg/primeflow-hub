@@ -8,11 +8,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Progress } from '@/components/ui/progress';
 import { 
   X, Save, Zap, MessageSquare, Clock, GitBranch, Mail, 
-  Tag, Database, Settings, Image, File, Phone 
+  Tag, Database, Settings, Image, File, Phone, Video, Mic,
+  Upload, Sparkles, Trash2
 } from 'lucide-react';
 import { Node } from 'react-flow-renderer';
+import { toast } from 'sonner';
 
 interface NodeConfigPanelProps {
   node: Node | null;
@@ -22,11 +25,63 @@ interface NodeConfigPanelProps {
 
 export function NodeConfigPanel({ node, onClose, onSave }: NodeConfigPanelProps) {
   const [config, setConfig] = useState(node?.data?.config || {});
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const [contactList, setContactList] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   if (!node) return null;
 
-  const handleSave = () => {
-    onSave(node.id, config);
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    
+    // Validate file size (max 16MB)
+    const maxSize = 16 * 1024 * 1024;
+    const oversized = files.filter(f => f.size > maxSize);
+    
+    if (oversized.length > 0) {
+      toast.error('Alguns arquivos excedem 16MB');
+      return;
+    }
+    
+    setAttachments(prev => [...prev, ...files]);
+    toast.success(`${files.length} arquivo(s) adicionado(s)`);
+  };
+
+  const handleContactListUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (!file.name.endsWith('.csv') && !file.name.endsWith('.txt')) {
+      toast.error('Use apenas arquivos CSV ou TXT');
+      return;
+    }
+    
+    setContactList(file);
+    toast.success('Lista de contatos carregada');
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSave = async () => {
+    // Simulate upload progress
+    if (attachments.length > 0) {
+      for (let i = 0; i <= 100; i += 10) {
+        setUploadProgress(i);
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+    }
+    
+    const savedConfig = {
+      ...config,
+      label: config.label || node.data.label,
+      attachments: attachments.map(f => ({ name: f.name, size: f.size, type: f.type })),
+      contactList: contactList ? { name: contactList.name, size: contactList.size } : undefined,
+    };
+    
+    onSave(node.id, savedConfig);
+    setUploadProgress(0);
     onClose();
   };
 
@@ -42,6 +97,19 @@ export function NodeConfigPanel({ node, onClose, onSave }: NodeConfigPanelProps)
       case 'delay': return <Clock className="h-5 w-5 text-purple-600" />;
       default: return <Settings className="h-5 w-5" />;
     }
+  };
+
+  const getFileIcon = (file: File) => {
+    if (file.type.startsWith('image/')) return <Image className="w-4 h-4" />;
+    if (file.type.startsWith('video/')) return <Video className="w-4 h-4" />;
+    if (file.type.startsWith('audio/')) return <Mic className="w-4 h-4" />;
+    return <File className="w-4 h-4" />;
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
   const renderConfigFields = () => {
@@ -152,6 +220,23 @@ export function NodeConfigPanel({ node, onClose, onSave }: NodeConfigPanelProps)
               </Select>
             </div>
 
+            {/* AI Enhancement Toggle */}
+            <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/50">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-primary" />
+                <div>
+                  <Label className="text-sm font-medium">Integração com IA</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Usar IA para personalizar conteúdo
+                  </p>
+                </div>
+              </div>
+              <Switch
+                checked={config.aiEnabled || false}
+                onCheckedChange={(checked) => updateConfig('aiEnabled', checked)}
+              />
+            </div>
+
             {actionType === 'send_message' && (
               <>
                 <div>
@@ -165,6 +250,114 @@ export function NodeConfigPanel({ node, onClose, onSave }: NodeConfigPanelProps)
                   <p className="text-xs text-muted-foreground mt-1">
                     Use variáveis: {'{'}nome{'}'}, {'{'}email{'}'}, {'{'}telefone{'}'}
                   </p>
+                </div>
+                
+                {/* File Attachments */}
+                <div className="space-y-2">
+                  <Label>Anexos (Mídia)</Label>
+                  <div className="flex gap-2 flex-wrap">
+                    <Button variant="outline" size="sm" asChild>
+                      <label className="cursor-pointer">
+                        <Image className="w-4 h-4 mr-2" />
+                        Imagem
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          className="hidden"
+                          onChange={handleFileUpload}
+                        />
+                      </label>
+                    </Button>
+                    <Button variant="outline" size="sm" asChild>
+                      <label className="cursor-pointer">
+                        <Video className="w-4 h-4 mr-2" />
+                        Vídeo
+                        <input
+                          type="file"
+                          accept="video/*"
+                          multiple
+                          className="hidden"
+                          onChange={handleFileUpload}
+                        />
+                      </label>
+                    </Button>
+                    <Button variant="outline" size="sm" asChild>
+                      <label className="cursor-pointer">
+                        <File className="w-4 h-4 mr-2" />
+                        Documento
+                        <input
+                          type="file"
+                          accept=".pdf,.doc,.docx"
+                          multiple
+                          className="hidden"
+                          onChange={handleFileUpload}
+                        />
+                      </label>
+                    </Button>
+                    <Button variant="outline" size="sm" asChild>
+                      <label className="cursor-pointer">
+                        <Mic className="w-4 h-4 mr-2" />
+                        Áudio
+                        <input
+                          type="file"
+                          accept="audio/*"
+                          multiple
+                          className="hidden"
+                          onChange={handleFileUpload}
+                        />
+                      </label>
+                    </Button>
+                  </div>
+                  
+                  {attachments.length > 0 && (
+                    <div className="space-y-2">
+                      {attachments.map((file, i) => (
+                        <div key={i} className="flex items-center justify-between p-2 border rounded-lg">
+                          <div className="flex items-center gap-2">
+                            {getFileIcon(file)}
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium">{file.name}</span>
+                              <span className="text-xs text-muted-foreground">{formatFileSize(file.size)}</span>
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeAttachment(i)}
+                          >
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                
+                {/* Contact List Upload */}
+                <div className="space-y-2">
+                  <Label>Lista de Contatos (CSV/TXT)</Label>
+                  <Button variant="outline" size="sm" asChild className="w-full">
+                    <label className="cursor-pointer">
+                      <Upload className="w-4 h-4 mr-2" />
+                      {contactList ? contactList.name : 'Importar Lista de Contatos'}
+                      <input
+                        type="file"
+                        accept=".csv,.txt"
+                        className="hidden"
+                        onChange={handleContactListUpload}
+                      />
+                    </label>
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    Arquivo CSV ou TXT com um contato por linha
+                  </p>
+                  {contactList && (
+                    <Badge variant="secondary" className="w-full justify-center">
+                      <File className="w-3 h-3 mr-1" />
+                      {contactList.name} - {formatFileSize(contactList.size)}
+                    </Badge>
+                  )}
                 </div>
               </>
             )}
@@ -448,11 +641,20 @@ export function NodeConfigPanel({ node, onClose, onSave }: NodeConfigPanelProps)
         </div>
       </CardContent>
 
+      {uploadProgress > 0 && uploadProgress < 100 && (
+        <div className="px-4 pb-2">
+          <Progress value={uploadProgress} />
+          <p className="text-xs text-center text-muted-foreground mt-1">
+            Processando arquivos... {uploadProgress}%
+          </p>
+        </div>
+      )}
+
       <div className="p-4 border-t flex gap-2">
         <Button variant="outline" onClick={onClose} className="flex-1">
           Cancelar
         </Button>
-        <Button onClick={handleSave} className="flex-1">
+        <Button onClick={handleSave} className="flex-1" disabled={uploadProgress > 0 && uploadProgress < 100}>
           <Save className="h-4 w-4 mr-2" />
           Salvar
         </Button>

@@ -310,9 +310,9 @@ export default function Conexoes() {
                       </div>
 
                       <div className="flex items-center space-x-4">
-                        {connection.status === 'connected' ? (
+                        {whatsappConnections.length > 0 && whatsappConnections[0]?.status === 'CONNECTED' ? (
                           <>
-                            <Button variant="outline" size="sm" onClick={() => handleShowQR(connection.id)}>
+                            <Button variant="outline" size="sm" onClick={() => handleShowQR(whatsappConnections[0].id)}>
                               <QrCode className="h-4 w-4 mr-2" />
                               Ver QR Code
                             </Button>
@@ -323,7 +323,7 @@ export default function Conexoes() {
                             <Button 
                               variant="destructive" 
                               size="sm" 
-                              onClick={() => handleDisconnect(connection.id)}
+                              onClick={() => handleDisconnect(whatsappConnections[0].id)}
                             >
                               Desconectar
                             </Button>
