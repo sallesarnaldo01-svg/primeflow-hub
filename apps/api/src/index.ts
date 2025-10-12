@@ -59,6 +59,9 @@ import workflowsRoutes from './routes/workflows.routes.js';
 import facebookAdsRoutes from './routes/facebook-ads.routes.js';
 import webhooksRoutes from './routes/webhooks.routes.js';
 import conversationsRoutes from './routes/conversations.routes.js';
+import contactsRoutes from './routes/contacts.routes.js';
+import ticketsRoutes from './routes/tickets.routes.js';
+import dashboardRoutes from './routes/dashboard.routes.js';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/flows', flowsRoutes);
@@ -85,6 +88,9 @@ app.use('/api/workflows', workflowsRoutes);
 app.use('/api/facebook-ads', facebookAdsRoutes);
 app.use('/api/webhooks', webhooksRoutes);
 app.use('/api/conversations', conversationsRoutes);
+app.use('/api/contacts', contactsRoutes);
+app.use('/api/tickets', ticketsRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Error handler
 app.use(errorHandler);
