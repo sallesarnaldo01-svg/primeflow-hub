@@ -1,231 +1,227 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useState } from 'react';
 import ReactFlow, {
   Node,
   Edge,
-  Controls,
+  addEdge,
   Background,
+  Controls,
+  MiniMap,
+  Connection,
   useNodesState,
   useEdgesState,
-  addEdge,
-  Connection,
-  MiniMap,
+  MarkerType,
+  NodeTypes,
 } from 'react-flow-renderer';
-import { Card } from '@/components/ui/card';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { NodeConfigPanel } from './NodeConfigPanel';
+import { 
+  Zap, MessageSquare, Clock, GitBranch, Mail, 
+  Tag, Database, Settings 
+} from 'lucide-react';
 
 interface WorkflowCanvasProps {
   nodes: Node[];
   edges: Edge[];
   onNodesChange: (nodes: Node[]) => void;
   onEdgesChange: (edges: Edge[]) => void;
-  workflowId?: string;
   workflowName?: string;
 }
 
-const nodeTypes = {
-  trigger: ({ data }: any) => (
-    <Card className="p-3 min-w-[150px] bg-blue-50 border-blue-200">
-      <div className="font-semibold text-blue-900">{data.label}</div>
-      <div className="text-xs text-blue-700">{data.type}</div>
-    </Card>
-  ),
-  action: ({ data }: any) => (
-    <Card className="p-3 min-w-[150px] bg-green-50 border-green-200">
-      <div className="font-semibold text-green-900">{data.label}</div>
-      <div className="text-xs text-green-700">{data.type}</div>
-    </Card>
-  ),
-  condition: ({ data }: any) => (
-    <Card className="p-3 min-w-[150px] bg-yellow-50 border-yellow-200">
-      <div className="font-semibold text-yellow-900">{data.label}</div>
-      <div className="text-xs text-yellow-700">IF/ELSE</div>
-    </Card>
-  ),
-  delay: ({ data }: any) => (
-    <Card className="p-3 min-w-[150px] bg-purple-50 border-purple-200">
-      <div className="font-semibold text-purple-900">{data.label}</div>
-      <div className="text-xs text-purple-700">Delay</div>
-    </Card>
-  ),
+// Componente customizado para nós
+const CustomNode = ({ data }: { data: any }) => {
+  const getNodeIcon = () => {
+    const type = data.type || 'action';
+    const actionType = data.config?.actionType;
+
+    switch (type) {
+      case 'trigger':
+        return <Zap className="h-4 w-4 text-blue-600" />;
+      case 'delay':
+        return <Clock className="h-4 w-4 text-purple-600" />;
+      case 'condition':
+        return <GitBranch className="h-4 w-4 text-yellow-600" />;
+      case 'action':
+        switch (actionType) {
+          case 'send_email':
+            return <Mail className="h-4 w-4 text-orange-600" />;
+          case 'add_tag':
+            return <Tag className="h-4 w-4 text-pink-600" />;
+          case 'update_field':
+            return <Database className="h-4 w-4 text-cyan-600" />;
+          default:
+            return <MessageSquare className="h-4 w-4 text-green-600" />;
+        }
+      default:
+        return <Settings className="h-4 w-4 text-gray-600" />;
+    }
+  };
+
+  const getNodeColor = () => {
+    const type = data.type || 'action';
+    switch (type) {
+      case 'trigger':
+        return 'border-blue-500 bg-blue-50';
+      case 'delay':
+        return 'border-purple-500 bg-purple-50';
+      case 'condition':
+        return 'border-yellow-500 bg-yellow-50';
+      case 'action':
+        return 'border-green-500 bg-green-50';
+      default:
+        return 'border-gray-500 bg-gray-50';
+    }
+  };
+
+  return (
+    <div className={`px-4 py-3 shadow-lg rounded-lg border-2 ${getNodeColor()} min-w-[180px]`}>
+      <div className="flex items-center gap-2">
+        {getNodeIcon()}
+        <div className="font-semibold text-sm">{data.label}</div>
+      </div>
+      {data.config?.message && (
+        <div className="text-xs text-muted-foreground mt-1 truncate max-w-[160px]">
+          {data.config.message}
+        </div>
+      )}
+    </div>
+  );
 };
 
-export default function WorkflowCanvas({
+const nodeTypes: NodeTypes = {
+  trigger: CustomNode,
+  action: CustomNode,
+  condition: CustomNode,
+  delay: CustomNode,
+};
+
+const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
   nodes: initialNodes,
   edges: initialEdges,
-  onNodesChange: handleNodesUpdate,
-  onEdgesChange: handleEdgesUpdate,
-  workflowId,
-  workflowName = 'Novo Workflow',
-}: WorkflowCanvasProps) {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-
-  useEffect(() => {
-    if (workflowId) {
-      loadWorkflow(workflowId);
-    }
-  }, [workflowId]);
-
-  const loadWorkflow = async (id: string) => {
-    try {
-      // @ts-ignore - Supabase types not regenerated
-      const { data: flowData, error: flowError } = await (supabase as any)
-        .from('flows')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (flowError) throw flowError;
-
-      // @ts-ignore - Supabase types not regenerated
-      const { data: nodesData, error: nodesError } = await (supabase as any)
-        .from('flow_nodes')
-        .select('*')
-        .eq('flow_id', id);
-
-      if (nodesError) throw nodesError;
-
-      // @ts-ignore - Supabase types not regenerated
-      const { data: edgesData, error: edgesError } = await (supabase as any)
-        .from('flow_edges')
-        .select('*')
-        .eq('flow_id', id);
-
-      if (edgesError) throw edgesError;
-
-      // Transformar dados do banco para formato ReactFlow
-      const loadedNodes = (nodesData as any[]).map(n => ({
-        id: n.node_id,
-        type: n.type,
-        position: { x: n.position_x, y: n.position_y },
-        data: n.config
-      }));
-
-      const loadedEdges = (edgesData as any[]).map(e => ({
-        id: e.id,
-        source: e.source_node_id,
-        target: e.target_node_id,
-        label: e.condition
-      }));
-
-      setNodes(loadedNodes);
-      setEdges(loadedEdges);
-      toast.success('Workflow carregado');
-    } catch (error: any) {
-      toast.error('Erro ao carregar workflow');
-      console.error(error);
-    }
-  };
-
-  const saveWorkflow = async () => {
-    try {
-      let flowId = workflowId;
-
-      if (!flowId) {
-        // Criar novo flow
-        // @ts-ignore - Supabase types not regenerated
-        const { data: newFlow, error: flowError } = await (supabase as any)
-          .from('flows')
-          .insert({
-            name: workflowName,
-            trigger_type: 'new_message',
-            active: true
-          })
-          .select()
-          .single();
-
-        if (flowError) throw flowError;
-        flowId = (newFlow as any).id;
-      }
-
-      // Salvar nodes
-      // @ts-ignore - Supabase types not regenerated
-      const { error: nodesError } = await (supabase as any)
-        .from('flow_nodes')
-        .upsert(
-          nodes.map(node => ({
-            flow_id: flowId,
-            node_id: node.id,
-            type: node.type,
-            position_x: node.position.x,
-            position_y: node.position.y,
-            config: node.data
-          }))
-        );
-
-      if (nodesError) throw nodesError;
-
-      // Salvar edges
-      // @ts-ignore - Supabase types not regenerated
-      const { error: edgesError } = await (supabase as any)
-        .from('flow_edges')
-        .upsert(
-          edges.map(edge => ({
-            flow_id: flowId,
-            source_node_id: edge.source,
-            target_node_id: edge.target,
-            condition: edge.label as string | undefined
-          }))
-        );
-
-      if (edgesError) throw edgesError;
-
-      toast.success('Workflow salvo com sucesso');
-    } catch (error: any) {
-      toast.error('Erro ao salvar workflow');
-      console.error(error);
-    }
-  };
+  onNodesChange,
+  onEdgesChange,
+  workflowName,
+}) => {
+  const [nodes, setNodes, onNodesChangeInternal] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChangeInternal] = useEdgesState(initialEdges);
+  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
 
   const onConnect = useCallback(
-    (params: Connection) => {
-      const newEdges = addEdge(params, edges);
-      setEdges(newEdges);
-      handleEdgesUpdate(newEdges);
+    (params: Connection | Edge) => {
+      const newEdge = {
+        ...params,
+        type: 'smoothstep',
+        animated: true,
+        style: { stroke: '#6366f1', strokeWidth: 2 },
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          color: '#6366f1',
+        },
+      };
+      setEdges((eds) => {
+        const updatedEdges = addEdge(newEdge, eds);
+        onEdgesChange(updatedEdges);
+        return updatedEdges;
+      });
     },
-    [edges, setEdges, handleEdgesUpdate]
+    [setEdges, onEdgesChange]
   );
 
-  const onNodeDragStop = useCallback(
-    (_: any, node: Node) => {
-      const updatedNodes = nodes.map((n) =>
-        n.id === node.id ? { ...n, position: node.position } : n
+  const handleNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
+    setSelectedNode(node);
+  }, []);
+
+  const handleConfigSave = useCallback((nodeId: string, config: any) => {
+    setNodes((nds) => {
+      const updatedNodes = nds.map((node) =>
+        node.id === nodeId
+          ? {
+              ...node,
+              data: {
+                ...node.data,
+                label: config.label || node.data.label,
+                config,
+              },
+            }
+          : node
       );
-      setNodes(updatedNodes);
-      handleNodesUpdate(updatedNodes);
+      onNodesChange(updatedNodes);
+      return updatedNodes;
+    });
+  }, [setNodes, onNodesChange]);
+
+  // Sync nodes and edges with parent
+  const handleNodesChange = useCallback(
+    (changes: any) => {
+      onNodesChangeInternal(changes);
+      setNodes((nds) => {
+        onNodesChange(nds);
+        return nds;
+      });
     },
-    [nodes, setNodes, handleNodesUpdate]
+    [onNodesChangeInternal, setNodes, onNodesChange]
+  );
+
+  const handleEdgesChange = useCallback(
+    (changes: any) => {
+      onEdgesChangeInternal(changes);
+      setEdges((eds) => {
+        onEdgesChange(eds);
+        return eds;
+      });
+    },
+    [onEdgesChangeInternal, setEdges, onEdgesChange]
   );
 
   return (
-    <div className="h-[700px] border rounded-lg bg-background relative">
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        onNodeDragStop={onNodeDragStop}
-        nodeTypes={nodeTypes}
-        fitView
-        className="bg-muted/5"
-      >
-        <Controls className="bg-background border shadow-sm" />
-        <MiniMap 
-          className="bg-background border shadow-sm" 
-          nodeColor={(node) => {
-            switch (node.type) {
-              case 'trigger': return '#3b82f6';
-              case 'action': return '#22c55e';
-              case 'condition': return '#eab308';
-              case 'delay': return '#a855f7';
-              default: return '#64748b';
-            }
+    <div className="flex h-[600px] gap-4">
+      <div className="flex-1 border rounded-lg overflow-hidden">
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={handleNodesChange}
+          onEdgesChange={handleEdgesChange}
+          onConnect={onConnect}
+          onNodeClick={handleNodeClick}
+          nodeTypes={nodeTypes}
+          fitView
+          attributionPosition="bottom-left"
+          defaultEdgeOptions={{
+            type: 'smoothstep',
+            animated: true,
           }}
-        />
-        <Background className="bg-muted/5" />
-      </ReactFlow>
+        >
+          <Background color="#e5e7eb" gap={16} />
+          <Controls />
+          <MiniMap
+            nodeColor={(node) => {
+              switch (node.type) {
+                case 'trigger':
+                  return '#3b82f6';
+                case 'action':
+                  return '#10b981';
+                case 'condition':
+                  return '#f59e0b';
+                case 'delay':
+                  return '#8b5cf6';
+                default:
+                  return '#6b7280';
+              }
+            }}
+            maskColor="rgba(0, 0, 0, 0.1)"
+          />
+        </ReactFlow>
+      </div>
+
+      {selectedNode && (
+        <div className="w-80 border rounded-lg overflow-hidden">
+          <NodeConfigPanel
+            node={selectedNode}
+            onClose={() => setSelectedNode(null)}
+            onSave={handleConfigSave}
+          />
+        </div>
+      )}
     </div>
   );
-}
+};
+
+export default WorkflowCanvas;

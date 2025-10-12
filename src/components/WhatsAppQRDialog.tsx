@@ -1,14 +1,9 @@
 import { useState, useEffect } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, CheckCircle2, AlertCircle, QrCode, Smartphone, Wifi } from 'lucide-react';
 import { whatsappService } from '@/services/whatsapp';
 import { toast } from 'sonner';
 
@@ -19,22 +14,23 @@ interface WhatsAppQRDialogProps {
   onConnected?: () => void;
 }
 
-export function WhatsAppQRDialog({
-  open,
-  onOpenChange,
-  connectionId,
-  onConnected,
-}: WhatsAppQRDialogProps) {
+interface DeviceInfo {
+  phone?: string;
+  device?: string;
+  platform?: string;
+  battery?: number;
+}
+
+export function WhatsAppQRDialog({ open, onOpenChange, connectionId, onConnected }: WhatsAppQRDialogProps) {
   const [qrCode, setQrCode] = useState<string>('');
   const [status, setStatus] = useState<'loading' | 'qr' | 'connected' | 'error'>('loading');
-  const [errorMessage, setErrorMessage] = useState('');
+  const [error, setError] = useState<string>('');
+  const [deviceInfo, setDeviceInfo] = useState<DeviceInfo>({});
 
   useEffect(() => {
     if (open && connectionId) {
       loadQRCode();
-      
-      // Poll for status
-      const interval = setInterval(checkStatus, 3000);
+      const interval = setInterval(checkStatus, 2000);
       return () => clearInterval(interval);
     }
   }, [open, connectionId]);
@@ -44,25 +40,16 @@ export function WhatsAppQRDialog({
     
     try {
       setStatus('loading');
-      const data = await whatsappService.getQRCode(connectionId);
-      
-      const statusUpper = String(data.status || '').toUpperCase();
-      if (statusUpper === 'CONNECTED') {
-        setStatus('connected');
-        toast.success('WhatsApp conectado!');
-        onConnected?.();
-        setTimeout(() => onOpenChange(false), 2000);
-      } else {
-        const src = data.qrCode?.startsWith('data:image')
-          ? data.qrCode
-          : `data:image/png;base64,${data.qrCode || ''}`;
-        setQrCode(src);
+      const { qrCode: qr } = await whatsappService.getQRCode(connectionId);
+      if (qr) {
+        // QR code vem diretamente do Venom Bot como base64
+        const qrSrc = qr.startsWith('data:image') ? qr : `data:image/png;base64,${qr}`;
+        setQrCode(qrSrc);
         setStatus('qr');
       }
-    } catch (error: any) {
+    } catch (err: any) {
+      setError(err.message || 'Erro ao carregar QR Code');
       setStatus('error');
-      setErrorMessage(error.message || 'Erro ao carregar QR Code');
-      toast.error('Erro ao carregar QR Code');
     }
   };
 
@@ -70,17 +57,22 @@ export function WhatsAppQRDialog({
     if (!connectionId) return;
     
     try {
-      const data = await whatsappService.getConnectionStatus(connectionId);
+      const connection = await whatsappService.getConnectionStatus(connectionId);
       
-      const statusUpper = String(data.status || '').toUpperCase();
-      if (statusUpper === 'CONNECTED') {
+      if (connection.status === 'CONNECTED') {
         setStatus('connected');
-        toast.success('WhatsApp conectado!');
-        onConnected?.();
-        setTimeout(() => onOpenChange(false), 2000);
+        setDeviceInfo({
+          phone: connection.phone,
+          device: connection.device,
+        });
+        toast.success('WhatsApp conectado com sucesso!');
+        setTimeout(() => {
+          onConnected?.();
+          onOpenChange(false);
+        }, 2000);
       }
-    } catch (error) {
-      // Ignore polling errors
+    } catch (err) {
+      console.error('Error checking status:', err);
     }
   };
 
@@ -88,64 +80,124 @@ export function WhatsAppQRDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Conectar WhatsApp</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <QrCode className="h-5 w-5" />
+            Conectar WhatsApp
+          </DialogTitle>
           <DialogDescription>
             Escaneie o QR Code com seu WhatsApp para conectar
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col items-center space-y-4 py-4">
+        <div className="flex flex-col items-center justify-center py-6">
           {status === 'loading' && (
-            <div className="flex flex-col items-center space-y-4">
-              <Loader2 className="h-12 w-12 animate-spin text-primary" />
-              <p className="text-sm text-muted-foreground">
-                Gerando QR Code...
-              </p>
+            <div className="text-center space-y-4">
+              <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+              <p className="text-sm text-muted-foreground">Gerando QR Code via Venom Bot...</p>
+              <Badge variant="outline" className="mt-2">
+                <Wifi className="h-3 w-3 mr-1" />
+                Inicializando conexão
+              </Badge>
             </div>
           )}
 
-          {status === 'qr' && qrCode && (
-            <>
-              <div className="bg-white p-6 rounded-xl shadow-lg border-2 border-primary/20">
-                <img
-                  src={qrCode}
-                  alt="QR Code WhatsApp"
-                  className="w-72 h-72 object-contain"
-                />
-              </div>
-              <Alert className="bg-primary/5 border-primary/20">
-                <AlertDescription className="space-y-2">
-                  <p className="font-semibold text-primary">Como conectar:</p>
-                  <ol className="list-decimal list-inside space-y-1 text-sm">
-                    <li>Abra o WhatsApp no seu celular</li>
-                    <li>Toque em <strong>Menu</strong> (⋮) → <strong>Aparelhos conectados</strong></li>
-                    <li>Toque em <strong>Conectar um aparelho</strong></li>
-                    <li>Aponte a câmera do celular para o QR Code acima</li>
+          {status === 'qr' && (
+            <div className="space-y-4 w-full">
+              <Card>
+                <CardContent className="p-4">
+                  <div className="bg-white p-4 rounded-lg flex items-center justify-center">
+                    <img 
+                      src={qrCode} 
+                      alt="QR Code WhatsApp" 
+                      className="w-64 h-64 object-contain"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="text-center space-y-3">
+                <div className="flex items-center justify-center gap-2">
+                  <Badge variant="secondary">
+                    <Smartphone className="h-3 w-3 mr-1" />
+                    Aguardando leitura
+                  </Badge>
+                </div>
+                
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <p className="text-sm font-medium mb-2">Como conectar:</p>
+                  <ol className="text-xs text-muted-foreground text-left space-y-1.5">
+                    <li className="flex items-start gap-2">
+                      <span className="font-semibold">1.</span>
+                      <span>Abra o WhatsApp no seu celular</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="font-semibold">2.</span>
+                      <span>Toque em Mais opções (⋮) ou Configurações</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="font-semibold">3.</span>
+                      <span>Toque em "Aparelhos conectados"</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="font-semibold">4.</span>
+                      <span>Toque em "Conectar um aparelho"</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="font-semibold">5.</span>
+                      <span>Aponte a câmera para este QR Code</span>
+                    </li>
                   </ol>
-                </AlertDescription>
-              </Alert>
-              <Button onClick={loadQRCode} variant="outline" size="sm">
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Atualizar QR Code
-              </Button>
-            </>
+                </div>
+              </div>
+            </div>
           )}
 
           {status === 'connected' && (
-            <div className="flex flex-col items-center space-y-4">
-              <CheckCircle className="h-16 w-16 text-green-600" />
-              <p className="text-lg font-semibold text-green-600">
-                Conectado com sucesso!
-              </p>
+            <div className="text-center space-y-4 w-full">
+              <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto animate-pulse" />
+              <div>
+                <p className="text-lg font-semibold text-green-600">✓ Conectado com sucesso!</p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Seu WhatsApp está pronto para uso
+                </p>
+              </div>
+
+              {/* Mostrar informações do dispositivo conectado */}
+              <Card className="bg-green-50 border-green-200">
+                <CardContent className="p-4 space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground flex items-center gap-2">
+                      <Smartphone className="h-4 w-4" />
+                      Número:
+                    </span>
+                    <span className="font-mono font-semibold">
+                      {deviceInfo.phone || 'Carregando...'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground flex items-center gap-2">
+                      <Wifi className="h-4 w-4" />
+                      Dispositivo:
+                    </span>
+                    <span className="font-semibold">
+                      {deviceInfo.device || 'WhatsApp Web'}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           )}
 
           {status === 'error' && (
-            <div className="flex flex-col items-center space-y-4">
-              <XCircle className="h-16 w-16 text-red-600" />
-              <p className="text-sm text-red-600">{errorMessage}</p>
+            <div className="text-center space-y-4">
+              <AlertCircle className="h-16 w-16 text-destructive mx-auto" />
+              <div>
+                <p className="text-lg font-semibold text-destructive">Erro ao conectar</p>
+                <p className="text-sm text-muted-foreground mt-2">{error}</p>
+              </div>
               <Button onClick={loadQRCode} variant="outline">
-                Tentar novamente
+                <QrCode className="h-4 w-4 mr-2" />
+                Gerar novo QR Code
               </Button>
             </div>
           )}
