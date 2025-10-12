@@ -57,6 +57,8 @@ import leadsRoutes from './routes/leads.routes.js';
 import contactListsRoutes from './routes/contact-lists.routes.js';
 import workflowsRoutes from './routes/workflows.routes.js';
 import facebookAdsRoutes from './routes/facebook-ads.routes.js';
+import webhooksRoutes from './routes/webhooks.routes.js';
+import conversationsRoutes from './routes/conversations.routes.js';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/flows', flowsRoutes);
@@ -77,11 +79,12 @@ app.use('/api/ai/cadences', followupCadenceRoutes);
 app.use('/api/ai/usage', aiUsageRoutes);
 app.use('/api/custom-fields', customFieldsRoutes);
 app.use('/api/products', productsRoutes);
-app.use('/api/conversations', conversationEventsRoutes);
 app.use('/api/leads', leadsRoutes);
 app.use('/api/contact-lists', contactListsRoutes);
 app.use('/api/workflows', workflowsRoutes);
 app.use('/api/facebook-ads', facebookAdsRoutes);
+app.use('/api/webhooks', webhooksRoutes);
+app.use('/api/conversations', conversationsRoutes);
 
 // Error handler
 app.use(errorHandler);

@@ -7,6 +7,9 @@ import { Boom } from '@hapi/boom';
 import { MessageProvider, SendMessageOptions, MessageContent } from '../message.provider.js';
 import { ConnectionType } from '@primeflow/shared/types';
 import { logger } from '../../lib/logger.js';
+import { prisma } from '../../lib/prisma.js';
+import { redis } from '../../lib/redis.js';
+import { getOrCreateContact, getOrCreateConversation, saveIncomingMessage } from '../../utils/contact-manager.js';
 
 export class BaileysProvider implements MessageProvider {
   type = ConnectionType.WHATSAPP;
@@ -29,46 +32,128 @@ export class BaileysProvider implements MessageProvider {
 
       sock.ev.on('creds.update', saveCreds);
 
-      sock.ev.on('connection.update', (update) => {
-        const { connection, lastDisconnect } = update;
+      sock.ev.on('connection.update', async (update) => {
+        const { connection, lastDisconnect, qr } = update;
+
+        if (qr) {
+          logger.info('QR Code received', { connectionId });
+          
+          // Save QR to Redis with 60s expiration
+          await redis.set(`qr:${connectionId}`, qr, 'EX', 60);
+          
+          // Update connection with QR code
+          await prisma.connection.update({
+            where: { id: connectionId },
+            data: { 
+              status: 'CONNECTING',
+              meta: { qrCode: qr }
+            }
+          });
+        }
         
         if (connection === 'close') {
           const shouldReconnect = (lastDisconnect?.error as Boom)?.output?.statusCode !== DisconnectReason.loggedOut;
           logger.info('Connection closed', { connectionId, shouldReconnect });
           
           if (shouldReconnect) {
-            this.connect(connectionId, config);
+            setTimeout(() => this.connect(connectionId, config), 3000);
           } else {
+            await prisma.connection.update({
+              where: { id: connectionId },
+              data: { status: 'DISCONNECTED' }
+            });
             this.sockets.delete(connectionId);
           }
         } else if (connection === 'open') {
           logger.info('WhatsApp connected', { connectionId });
+          
+          const phone = sock.user?.id.split(':')[0];
+          await prisma.connection.update({
+            where: { id: connectionId },
+            data: { 
+              status: 'CONNECTED',
+              connectedAt: new Date(),
+              meta: { 
+                phone, 
+                device: 'Baileys',
+                pushName: sock.user?.name
+              }
+            }
+          });
+          
+          await redis.del(`qr:${connectionId}`);
         }
       });
 
-      sock.ev.on('messages.upsert', ({ messages }) => {
+      sock.ev.on('messages.upsert', async ({ messages }) => {
         for (const msg of messages) {
           if (msg.key.fromMe) continue;
 
-          const content: MessageContent = {};
-          
-          if (msg.message?.conversation) {
-            content.text = msg.message.conversation;
-          } else if (msg.message?.extendedTextMessage) {
-            content.text = msg.message.extendedTextMessage.text;
-          } else if (msg.message?.imageMessage) {
-            content.image = {
-              url: '', // Download URL
-              caption: msg.message.imageMessage.caption
-            };
-          }
+          try {
+            const from = msg.key.remoteJid || '';
+            const phone = from.split('@')[0];
+            
+            // Get connection to find tenant
+            const connectionData = await prisma.connection.findUnique({
+              where: { id: connectionId },
+              select: { tenantId: true }
+            });
 
-          this.messageCallbacks.forEach(cb => cb({
-            connectionId,
-            from: msg.key.remoteJid!,
-            content,
-            timestamp: new Date(msg.messageTimestamp! * 1000)
-          }));
+            if (!connectionData) continue;
+
+            // Create or get contact
+            const contact = await getOrCreateContact(
+              connectionData.tenantId,
+              phone,
+              msg.pushName || phone,
+              'whatsapp'
+            );
+
+            // Create or get conversation
+            const conversation = await getOrCreateConversation(
+              contact.id,
+              'whatsapp',
+              connectionId
+            );
+
+            // Extract message content
+            const content = msg.message?.conversation || 
+                           msg.message?.extendedTextMessage?.text ||
+                           msg.message?.imageMessage?.caption ||
+                           '';
+
+            // Save message
+            await saveIncomingMessage(
+              conversation.id,
+              content,
+              'TEXT',
+              {
+                messageId: msg.key.id,
+                timestamp: msg.messageTimestamp,
+                type: Object.keys(msg.message || {})[0]
+              }
+            );
+
+            // Trigger callbacks for realtime updates
+            const messageContent: MessageContent = {};
+            if (msg.message?.conversation || msg.message?.extendedTextMessage) {
+              messageContent.text = content;
+            }
+
+            this.messageCallbacks.forEach(cb => cb({
+              connectionId,
+              from: phone,
+              content: messageContent,
+              timestamp: new Date(msg.messageTimestamp as number * 1000)
+            }));
+
+            logger.info('Message processed', { 
+              conversationId: conversation.id,
+              from: phone
+            });
+          } catch (error) {
+            logger.error('Error processing incoming message', { error });
+          }
         }
       });
 

@@ -25,7 +25,27 @@ export function useSocket() {
 
     socket.on('message:new', (data: any) => {
       console.log('[Socket] New message:', data);
-      // Handle new message
+      
+      // Show notification
+      const audio = new Audio('/notification.mp3');
+      audio.play().catch(() => {});
+      
+      // Toast notification
+      import('sonner').then(({ toast }) => {
+        toast.info(`Nova mensagem de ${data.contactName}`, {
+          duration: 5000,
+          action: {
+            label: 'Ver',
+            onClick: () => {
+              window.location.href = `/conversas?id=${data.conversationId}`;
+            }
+          }
+        });
+      });
+    });
+
+    socket.on('message:sent', (data: any) => {
+      console.log('[Socket] Message sent:', data);
     });
 
     // Workflow events
@@ -38,6 +58,28 @@ export function useSocket() {
     socket.on('contacts:sync:progress', (data: any) => {
       console.log('[Socket] Contact sync progress:', data);
       // Handle sync progress
+    });
+
+    // Broadcast progress events
+    socket.on('broadcast:progress', (data: any) => {
+      console.log('[Socket] Broadcast progress:', data);
+      const { sent, failed, total, percentage } = data;
+      
+      import('sonner').then(({ toast }) => {
+        toast.info(`Disparo: ${sent}/${total} enviadas (${percentage}%)`, {
+          duration: 3000
+        });
+      });
+    });
+
+    socket.on('broadcast:completed', (data: any) => {
+      console.log('[Socket] Broadcast completed:', data);
+      
+      import('sonner').then(({ toast }) => {
+        toast.success(`Disparo concluído! ${data.sent} enviadas, ${data.failed} falharam.`, {
+          duration: 5000
+        });
+      });
     });
 
     return () => {

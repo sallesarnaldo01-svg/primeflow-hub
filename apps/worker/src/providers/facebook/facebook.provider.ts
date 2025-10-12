@@ -2,6 +2,7 @@ import login from 'facebook-chat-api';
 import { logger } from '../../lib/logger.js';
 import { prisma } from '../../lib/prisma.js';
 import { redis } from '../../lib/redis.js';
+import { getOrCreateContact, getOrCreateConversation, saveIncomingMessage } from '../../utils/contact-manager.js';
 
 interface FacebookSession {
   api: any;
@@ -10,6 +11,7 @@ interface FacebookSession {
 
 class FacebookProvider {
   private sessions: Map<string, FacebookSession> = new Map();
+  private messageCallbacks: Array<(data: any) => void> = [];
 
   async connect(connectionId: string, credentials: { email: string; password: string }) {
     try {
@@ -32,13 +34,13 @@ class FacebookProvider {
           // Update connection status
           await prisma.connection.update({
             where: { id: connectionId },
-            data: { status: 'CONNECTED' }
+            data: { status: 'CONNECTED', connectedAt: new Date() }
           });
 
           // Get user pages
           api.getThreadList(20, null, [], (err: any, threads: any[]) => {
             if (!err && threads) {
-              const pages = threads.map(t => ({
+              const pages = threads.map((t: any) => ({
                 id: t.threadID,
                 name: t.name,
                 type: t.isGroup ? 'group' : 'user'
@@ -48,9 +50,67 @@ class FacebookProvider {
           });
 
           // Listen for messages
-          api.listenMqtt((err: any, message: any) => {
-            if (err) return;
-            this.handleIncomingMessage(connectionId, message);
+          api.listenMqtt(async (err: any, message: any) => {
+            if (err) {
+              logger.error('Facebook listen error', { error: err, connectionId });
+              return;
+            }
+
+            try {
+              if (message.type === 'message' && !message.isGroup) {
+                const connectionData = await prisma.connection.findUnique({
+                  where: { id: connectionId },
+                  select: { tenantId: true }
+                });
+
+                if (!connectionData) return;
+
+                const senderId = message.senderID;
+                const messageText = message.body || '';
+
+                // Create or get contact
+                const contact = await getOrCreateContact(
+                  connectionData.tenantId,
+                  senderId,
+                  `Facebook User ${senderId}`,
+                  'facebook'
+                );
+
+                // Create or get conversation
+                const conversation = await getOrCreateConversation(
+                  contact.id,
+                  'facebook',
+                  connectionId
+                );
+
+                // Save message
+                await saveIncomingMessage(
+                  conversation.id,
+                  messageText,
+                  'TEXT',
+                  {
+                    messageId: message.messageID,
+                    threadId: message.threadID,
+                    timestamp: message.timestamp
+                  }
+                );
+
+                // Trigger callbacks
+                this.messageCallbacks.forEach(cb => cb({
+                  connectionId,
+                  from: senderId,
+                  content: { text: messageText },
+                  timestamp: new Date(message.timestamp)
+                }));
+
+                logger.info('Facebook message processed', {
+                  conversationId: conversation.id,
+                  from: senderId
+                });
+              }
+            } catch (error) {
+              logger.error('Error processing Facebook message', { error });
+            }
           });
 
           logger.info('✅ Facebook connected', { connectionId });
@@ -99,42 +159,12 @@ class FacebookProvider {
     }
   }
 
-  private async handleIncomingMessage(connectionId: string, message: any) {
-    try {
-      const connection = await prisma.connection.findUnique({
-        where: { id: connectionId },
-        include: { tenant: true }
-      });
-
-      if (!connection) return;
-
-      // Log message
-      await prisma.messageLog.create({
-        data: {
-          tenantId: connection.tenantId,
-          channel: 'FACEBOOK',
-          direction: 'IN',
-          contact: message.senderID,
-          payload: {
-            messageId: message.messageID,
-            threadId: message.threadID,
-            body: message.body,
-            attachments: message.attachments
-          }
-        }
-      });
-
-      logger.info('Facebook message received', { 
-        connectionId, 
-        from: message.senderID 
-      });
-    } catch (error) {
-      logger.error('Error handling Facebook message', { error });
-    }
-  }
-
   isConnected(connectionId: string): boolean {
     return this.sessions.has(connectionId);
+  }
+
+  onMessage(callback: (data: any) => void): void {
+    this.messageCallbacks.push(callback);
   }
 }
 
