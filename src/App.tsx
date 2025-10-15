@@ -45,6 +45,7 @@ const Relatorios = lazy(() => import("./pages/Relatórios"));
 const Usuarios = lazy(() => import("./pages/Usuarios"));
 const Imoveis = lazy(() => import("./pages/Imoveis"));
 const Comissoes = lazy(() => import("./pages/Comissoes"));
+const Personalizacao = lazy(() => import("./pages/Personalizacao"));
 
 // Static pages
 import Login from "./pages/Login";
@@ -465,12 +466,9 @@ const App = () => {
                   path="/personalizacao"
                   element={
                     <ProtectedRoute>
-                      <div className="p-6">
-                        <h1 className="text-3xl font-bold">Personalização</h1>
-                        <p className="text-muted-foreground mt-2">
-                          Customização de marca e layout (Admin Supremo apenas)...
-                        </p>
-                      </div>
+                      <Suspense fallback={<PageSkeleton />}>
+                        <Personalizacao />
+                      </Suspense>
                     </ProtectedRoute>
                   }
                 />
