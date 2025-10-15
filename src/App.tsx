@@ -15,7 +15,7 @@ import { PageSkeleton } from "@/components/PageSkeleton";
 
 // Lazy-loaded pages for better performance
 const Dashboard = lazy(() => import("./pages/Dashboard"));
-const CRM = lazy(() => import("./pages/CRM"));
+const CRM = lazy(() => import("./pages/CRMNew"));
 const Leads = lazy(() => import("./pages/Leads"));
 const Contatos = lazy(() => import("./pages/Contatos"));
 const ListasContatos = lazy(() => import("./pages/ListasContatos"));
@@ -167,7 +167,9 @@ const App = () => {
                   path="/crm"
                   element={
                     <ProtectedRoute>
-                      <CRM />
+                      <Suspense fallback={<PageSkeleton />}>
+                        <CRM />
+                      </Suspense>
                     </ProtectedRoute>
                   }
                 />

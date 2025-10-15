@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Deal, dealsService } from '@/services/deals';
@@ -24,10 +26,13 @@ import {
   Sparkles, 
   Calendar,
   Home,
-  Eye,
   Edit,
   Trash2,
-  Target
+  Target,
+  Search,
+  Filter,
+  Phone,
+  Mail
 } from 'lucide-react';
 
 const STAGES = [
@@ -109,6 +114,30 @@ function DealCard({ deal, onEdit, onDelete, onSelect, isSelected, onScheduleVisi
             )}
 
             <div className="flex items-center space-x-1">
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                className="h-6 w-6 p-0"
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  // TODO: Implementar funcionalidade de chamada
+                }}
+                title="Ligar"
+              >
+                <Phone className="h-3 w-3" />
+              </Button>
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                className="h-6 w-6 p-0"
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  // TODO: Implementar funcionalidade de email
+                }}
+                title="Enviar email"
+              >
+                <Mail className="h-3 w-3" />
+              </Button>
               <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); onScheduleVisit(deal); }}>
                 <Calendar className="h-3 w-3" />
               </Button>
@@ -132,9 +161,12 @@ export default function CRMNew() {
   const [selectedDeals, setSelectedDeals] = useState<string[]>([]);
   const [isBulkAIOpen, setIsBulkAIOpen] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isVisitDialogOpen, setIsVisitDialogOpen] = useState(false);
   const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
   const [formData, setFormData] = useState<Partial<Deal>>({});
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedOwner, setSelectedOwner] = useState('all');
 
   const sensors = useSensors(useSensor(PointerSensor));
 
@@ -215,7 +247,7 @@ export default function CRMNew() {
   const handleEdit = (deal: Deal) => {
     setSelectedDeal(deal);
     setFormData(deal);
-    setIsDialogOpen(true);
+    setIsEditDialogOpen(true);
   };
 
   const handleDelete = (id: string) => {
@@ -235,15 +267,30 @@ export default function CRMNew() {
     setIsVisitDialogOpen(true);
   };
 
+  const handleSelectAll = (checked: boolean) => {
+    setSelectedDeals(checked ? filteredDeals.map(d => d.id) : []);
+  };
+
+  // Filtrar deals
+  const filteredDeals = (dealsData?.data || []).filter(deal => {
+    const matchesSearch = 
+      (deal.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+       deal.notes?.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    const matchesOwner = selectedOwner === 'all' || deal.ownerId === selectedOwner;
+    
+    return matchesSearch && matchesOwner;
+  });
+
   const dealsByStage = STAGES.map(stage => ({
     ...stage,
-    deals: (dealsData?.data || [])
+    deals: filteredDeals
       .filter(deal => deal.stage === stage.id)
       .sort((a, b) => (a.position || 0) - (b.position || 0))
   }));
 
-  const totalValue = dealsData?.data.reduce((sum, deal) => sum + (deal.value || 0), 0) || 0;
-  const avgScore = dealsData?.data.reduce((sum, deal) => sum + (deal.aiScore || 0), 0) / (dealsData?.data.length || 1) || 0;
+  const totalValue = filteredDeals.reduce((sum, deal) => sum + (deal.value || 0), 0);
+  const avgScore = filteredDeals.reduce((sum, deal) => sum + (deal.aiScore || 0), 0) / (filteredDeals.length || 1) || 0;
 
   return (
     <Layout>
@@ -376,6 +423,42 @@ export default function CRMNew() {
           </div>
         </div>
 
+        {/* Filtros */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  checked={selectedDeals.length === filteredDeals.length && filteredDeals.length > 0}
+                  onCheckedChange={handleSelectAll}
+                />
+                <span className="text-sm text-muted-foreground">Selecionar todos</span>
+              </div>
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar deals..."
+                  className="pl-10"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <Select value={selectedOwner} onValueChange={setSelectedOwner}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Responsável" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button variant="outline">
+                <Filter className="mr-2 h-4 w-4" />
+                Filtros
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <Card>
@@ -383,7 +466,7 @@ export default function CRMNew() {
               <CardTitle className="text-sm font-medium">Total de Deals</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{dealsData?.data.length || 0}</div>
+              <div className="text-2xl font-bold">{filteredDeals.length}</div>
             </CardContent>
           </Card>
 
@@ -416,11 +499,136 @@ export default function CRMNew() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {((dealsData?.data.filter(d => d.stage === 'closed_won').length || 0) / (dealsData?.data.length || 1) * 100).toFixed(1)}%
+                {((filteredDeals.filter(d => d.stage === 'closed_won').length || 0) / (filteredDeals.length || 1) * 100).toFixed(1)}%
               </div>
             </CardContent>
           </Card>
         </div>
+
+        {/* Edit Dialog com Tabs */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="max-w-4xl">
+            <DialogHeader>
+              <DialogTitle>Editar Deal - {selectedDeal?.title}</DialogTitle>
+            </DialogHeader>
+            {selectedDeal && (
+              <Tabs defaultValue="details" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="details">Detalhes</TabsTrigger>
+                  <TabsTrigger value="history">Histórico</TabsTrigger>
+                  <TabsTrigger value="tasks">Tarefas</TabsTrigger>
+                  <TabsTrigger value="notes">Notas</TabsTrigger>
+                </TabsList>
+                <TabsContent value="details" className="space-y-4">
+                  <form onSubmit={handleSubmit}>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="edit-title">Título</Label>
+                        <Input 
+                          id="edit-title" 
+                          value={formData.title || ''} 
+                          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="edit-value">Valor</Label>
+                        <Input 
+                          id="edit-value" 
+                          type="number" 
+                          value={formData.value || ''} 
+                          onChange={(e) => setFormData({ ...formData, value: parseFloat(e.target.value) })}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="edit-probability">Probabilidade (%)</Label>
+                        <Input 
+                          id="edit-probability" 
+                          type="number" 
+                          value={formData.probability || 0} 
+                          onChange={(e) => setFormData({ ...formData, probability: parseInt(e.target.value) })}
+                        />
+                      </div>
+                      <div>
+                        <Label>Imóvel</Label>
+                        <Select
+                          value={formData.propertyId || undefined}
+                          onValueChange={(value) => setFormData({ ...formData, propertyId: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione um imóvel" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {propertiesData?.data
+                              .filter((property) => typeof property.id === 'string' && property.id.trim().length > 0)
+                              .map((property) => (
+                                <SelectItem key={property.id} value={property.id}>
+                                  {property.title}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="mt-4">
+                      <Label htmlFor="edit-notes">Observações</Label>
+                      <Textarea 
+                        id="edit-notes" 
+                        value={formData.notes || ''} 
+                        onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                        rows={3}
+                      />
+                    </div>
+                    <div className="flex justify-end space-x-2 mt-4">
+                      <Button variant="outline" type="button" onClick={() => setIsEditDialogOpen(false)}>
+                        Cancelar
+                      </Button>
+                      <Button type="submit" disabled={updateMutation.isPending}>
+                        Salvar Alterações
+                      </Button>
+                    </div>
+                  </form>
+                </TabsContent>
+                <TabsContent value="history">
+                  <div className="space-y-4">
+                    <h4 className="font-medium">Histórico de Atividades</h4>
+                    <div className="space-y-2">
+                      <div className="border-l-2 border-primary pl-4">
+                        <p className="text-sm">Deal criado</p>
+                        <p className="text-xs text-muted-foreground">
+                          {selectedDeal.createdAt ? new Date(selectedDeal.createdAt).toLocaleDateString('pt-BR') : '-'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+                <TabsContent value="tasks">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-medium">Tarefas</h4>
+                      <Button size="sm">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Nova Tarefa
+                      </Button>
+                    </div>
+                    <p className="text-sm text-muted-foreground">Nenhuma tarefa cadastrada.</p>
+                  </div>
+                </TabsContent>
+                <TabsContent value="notes">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-medium">Notas</h4>
+                      <Button size="sm">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Nova Nota
+                      </Button>
+                    </div>
+                    <Textarea placeholder="Adicionar nota sobre este deal..." />
+                  </div>
+                </TabsContent>
+              </Tabs>
+            )}
+          </DialogContent>
+        </Dialog>
 
         {/* Kanban Board */}
         <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
