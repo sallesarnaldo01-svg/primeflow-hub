@@ -36,6 +36,11 @@ import {
   Sparkles,
   Plug,
   Contact,
+  Home,
+  ShoppingBag,
+  List,
+  Facebook,
+  Megaphone,
 } from 'lucide-react';
 import logo from '@/assets/logo.svg';
 
@@ -55,7 +60,10 @@ const menuItems = [
     ]
   },
   { icon: Contact, label: 'Contatos', href: '/contatos', badge: null },
+  { icon: List, label: 'Listas de Contatos', href: '/listas-contatos', badge: null },
   { icon: Users, label: 'CRM', href: '/crm', badge: null },
+  { icon: Home, label: 'Imóveis', href: '/imoveis', badge: null },
+  { icon: ShoppingBag, label: 'Produtos', href: '/produtos', badge: null },
   { icon: TrendingUp, label: 'Funil de Vendas', href: '/funil', badge: null },
   { icon: Columns3, label: 'Kanban', href: '/kanban', badge: null },
   {
@@ -78,6 +86,16 @@ const menuItems = [
   { icon: Tag, label: 'Tags', href: '/tags', badge: null },
   { icon: Workflow, label: 'Workflows', href: '/workflows', badge: null },
   {
+    icon: Megaphone,
+    label: 'Marketing',
+    href: '/marketing',
+    badge: null,
+    hasDropdown: true,
+    subItems: [
+      { label: 'Campanhas Facebook', href: '/campanhas-facebook' },
+    ]
+  },
+  {
     icon: Sparkles,
     label: 'IA',
     href: '/ia',
@@ -95,6 +113,7 @@ const menuItems = [
   { icon: BarChart3, label: 'Relatórios & Analytics', href: '/relatorios', badge: null },
   { icon: UserCheck, label: 'Usuários & Times', href: '/usuarios', badge: null },
   { icon: DollarSign, label: 'Financeiro', href: '/financeiro', badge: null, adminOnly: true },
+  { icon: DollarSign, label: 'Comissões', href: '/comissoes', badge: null },
   { icon: Settings, label: 'Configurações', href: '/configuracoes', badge: null },
   { icon: Palette, label: 'Personalização', href: '/personalizacao', badge: null, adminOnly: true },
   { icon: HelpCircle, label: 'Ajuda / Sobre', href: '/ajuda', badge: null },

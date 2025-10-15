@@ -43,6 +43,8 @@ const Financeiro = lazy(() => import("./pages/Financeiro"));
 const ConfiguracoesAvancadas = lazy(() => import("./pages/ConfiguracoesAvancadas"));
 const Relatorios = lazy(() => import("./pages/Relatórios"));
 const Usuarios = lazy(() => import("./pages/Usuarios"));
+const Imoveis = lazy(() => import("./pages/Imoveis"));
+const Comissoes = lazy(() => import("./pages/Comissoes"));
 
 // Static pages
 import Login from "./pages/Login";
@@ -433,6 +435,26 @@ const App = () => {
                     <ProtectedRoute>
                       <Suspense fallback={<PageSkeleton />}>
                         <CampanhasFacebook />
+                      </Suspense>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/imoveis"
+                  element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<PageSkeleton />}>
+                        <Imoveis />
+                      </Suspense>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/comissoes"
+                  element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<PageSkeleton />}>
+                        <Comissoes />
                       </Suspense>
                     </ProtectedRoute>
                   }
