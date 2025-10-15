@@ -3,16 +3,22 @@ import { api, PaginatedResponse } from './api';
 export interface Deal {
   id: string;
   title: string;
-  value: number;
-  currency: string;
-  probability: number;
+  value?: number;
+  currency?: string;
+  probability?: number;
   stage: string;
-  expectedCloseDate: string;
-  contactId: string;
+  expectedCloseDate?: string;
+  contactId?: string;
   companyId?: string;
-  ownerId: string;
-  source: string;
-  tags: string[];
+  ownerId?: string;
+  source?: string;
+  tags?: string[];
+  propertyId?: string;
+  leadSource?: string;
+  notes?: string;
+  position?: number;
+  aiScore?: number;
+  aiInsights?: string;
   createdAt: string;
   updatedAt: string;
   
@@ -20,7 +26,23 @@ export interface Deal {
   contact?: Contact;
   company?: Company;
   owner?: User;
+  property?: Property;
   activities?: Activity[];
+}
+
+export interface Property {
+  id: string;
+  title: string;
+  type: string;
+  status: string;
+  price?: number;
+  address?: string;
+  city?: string;
+  state?: string;
+  bedrooms?: number;
+  bathrooms?: number;
+  area?: number;
+  images?: string[];
 }
 
 export interface Contact {
@@ -78,8 +100,8 @@ export interface DealsFilters {
 }
 
 export interface MoveDealData {
-  dealId: string;
-  targetStage: string;
+  id: string;
+  stage: string;
   position?: number;
 }
 
@@ -109,8 +131,8 @@ export const dealsService = {
   },
 
   async moveStage(data: MoveDealData): Promise<Deal> {
-    const response = await api.put<Deal>(`/deals/${data.dealId}/move`, {
-      targetStage: data.targetStage,
+    const response = await api.put<Deal>(`/deals/${data.id}/move`, {
+      stage: data.stage,
       position: data.position,
     });
     return response.data;

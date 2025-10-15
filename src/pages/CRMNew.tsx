@@ -170,8 +170,8 @@ export default function CRMNew() {
   });
 
   const updateStageMutation = useMutation({
-    mutationFn: ({ id, stage, position }: { id: string; stage: Deal['stage']; position: number }) =>
-      dealsService.moveStage(id, stage, position),
+    mutationFn: (data: { id: string; stage: Deal['stage']; position: number }) =>
+      dealsService.moveStage(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['deals'] });
     }
