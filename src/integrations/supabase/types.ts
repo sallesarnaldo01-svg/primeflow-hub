@@ -56,6 +56,56 @@ export type Database = {
         }
         Relationships: []
       }
+      commissions: {
+        Row: {
+          amount: number
+          broker_id: string
+          created_at: string
+          deal_id: string
+          id: string
+          notes: string | null
+          paid_at: string | null
+          percentage: number | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          broker_id: string
+          created_at?: string
+          deal_id: string
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          percentage?: number | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          broker_id?: string
+          created_at?: string
+          deal_id?: string
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          percentage?: number | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commissions_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversation_events: {
         Row: {
           actor: string
@@ -144,6 +194,77 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      deals: {
+        Row: {
+          ai_insights: Json | null
+          ai_score: number | null
+          broker_id: string | null
+          contact_id: string | null
+          created_at: string
+          custom_fields: Json | null
+          expected_close_date: string | null
+          id: string
+          lead_source: string | null
+          notes: string | null
+          position: number | null
+          probability: number | null
+          property_id: string | null
+          stage: string
+          tenant_id: string
+          title: string
+          updated_at: string
+          value: number | null
+        }
+        Insert: {
+          ai_insights?: Json | null
+          ai_score?: number | null
+          broker_id?: string | null
+          contact_id?: string | null
+          created_at?: string
+          custom_fields?: Json | null
+          expected_close_date?: string | null
+          id?: string
+          lead_source?: string | null
+          notes?: string | null
+          position?: number | null
+          probability?: number | null
+          property_id?: string | null
+          stage?: string
+          tenant_id: string
+          title: string
+          updated_at?: string
+          value?: number | null
+        }
+        Update: {
+          ai_insights?: Json | null
+          ai_score?: number | null
+          broker_id?: string | null
+          contact_id?: string | null
+          created_at?: string
+          custom_fields?: Json | null
+          expected_close_date?: string | null
+          id?: string
+          lead_source?: string | null
+          notes?: string | null
+          position?: number | null
+          probability?: number | null
+          property_id?: string | null
+          stage?: string
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+          value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deals_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       facebook_connections: {
         Row: {
@@ -336,6 +457,159 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      properties: {
+        Row: {
+          address: string
+          area: number | null
+          bathrooms: number | null
+          bedrooms: number | null
+          broker_id: string | null
+          city: string
+          created_at: string
+          description: string | null
+          features: Json | null
+          id: string
+          images: Json | null
+          location: Json | null
+          metadata: Json | null
+          neighborhood: string | null
+          owner_id: string | null
+          parking_spaces: number | null
+          price: number | null
+          rent_price: number | null
+          state: string
+          status: string
+          tenant_id: string
+          title: string
+          transaction_type: string
+          type: string
+          updated_at: string
+          video_url: string | null
+          virtual_tour_url: string | null
+          zip_code: string | null
+        }
+        Insert: {
+          address: string
+          area?: number | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          broker_id?: string | null
+          city: string
+          created_at?: string
+          description?: string | null
+          features?: Json | null
+          id?: string
+          images?: Json | null
+          location?: Json | null
+          metadata?: Json | null
+          neighborhood?: string | null
+          owner_id?: string | null
+          parking_spaces?: number | null
+          price?: number | null
+          rent_price?: number | null
+          state: string
+          status?: string
+          tenant_id: string
+          title: string
+          transaction_type: string
+          type: string
+          updated_at?: string
+          video_url?: string | null
+          virtual_tour_url?: string | null
+          zip_code?: string | null
+        }
+        Update: {
+          address?: string
+          area?: number | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          broker_id?: string | null
+          city?: string
+          created_at?: string
+          description?: string | null
+          features?: Json | null
+          id?: string
+          images?: Json | null
+          location?: Json | null
+          metadata?: Json | null
+          neighborhood?: string | null
+          owner_id?: string | null
+          parking_spaces?: number | null
+          price?: number | null
+          rent_price?: number | null
+          state?: string
+          status?: string
+          tenant_id?: string
+          title?: string
+          transaction_type?: string
+          type?: string
+          updated_at?: string
+          video_url?: string | null
+          virtual_tour_url?: string | null
+          zip_code?: string | null
+        }
+        Relationships: []
+      }
+      property_visits: {
+        Row: {
+          broker_id: string | null
+          contact_id: string | null
+          created_at: string
+          deal_id: string | null
+          feedback: string | null
+          id: string
+          property_id: string
+          rating: number | null
+          scheduled_at: string
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          broker_id?: string | null
+          contact_id?: string | null
+          created_at?: string
+          deal_id?: string | null
+          feedback?: string | null
+          id?: string
+          property_id: string
+          rating?: number | null
+          scheduled_at: string
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          broker_id?: string | null
+          contact_id?: string | null
+          created_at?: string
+          deal_id?: string | null
+          feedback?: string | null
+          id?: string
+          property_id?: string
+          rating?: number | null
+          scheduled_at?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_visits_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_visits_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

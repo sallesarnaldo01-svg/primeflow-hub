@@ -62,6 +62,8 @@ import conversationsRoutes from './routes/conversations.routes.js';
 import contactsRoutes from './routes/contacts.routes.js';
 import ticketsRoutes from './routes/tickets.routes.js';
 import dashboardRoutes from './routes/dashboard.routes.js';
+import propertiesRoutes from './routes/properties.routes.js';
+import dealsRoutes from './routes/deals.routes.js';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/flows', flowsRoutes);
@@ -91,6 +93,8 @@ app.use('/api/conversations', conversationsRoutes);
 app.use('/api/contacts', contactsRoutes);
 app.use('/api/tickets', ticketsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/properties', propertiesRoutes);
+app.use('/api/deals', dealsRoutes);
 
 // Error handler
 app.use(errorHandler);

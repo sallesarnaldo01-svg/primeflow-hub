@@ -8,3 +8,12 @@ verify_jwt = true
 
 [functions.rag-search]
 verify_jwt = true
+
+[functions.ai-lead-qualifier]
+verify_jwt = false
+
+[functions.ai-property-recommender]
+verify_jwt = false
+
+[functions.ai-property-description]
+verify_jwt = false
