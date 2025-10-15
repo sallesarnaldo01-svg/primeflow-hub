@@ -381,12 +381,12 @@ export default function Imoveis() {
                 />
               </div>
 
-              <Select onValueChange={(value) => setFilters({ ...filters, type: value })}>
+              <Select onValueChange={(value) => setFilters({ ...filters, type: value === 'all' ? undefined : value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Tipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="apartment">Apartamento</SelectItem>
                   <SelectItem value="house">Casa</SelectItem>
                   <SelectItem value="commercial">Comercial</SelectItem>
@@ -395,23 +395,23 @@ export default function Imoveis() {
                 </SelectContent>
               </Select>
 
-              <Select onValueChange={(value) => setFilters({ ...filters, transactionType: value })}>
+              <Select onValueChange={(value) => setFilters({ ...filters, transactionType: value === 'all' ? undefined : value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Transação" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas</SelectItem>
+                  <SelectItem value="all">Todas</SelectItem>
                   <SelectItem value="sale">Venda</SelectItem>
                   <SelectItem value="rent">Aluguel</SelectItem>
                 </SelectContent>
               </Select>
 
-              <Select onValueChange={(value) => setFilters({ ...filters, status: value })}>
+              <Select onValueChange={(value) => setFilters({ ...filters, status: value === 'all' ? undefined : value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="available">Disponível</SelectItem>
                   <SelectItem value="reserved">Reservado</SelectItem>
                   <SelectItem value="sold">Vendido</SelectItem>

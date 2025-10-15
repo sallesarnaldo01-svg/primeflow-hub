@@ -289,7 +289,7 @@ export default function CRMNew() {
                   <div className="space-y-2">
                     <Label>Imóvel</Label>
                     <Select
-                      value={formData.propertyId}
+                      value={formData.propertyId || undefined}
                       onValueChange={(value) => setFormData({ ...formData, propertyId: value })}
                     >
                       <SelectTrigger>
@@ -331,7 +331,7 @@ export default function CRMNew() {
                   <div className="space-y-2">
                     <Label>Origem do Lead</Label>
                     <Select
-                      value={formData.leadSource}
+                      value={formData.leadSource || undefined}
                       onValueChange={(value: any) => setFormData({ ...formData, leadSource: value })}
                     >
                       <SelectTrigger>
