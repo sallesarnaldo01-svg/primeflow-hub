@@ -296,11 +296,13 @@ export default function CRMNew() {
                         <SelectValue placeholder="Selecione um imóvel" />
                       </SelectTrigger>
                       <SelectContent>
-                        {propertiesData?.data.map((property) => (
-                          <SelectItem key={property.id} value={property.id}>
-                            {property.title}
-                          </SelectItem>
-                        ))}
+                        {propertiesData?.data
+                          .filter((property) => typeof property.id === 'string' && property.id.trim().length > 0)
+                          .map((property) => (
+                            <SelectItem key={property.id} value={property.id}>
+                              {property.title}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                   </div>
