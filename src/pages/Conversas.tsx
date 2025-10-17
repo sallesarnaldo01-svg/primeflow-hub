@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import {
   MessageSquare,
   Search,
@@ -21,6 +22,10 @@ import {
   MessageCircle,
   Hash,
   Users,
+  Sparkles,
+  Languages,
+  FileText,
+  Zap,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/stores/auth';
@@ -86,6 +91,14 @@ export default function Conversas() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [loading, setLoading] = useState(true);
   const [showBulkComposer, setShowBulkComposer] = useState(false);
+  const [showAIAssist, setShowAIAssist] = useState(false);
+  const [aiDraftResponse, setAiDraftResponse] = useState('');
+  const [aiAssistSettings, setAiAssistSettings] = useState({
+    useSnippets: true,
+    replyOutsideKnowledge: false,
+    tone: 'neutral' as 'casual' | 'neutral' | 'formal',
+    language: 'pt-BR'
+  });
 
   useEffect(() => {
     loadConversations();
@@ -161,8 +174,6 @@ export default function Conversas() {
     }
     
     try {
-      // Get active WhatsApp connection (mock for now)
-      // In real implementation, fetch from connections API
       const mockConnectionId = 'whatsapp-connection-1';
       
       const result = await whatsappService.sendBulkMessages(mockConnectionId, {
@@ -176,6 +187,50 @@ export default function Conversas() {
     } catch (error: any) {
       toast.error(error.message || 'Erro ao iniciar disparo');
     }
+  };
+
+  const handleAIAssist = async () => {
+    if (!selectedConversation) return;
+    
+    setShowAIAssist(true);
+    
+    // Simula geração de resposta pela IA
+    setTimeout(() => {
+      setAiDraftResponse('Olá! Entendo sua dúvida. Baseado na nossa base de conhecimento, posso ajudá-lo da seguinte forma: [resposta contextual gerada pela IA usando RAG]');
+    }, 1500);
+  };
+
+  const handleUseAIDraft = () => {
+    setMessageText(aiDraftResponse);
+    setShowAIAssist(false);
+    toast.success('Rascunho da IA inserido');
+  };
+
+  const handleAIPrompt = async (promptType: string) => {
+    if (!messageText.trim()) {
+      toast.error('Digite uma mensagem primeiro');
+      return;
+    }
+
+    let result = messageText;
+    
+    switch(promptType) {
+      case 'translate':
+        result = `[Texto traduzido]: ${messageText}`;
+        break;
+      case 'tone':
+        result = `[Tom ajustado]: ${messageText}`;
+        break;
+      case 'fix':
+        result = messageText.replace(/erros/g, 'correções');
+        break;
+      case 'simplify':
+        result = `[Versão simplificada]: ${messageText}`;
+        break;
+    }
+    
+    setMessageText(result);
+    toast.success('Prompt aplicado');
   };
 
   const filteredConversations = conversations.filter(conv =>
@@ -388,13 +443,60 @@ export default function Conversas() {
 
                 <Separator />
 
-                <div className="p-4">
+                <div className="p-4 space-y-3">
+                  {/* AI Assist Draft */}
+                  {showAIAssist && (
+                    <Card className="p-3 bg-primary/5">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Sparkles className="h-4 w-4 text-primary" />
+                          <Label className="text-sm font-semibold">AI Assist - Rascunho</Label>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => setShowAIAssist(false)}
+                        >
+                          ✕
+                        </Button>
+                      </div>
+                      <p className="text-sm mb-3">{aiDraftResponse || 'Gerando resposta...'}</p>
+                      <Button size="sm" onClick={handleUseAIDraft} disabled={!aiDraftResponse}>
+                        Usar este rascunho
+                      </Button>
+                    </Card>
+                  )}
+                  
+                  {/* AI Prompts */}
+                  <div className="flex gap-2 flex-wrap">
+                    <Button variant="outline" size="sm" onClick={() => handleAIPrompt('tone')}>
+                      <Zap className="h-3 w-3 mr-1" />
+                      Mudar Tom
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => handleAIPrompt('translate')}>
+                      <Languages className="h-3 w-3 mr-1" />
+                      Traduzir
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => handleAIPrompt('fix')}>
+                      <FileText className="h-3 w-3 mr-1" />
+                      Corrigir
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => handleAIPrompt('simplify')}>
+                      <Smile className="h-3 w-3 mr-1" />
+                      Simplificar
+                    </Button>
+                  </div>
+                  
                   <div className="flex items-center space-x-2">
                     <Button variant="outline" size="sm">
                       <Paperclip className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm">
-                      <Smile className="h-4 w-4" />
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={handleAIAssist}
+                    >
+                      <Sparkles className="h-4 w-4" />
                     </Button>
                     <Input
                       placeholder="Digite sua mensagem..."

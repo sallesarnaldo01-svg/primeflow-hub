@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog,
   DialogContent,
@@ -11,11 +12,13 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Download,
   RefreshCw,
@@ -27,17 +30,32 @@ import {
   Loader2,
   Plus,
   Upload,
+  Trash2,
+  List,
 } from 'lucide-react';
 import { contactsService, Contact } from '@/services/contacts';
+import { supabase } from '@/integrations/supabase/client';
+
+interface ContactList {
+  id: string;
+  name: string;
+  description: string | null;
+  contact_count: number;
+  created_at: string;
+}
 
 export default function Contatos() {
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [lists, setLists] = useState<ContactList[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [syncModalOpen, setSyncModalOpen] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [createListModal, setCreateListModal] = useState(false);
+  const [importListModal, setImportListModal] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [syncProgress, setSyncProgress] = useState(0);
+  const [selectedList, setSelectedList] = useState<string>('');
   const [selectedChannels, setSelectedChannels] = useState({
     whatsapp: false,
     facebook: false,
@@ -48,6 +66,10 @@ export default function Contatos() {
     phone: '',
     email: '',
     source: 'manual',
+  });
+  const [newList, setNewList] = useState({
+    name: '',
+    description: ''
   });
 
   const stats = {
@@ -64,6 +86,7 @@ export default function Contatos() {
 
   useEffect(() => {
     loadContacts();
+    loadLists();
   }, []);
 
   const loadContacts = async () => {
@@ -76,6 +99,104 @@ export default function Contatos() {
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadLists = async () => {
+    try {
+      const { data, error } = await (supabase as any)
+        .from('contact_lists')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const listsWithCounts = await Promise.all(
+        (data || []).map(async (list: any) => {
+          const { count } = await (supabase as any)
+            .from('contacts')
+            .select('*', { count: 'exact', head: true })
+            .eq('list_id', list.id);
+
+          return { ...list, contact_count: count || 0 };
+        })
+      );
+
+      setLists(listsWithCounts);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleCreateList = async () => {
+    if (!newList.name) {
+      toast.error('Preencha o nome da lista');
+      return;
+    }
+
+    try {
+      const { error } = await (supabase as any)
+        .from('contact_lists')
+        .insert({
+          name: newList.name,
+          description: newList.description
+        });
+
+      if (error) throw error;
+
+      toast.success('Lista criada');
+      setCreateListModal(false);
+      setNewList({ name: '', description: '' });
+      loadLists();
+    } catch (error) {
+      toast.error('Erro ao criar lista');
+    }
+  };
+
+  const handleDeleteList = async (id: string) => {
+    try {
+      const { error } = await (supabase as any)
+        .from('contact_lists')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast.success('Lista deletada');
+      loadLists();
+    } catch (error) {
+      toast.error('Erro ao deletar lista');
+    }
+  };
+
+  const exportList = async (listId: string, listName: string) => {
+    try {
+      const { data: contacts } = await (supabase as any)
+        .from('contacts')
+        .select('*')
+        .eq('list_id', listId);
+
+      if (!contacts || contacts.length === 0) {
+        toast.info('Lista vazia');
+        return;
+      }
+
+      const csv = [
+        ['Nome', 'Email', 'Telefone', 'Fonte'].join(','),
+        ...contacts.map((c: any) =>
+          [c.name, c.email || '', c.phone || '', c.source || ''].join(',')
+        )
+      ].join('\n');
+
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${listName}_${new Date().toISOString()}.csv`;
+      a.click();
+      toast.success('Lista exportada');
+    } catch (error) {
+      toast.error('Erro ao exportar lista');
     }
   };
 
@@ -287,15 +408,28 @@ export default function Contatos() {
           </CardContent>
         </Card>
 
-        {/* Contacts List */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Lista de Contatos</CardTitle>
-            <CardDescription>
-              {filteredContacts.length} contatos encontrados
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+        {/* Tabs for Contacts and Lists */}
+        <Tabs defaultValue="contacts" className="w-full">
+          <TabsList>
+            <TabsTrigger value="contacts">
+              <Users className="h-4 w-4 mr-2" />
+              Contatos
+            </TabsTrigger>
+            <TabsTrigger value="lists">
+              <List className="h-4 w-4 mr-2" />
+              Listas
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="contacts">
+            <Card>
+              <CardHeader>
+                <CardTitle>Lista de Contatos</CardTitle>
+                <CardDescription>
+                  {filteredContacts.length} contatos encontrados
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
             {loading ? (
               <div className="flex justify-center py-8">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -348,6 +482,78 @@ export default function Contatos() {
             )}
           </CardContent>
         </Card>
+      </TabsContent>
+
+      <TabsContent value="lists">
+        <Card>
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>Listas de Contatos</CardTitle>
+                <CardDescription>
+                  Organize contatos em listas para campanhas direcionadas
+                </CardDescription>
+              </div>
+              <Button onClick={() => setCreateListModal(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Nova Lista
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {lists.map((list) => (
+                <Card key={list.id}>
+                  <CardHeader>
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-2">
+                        <Users className="h-5 w-5 text-primary" />
+                        <CardTitle className="text-lg">{list.name}</CardTitle>
+                      </div>
+                      <Badge>{list.contact_count} contatos</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {list.description && (
+                      <p className="text-sm text-muted-foreground mb-4">{list.description}</p>
+                    )}
+                    <div className="text-xs text-muted-foreground mb-4">
+                      Criada em {new Date(list.created_at).toLocaleDateString()}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1"
+                        onClick={() => exportList(list.id, list.name)}
+                      >
+                        <Download className="mr-2 h-3 w-3" />
+                        Exportar
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleDeleteList(list.id)}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+
+              {lists.length === 0 && (
+                <Card className="col-span-full">
+                  <CardContent className="p-12 text-center text-muted-foreground">
+                    Nenhuma lista criada ainda
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </TabsContent>
+    </Tabs>
       </motion.div>
 
       {/* Create Contact Modal */}
@@ -473,6 +679,39 @@ export default function Contatos() {
               Sincronizar
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create List Modal */}
+      <Dialog open={createListModal} onOpenChange={setCreateListModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nova Lista de Contatos</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Nome da Lista</Label>
+              <Input
+                value={newList.name}
+                onChange={(e) => setNewList({ ...newList, name: e.target.value })}
+                placeholder="Clientes VIP"
+              />
+            </div>
+            <div>
+              <Label>Descrição (opcional)</Label>
+              <Textarea
+                value={newList.description}
+                onChange={(e) => setNewList({ ...newList, description: e.target.value })}
+                placeholder="Clientes com compras acima de R$ 1000"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateListModal(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleCreateList}>Criar Lista</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>

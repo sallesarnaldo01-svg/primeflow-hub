@@ -59,7 +59,7 @@ interface WorkflowData {
   };
   actions: {
     id: string;
-    type: 'send_email' | 'send_whatsapp' | 'add_tag' | 'create_task' | 'update_field' | 'wait' | 'condition';
+    type: 'send_email' | 'send_whatsapp' | 'add_tag' | 'create_task' | 'update_field' | 'wait' | 'condition' | 'ai_objective';
     config: any;
     delay?: number;
   }[];
@@ -483,6 +483,7 @@ const Workflows: React.FC = () => {
       case 'update_field': return <Database className="h-4 w-4" />;
       case 'wait': return <Timer className="h-4 w-4" />;
       case 'condition': return <GitBranch className="h-4 w-4" />;
+      case 'ai_objective': return <Zap className="h-4 w-4 text-purple-500" />;
       default: return <Settings className="h-4 w-4" />;
     }
   };
@@ -496,6 +497,7 @@ const Workflows: React.FC = () => {
       case 'update_field': return 'Atualizar Campo';
       case 'wait': return 'Aguardar';
       case 'condition': return 'Condição';
+      case 'ai_objective': return 'AI Objective';
       default: return actionType;
     }
   };
