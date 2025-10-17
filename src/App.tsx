@@ -18,7 +18,7 @@ const Dashboard = lazy(() => import("./pages/Dashboard"));
 const CRM = lazy(() => import("./pages/CRMNew"));
 const Leads = lazy(() => import("./pages/Leads"));
 const Contatos = lazy(() => import("./pages/Contatos"));
-const ListasContatos = lazy(() => import("./pages/ListasContatos"));
+// ListasContatos foi mesclado com Contatos
 const CampanhasFacebook = lazy(() => import("./pages/CampanhasFacebook"));
 const Kanban = lazy(() => import("./pages/Kanban"));
 const Agendamentos = lazy(() => import("./pages/Agendamentos"));
@@ -424,13 +424,7 @@ const App = () => {
                 />
                 <Route
                   path="/listas-contatos"
-                  element={
-                    <ProtectedRoute>
-                      <Suspense fallback={<PageSkeleton />}>
-                        <ListasContatos />
-                      </Suspense>
-                    </ProtectedRoute>
-                  }
+                  element={<Navigate to="/contatos" replace />}
                 />
                 <Route
                   path="/campanhas-facebook"
@@ -499,13 +493,7 @@ const App = () => {
                 />
                 <Route
                   path="/crm/listas"
-                  element={
-                    <ProtectedRoute>
-                      <Suspense fallback={<PageSkeleton />}>
-                        <ListasContatos />
-                      </Suspense>
-                    </ProtectedRoute>
-                  }
+                  element={<Navigate to="/contatos" replace />}
                 />
                 <Route
                   path="/crm/campanhas-facebook"
