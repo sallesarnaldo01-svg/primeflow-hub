@@ -69,6 +69,23 @@ export function useScrum() {
     }
   });
 
+  const createCeremony = useMutation({
+    mutationFn: (newCeremony: Omit<Ceremony, 'id' | 'status'>) => 
+      scrumService.createCeremony(newCeremony),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ceremonies'] });
+      toast.success('Cerimônia agendada');
+    }
+  });
+
+  const startCeremony = useMutation({
+    mutationFn: (id: string) => scrumService.startCeremony(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ceremonies'] });
+      toast.success('Cerimônia iniciada');
+    }
+  });
+
   const activeSprint = sprints.find(s => s.status === 'ACTIVE');
 
   const moveItemToStatus = useCallback(
@@ -88,6 +105,8 @@ export function useScrum() {
     deleteBacklogItem,
     createSprint,
     updateSprint,
+    createCeremony,
+    startCeremony,
     moveItemToStatus,
   };
 }

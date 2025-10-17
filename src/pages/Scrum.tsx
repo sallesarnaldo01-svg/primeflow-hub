@@ -16,6 +16,10 @@ import { CreateSprintDialog } from '@/components/scrum/CreateSprintDialog';
 import { BurndownChart } from '@/components/scrum/BurndownChart';
 import { VelocityChart } from '@/components/scrum/VelocityChart';
 import { SprintBoard } from '@/components/scrum/SprintBoard';
+import { TeamManagementDialog } from '@/components/scrum/TeamManagementDialog';
+import { PlanningPoker } from '@/components/scrum/PlanningPoker';
+import { RetrospectiveBoard } from '@/components/scrum/RetrospectiveBoard';
+import { CeremonyDialog } from '@/components/scrum/CeremonyDialog';
 
 // TODO: Substituir por seleção de equipe real
 const DEFAULT_TEAM_ID = 'default-team-id';
@@ -61,6 +65,7 @@ const getStatusColor = (status: string) => {
 
 export default function Scrum() {
   const {
+    sprints,
     activeSprint,
     backlogItems,
     ceremonies,
@@ -102,6 +107,11 @@ export default function Scrum() {
             </p>
           </div>
           <div className="flex items-center space-x-2">
+            <TeamManagementDialog onCreateTeam={(data) => console.log('Create team:', data)} />
+            <CeremonyDialog 
+              teamId={DEFAULT_TEAM_ID}
+              onCreateCeremony={(data) => console.log('Create ceremony:', data)}
+            />
             <CreateSprintDialog 
               teamId={DEFAULT_TEAM_ID}
               onCreateSprint={(data) => createSprint.mutate(data)} 
@@ -194,6 +204,8 @@ export default function Scrum() {
             <TabsTrigger value="backlog">Backlog</TabsTrigger>
             <TabsTrigger value="board">Quadro Sprint</TabsTrigger>
             <TabsTrigger value="ceremonies">Cerimônias</TabsTrigger>
+            <TabsTrigger value="planning">Planning Poker</TabsTrigger>
+            <TabsTrigger value="retrospective">Retrospectiva</TabsTrigger>
             <TabsTrigger value="reports">Relatórios</TabsTrigger>
           </TabsList>
 
@@ -280,10 +292,25 @@ export default function Scrum() {
             </Card>
           </TabsContent>
 
+          <TabsContent value="planning">
+            <PlanningPoker />
+          </TabsContent>
+
+          <TabsContent value="retrospective">
+            <RetrospectiveBoard />
+          </TabsContent>
+
           <TabsContent value="reports">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <BurndownChart />
-              <VelocityChart />
+              <BurndownChart 
+                sprintData={activeSprint ? {
+                  totalStoryPoints: activeSprint.totalStoryPoints,
+                  completedStoryPoints: activeSprint.completedStoryPoints,
+                  sprintDays: 14,
+                  currentDay: Math.floor((new Date().getTime() - new Date(activeSprint.startDate).getTime()) / (1000 * 60 * 60 * 24))
+                } : undefined}
+              />
+              <VelocityChart sprints={sprints} />
             </div>
           </TabsContent>
         </Tabs>
