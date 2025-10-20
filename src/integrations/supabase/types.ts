@@ -429,6 +429,83 @@ export type Database = {
         }
         Relationships: []
       }
+      internal_chats: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          name: string | null
+          participants: string[]
+          tenant_id: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          name?: string | null
+          participants: string[]
+          tenant_id: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          name?: string | null
+          participants?: string[]
+          tenant_id?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      internal_messages: {
+        Row: {
+          attachments: Json | null
+          chat_id: string
+          created_at: string
+          id: string
+          mentions: string[] | null
+          message: string
+          read_by: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attachments?: Json | null
+          chat_id: string
+          created_at?: string
+          id?: string
+          mentions?: string[] | null
+          message: string
+          read_by?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attachments?: Json | null
+          chat_id?: string
+          created_at?: string
+          id?: string
+          mentions?: string[] | null
+          message?: string
+          read_by?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "internal_messages_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "internal_chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       message_attachments: {
         Row: {
           conversation_id: string
@@ -468,6 +545,45 @@ export type Database = {
         }
         Relationships: []
       }
+      message_templates: {
+        Row: {
+          category: string | null
+          content: string
+          created_at: string
+          created_by: string
+          id: string
+          name: string
+          shared: boolean | null
+          tenant_id: string
+          updated_at: string
+          variables: string[] | null
+        }
+        Insert: {
+          category?: string | null
+          content: string
+          created_at?: string
+          created_by: string
+          id?: string
+          name: string
+          shared?: boolean | null
+          tenant_id: string
+          updated_at?: string
+          variables?: string[] | null
+        }
+        Update: {
+          category?: string | null
+          content?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          name?: string
+          shared?: boolean | null
+          tenant_id?: string
+          updated_at?: string
+          variables?: string[] | null
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string | null
@@ -475,7 +591,9 @@ export type Database = {
           created_at: string
           direction: string
           id: string
+          internal_note: boolean | null
           media_url: string | null
+          mentions: string[] | null
           type: string | null
           user_id: string
         }
@@ -485,7 +603,9 @@ export type Database = {
           created_at?: string
           direction: string
           id?: string
+          internal_note?: boolean | null
           media_url?: string | null
+          mentions?: string[] | null
           type?: string | null
           user_id: string
         }
@@ -495,7 +615,9 @@ export type Database = {
           created_at?: string
           direction?: string
           id?: string
+          internal_note?: boolean | null
           media_url?: string | null
+          mentions?: string[] | null
           type?: string | null
           user_id?: string
         }
@@ -508,6 +630,66 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          email_deal_moved: boolean | null
+          email_enabled: boolean | null
+          email_mention: boolean | null
+          email_new_message: boolean | null
+          email_task_assigned: boolean | null
+          email_workflow_completed: boolean | null
+          id: string
+          in_app_enabled: boolean | null
+          push_deal_moved: boolean | null
+          push_enabled: boolean | null
+          push_mention: boolean | null
+          push_new_message: boolean | null
+          push_task_assigned: boolean | null
+          push_workflow_completed: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_deal_moved?: boolean | null
+          email_enabled?: boolean | null
+          email_mention?: boolean | null
+          email_new_message?: boolean | null
+          email_task_assigned?: boolean | null
+          email_workflow_completed?: boolean | null
+          id?: string
+          in_app_enabled?: boolean | null
+          push_deal_moved?: boolean | null
+          push_enabled?: boolean | null
+          push_mention?: boolean | null
+          push_new_message?: boolean | null
+          push_task_assigned?: boolean | null
+          push_workflow_completed?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_deal_moved?: boolean | null
+          email_enabled?: boolean | null
+          email_mention?: boolean | null
+          email_new_message?: boolean | null
+          email_task_assigned?: boolean | null
+          email_workflow_completed?: boolean | null
+          id?: string
+          in_app_enabled?: boolean | null
+          push_deal_moved?: boolean | null
+          push_enabled?: boolean | null
+          push_mention?: boolean | null
+          push_new_message?: boolean | null
+          push_task_assigned?: boolean | null
+          push_workflow_completed?: boolean | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {

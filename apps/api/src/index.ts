@@ -71,6 +71,8 @@ import auditRoutes from './routes/audit.routes.js';
 import notificationsRoutes from './routes/notifications.routes.js';
 import tasksRoutes from './routes/tasks.routes.js';
 import companySettingsRoutes from './routes/company-settings.routes.js';
+import messageTemplatesRoutes from './routes/message-templates.routes.js';
+import internalChatRoutes from './routes/internal-chat.routes.js';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/flows', flowsRoutes);
@@ -110,6 +112,8 @@ app.use('/api/audit', auditRoutes);
 app.use('/api/notifications', notificationsRoutes);
 app.use('/api/tasks', tasksRoutes);
 app.use('/api/company-settings', companySettingsRoutes);
+app.use('/api/message-templates', messageTemplatesRoutes);
+app.use('/api/internal-chats', internalChatRoutes);
 
 // Error handler
 app.use(errorHandler);
