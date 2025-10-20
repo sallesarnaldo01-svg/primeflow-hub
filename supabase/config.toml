@@ -23,3 +23,6 @@ verify_jwt = true
 
 [functions.ai-assist]
 verify_jwt = true
+
+[functions.facebook-oauth]
+verify_jwt = true

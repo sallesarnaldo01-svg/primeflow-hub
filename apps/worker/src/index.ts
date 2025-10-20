@@ -14,7 +14,7 @@ import './queues/followup-cadence.queue.js';
 import './queues/bulk-ai.queue.js';
 import './queues/leads.queue.js';
 import './queues/workflows.queue.js';
-import './queues/ai-message.queue.js';
+import './queues/webhooks.queue.js';
 
 async function start() {
   try {
@@ -22,7 +22,7 @@ async function start() {
     await redis.ping();
 
     logger.info('🚀 Worker started');
-    logger.info('📝 Workers registered: flow, broadcast, broadcast-mass, facebook-mass, instagram-mass, knowledge, followup-cadence, bulk-ai, leads, workflows, ai-message');
+    logger.info('📝 Workers registered: flow, broadcast, broadcast-mass, facebook-mass, instagram-mass, knowledge, followup-cadence, bulk-ai, leads, workflows, webhooks, ai-message');
     
     // Redis subscribers for social media commands
     redis.subscribe(

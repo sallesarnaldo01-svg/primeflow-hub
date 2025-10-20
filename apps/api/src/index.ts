@@ -66,6 +66,7 @@ import ticketsRoutes from './routes/tickets.routes.js';
 import dashboardRoutes from './routes/dashboard.routes.js';
 import propertiesRoutes from './routes/properties.routes.js';
 import dealsRoutes from './routes/deals.routes.js';
+import customWebhooksRoutes from './routes/custom-webhooks.routes.js';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/flows', flowsRoutes);
@@ -100,6 +101,7 @@ app.use('/api/tickets', ticketsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/properties', propertiesRoutes);
 app.use('/api/deals', dealsRoutes);
+app.use('/api/custom-webhooks', customWebhooksRoutes);
 
 // Error handler
 app.use(errorHandler);

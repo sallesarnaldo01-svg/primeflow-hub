@@ -4,6 +4,7 @@ import { logger } from '../lib/logger.js';
 import { AppError } from '../middleware/error.js';
 import { emitToTenant } from '../lib/socket.js';
 import { redis } from '../lib/redis.js';
+import { RateLimiter } from '../lib/rate-limiter.js';
 
 export const whatsappController = {
   async getQRCode(req: Request, res: Response) {
@@ -93,6 +94,21 @@ export const whatsappController = {
 
     if (!connection) {
       throw new AppError('Conexão WhatsApp não encontrada ou não conectada', 404);
+    }
+
+    // Check rate limit
+    const withinLimit = await RateLimiter.checkLimit(connectionId, 'per_minute');
+    if (!withinLimit) {
+      throw new AppError('Rate limit exceeded. Please wait before sending more messages.', 429);
+    }
+
+    // Check remaining quota
+    const remaining = await RateLimiter.getRemaining(connectionId, 'per_hour');
+    if (remaining < contacts.length) {
+      throw new AppError(
+        `Rate limit: Only ${remaining} messages available in current hour window`,
+        429
+      );
     }
 
     // Create broadcast record

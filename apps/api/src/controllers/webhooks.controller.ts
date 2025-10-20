@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma.js';
 import { emitToTenant } from '../lib/socket.js';
 import { logger } from '../lib/logger.js';
+import { emitWebhookEvent } from '../../worker/src/processors/webhooks.processor.js';
 
 async function getOrCreateContact(tenantId: string, phone: string, name?: string) {
   let contact = await prisma.contact.findFirst({
@@ -78,6 +79,18 @@ export const webhooksController = {
           conversationId: conversation.id,
           message,
           contactName: contact.name
+        });
+
+        // Emit to custom webhooks
+        await emitWebhookEvent(tenantId, 'message.received', {
+          conversationId: conversation.id,
+          contactId: contact.id,
+          message: {
+            id: message.id,
+            content: message.content,
+            direction: 'inbound',
+            channel: 'whatsapp'
+          }
         });
 
         logger.info('WhatsApp webhook processed', { messageId: message.id });
