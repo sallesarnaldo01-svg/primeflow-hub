@@ -67,6 +67,10 @@ import dashboardRoutes from './routes/dashboard.routes.js';
 import propertiesRoutes from './routes/properties.routes.js';
 import dealsRoutes from './routes/deals.routes.js';
 import customWebhooksRoutes from './routes/custom-webhooks.routes.js';
+import auditRoutes from './routes/audit.routes.js';
+import notificationsRoutes from './routes/notifications.routes.js';
+import tasksRoutes from './routes/tasks.routes.js';
+import companySettingsRoutes from './routes/company-settings.routes.js';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/flows', flowsRoutes);
@@ -102,6 +106,10 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/properties', propertiesRoutes);
 app.use('/api/deals', dealsRoutes);
 app.use('/api/custom-webhooks', customWebhooksRoutes);
+app.use('/api/audit', auditRoutes);
+app.use('/api/notifications', notificationsRoutes);
+app.use('/api/tasks', tasksRoutes);
+app.use('/api/company-settings', companySettingsRoutes);
 
 // Error handler
 app.use(errorHandler);

@@ -13,6 +13,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useAuthStore } from '@/stores/auth';
 import { useUIStore } from '@/stores/ui';
 import { ProfileMenu } from '@/components/ProfileMenu';
+import { NotificationCenter } from '@/components/NotificationCenter';
 import { 
   Sun, 
   Moon, 
@@ -80,15 +81,7 @@ export function Header() {
         {/* Right side actions */}
         <div className="flex items-center space-x-2">
           {/* Notifications */}
-          <Button variant="ghost" size="sm" className="relative">
-            <Bell className="h-4 w-4" />
-            <Badge 
-              variant="destructive" 
-              className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs"
-            >
-              3
-            </Badge>
-          </Button>
+          <NotificationCenter />
 
           {/* Theme toggle */}
           <DropdownMenu>
