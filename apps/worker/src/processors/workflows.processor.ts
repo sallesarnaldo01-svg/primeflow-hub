@@ -2,6 +2,7 @@ import { Job } from 'bullmq';
 import { prisma } from '../lib/prisma.js';
 import { logger } from '../lib/logger.js';
 import { AIObjectiveExecutor } from '../executors/ai-objective.executor.js';
+import { redis } from '../lib/redis.js';
 
 interface WorkflowExecutionJob {
   workflowId: string;
@@ -139,6 +140,14 @@ export async function processWorkflowExecution(job: Job<WorkflowExecutionJob>) {
         SET status = 'COMPLETED', completed_at = NOW(), result = $1
         WHERE id = $2
       `, JSON.stringify(executionContext), runId);
+
+      // Emit workflow completed event via Redis pub/sub
+      await redis.publish('workflow:completed', JSON.stringify({
+        workflowId,
+        runId,
+        workflowName: workflowData.name,
+        tenantId
+      }));
 
       logger.info('Workflow execution completed', { workflowId, runId });
 

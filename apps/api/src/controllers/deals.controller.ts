@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma.js';
 import { logger } from '../lib/logger.js';
+import { emitDealMoved } from '../lib/socket.js';
 
 export const dealsController = {
   async list(req: Request, res: Response) {
@@ -121,6 +122,14 @@ export const dealsController = {
 
       const updated = await prisma.deals.findFirst({
         where: { id, tenantId }
+      });
+
+      // Emit deal moved event
+      emitDealMoved(tenantId!, {
+        dealId: id,
+        stage,
+        position,
+        deal: updated
       });
 
       res.json({ data: updated });

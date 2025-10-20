@@ -82,6 +82,65 @@ export function useSocket() {
       });
     });
 
+    // New realtime events
+    socket.on('message:received', (data: any) => {
+      console.log('[Socket] Message received:', data);
+      
+      // Show notification
+      const audio = new Audio('/notification.mp3');
+      audio.play().catch(() => {});
+      
+      import('sonner').then(({ toast }) => {
+        toast.info(`Nova mensagem de ${data.contactName}`, {
+          duration: 5000,
+          action: {
+            label: 'Ver',
+            onClick: () => {
+              window.location.href = `/conversas?id=${data.conversationId}`;
+            }
+          }
+        });
+      });
+    });
+
+    socket.on('conversation:updated', (data: any) => {
+      console.log('[Socket] Conversation updated:', data);
+    });
+
+    socket.on('deal:moved', (data: any) => {
+      console.log('[Socket] Deal moved:', data);
+      
+      import('sonner').then(({ toast }) => {
+        toast.info(`Deal movido para ${data.stage}`, {
+          duration: 3000
+        });
+      });
+    });
+
+    socket.on('agent:assigned', (data: any) => {
+      console.log('[Socket] Agent assigned:', data);
+      
+      import('sonner').then(({ toast }) => {
+        toast.info('Agente atribuído', {
+          duration: 3000
+        });
+      });
+    });
+
+    socket.on('workflow:completed', (data: any) => {
+      console.log('[Socket] Workflow completed:', data);
+      
+      import('sonner').then(({ toast }) => {
+        toast.success(`Workflow "${data.workflowName}" concluído!`, {
+          duration: 5000
+        });
+      });
+    });
+
+    socket.on('workflow:progress', (data: any) => {
+      console.log('[Socket] Workflow progress:', data);
+    });
+
     return () => {
       socketClient.disconnect();
     };

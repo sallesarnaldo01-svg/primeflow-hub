@@ -33,6 +33,7 @@ import { conversasService } from '@/services/conversas';
 import { whatsappService } from '@/services/whatsapp';
 import { MultiChannelComposer } from '@/components/MultiChannelComposer';
 import { useSocket } from '@/hooks/useSocket';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Conversation {
   id: string;
@@ -109,6 +110,59 @@ export default function Conversas() {
       loadMessages(selectedConversation.id);
     }
   }, [selectedConversation]);
+
+  // Supabase Realtime for messages
+  useEffect(() => {
+    if (!selectedConversation) return;
+
+    const channel = supabase
+      .channel(`messages:${selectedConversation.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `conversationId=eq.${selectedConversation.id}`
+        },
+        (payload) => {
+          console.log('[Realtime] New message:', payload);
+          setMessages(prev => [...prev, payload.new as Message]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [selectedConversation]);
+
+  // Supabase Realtime for conversations list
+  useEffect(() => {
+    const channel = supabase
+      .channel('conversations')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'conversations'
+        },
+        (payload) => {
+          console.log('[Realtime] Conversation updated:', payload);
+          setConversations(prev =>
+            prev.map(conv =>
+              conv.id === payload.new.id ? { ...conv, ...payload.new } : conv
+            )
+          );
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const loadConversations = async () => {
     try {

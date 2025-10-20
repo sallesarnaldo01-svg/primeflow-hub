@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -291,6 +292,47 @@ export default function CRMNew() {
 
   const totalValue = filteredDeals.reduce((sum, deal) => sum + (deal.value || 0), 0);
   const avgScore = filteredDeals.reduce((sum, deal) => sum + (deal.aiScore || 0), 0) / (filteredDeals.length || 1) || 0;
+
+  // Supabase Realtime for deals
+  useEffect(() => {
+    const channel = supabase
+      .channel('deals')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'deals'
+        },
+        (payload) => {
+          console.log('[Realtime] Deal changed:', payload);
+          
+          if (payload.eventType === 'INSERT') {
+            queryClient.setQueryData(['deals'], (old: any) => ({
+              ...old,
+              data: [payload.new, ...(old?.data || [])]
+            }));
+          } else if (payload.eventType === 'UPDATE') {
+            queryClient.setQueryData(['deals'], (old: any) => ({
+              ...old,
+              data: (old?.data || []).map((deal: Deal) =>
+                deal.id === payload.new.id ? { ...deal, ...payload.new } : deal
+              )
+            }));
+          } else if (payload.eventType === 'DELETE') {
+            queryClient.setQueryData(['deals'], (old: any) => ({
+              ...old,
+              data: (old?.data || []).filter((deal: Deal) => deal.id !== payload.old.id)
+            }));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   return (
     <Layout>

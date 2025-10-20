@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { WorkflowBuilder } from '@/components/WorkflowBuilder';
 import WorkflowCanvas from '@/components/workflows/WorkflowCanvas';
@@ -487,6 +488,36 @@ const Workflows: React.FC = () => {
       default: return <Settings className="h-4 w-4" />;
     }
   };
+
+  // Supabase Realtime for workflow runs
+  useEffect(() => {
+    const channel = supabase
+      .channel('workflow_runs')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'workflow_runs'
+        },
+        (payload) => {
+          console.log('[Realtime] Workflow run changed:', payload);
+          
+          if (payload.eventType === 'UPDATE' && payload.new.status === 'COMPLETED') {
+            // Find workflow name for notification
+            const workflow = workflows.find(w => w.id === payload.new.workflowId);
+            if (workflow) {
+              toast.success(`Workflow "${workflow.name}" concluído!`);
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [workflows]);
 
   const getActionText = (actionType: string) => {
     switch (actionType) {

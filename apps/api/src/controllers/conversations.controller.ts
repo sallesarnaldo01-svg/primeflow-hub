@@ -160,6 +160,13 @@ export const conversationsController = {
         conversationId,
         message
       });
+      
+      // Also emit message received for realtime updates
+      emitToTenant(tenantId, 'message:received', {
+        conversationId,
+        message,
+        contactName: conversation.contact.name
+      });
 
       res.json({ data: message });
     } catch (error) {
@@ -177,6 +184,14 @@ export const conversationsController = {
         where: { id: conversationId },
         data: { status: status as any },
         include: { contact: true }
+      });
+
+      // Emit conversation updated event
+      const tenantId = req.user!.tenantId;
+      emitToTenant(tenantId, 'conversation:updated', {
+        conversationId,
+        status,
+        conversation
       });
 
       res.json({ data: conversation });
@@ -198,6 +213,14 @@ export const conversationsController = {
           contact: true,
           assignedTo: true
         }
+      });
+
+      // Emit agent assigned event
+      const tenantId = req.user!.tenantId;
+      emitToTenant(tenantId, 'agent:assigned', {
+        conversationId,
+        userId,
+        conversation
       });
 
       res.json({ data: conversation });
