@@ -17,3 +17,9 @@ verify_jwt = false
 
 [functions.ai-property-description]
 verify_jwt = false
+
+[functions.ai-agent-execute]
+verify_jwt = true
+
+[functions.ai-assist]
+verify_jwt = true

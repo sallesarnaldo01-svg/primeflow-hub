@@ -16,6 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import { supabase } from '@/integrations/supabase/client';
 
 const agentTemplates = [
   {
@@ -47,7 +48,7 @@ const ConfiguracoesIA: React.FC = () => {
   const { isAdmin, roles, isLoading: isLoadingRole } = useUserRole();
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
   const [testMode, setTestMode] = useState(false);
-  const [testMessages, setTestMessages] = useState<Array<{role: string; content: string}>>([]);
+  const [testMessages, setTestMessages] = useState<Array<{role: string; content: string; metadata?: any}>>([]);
   const [testInput, setTestInput] = useState('');
   const [agentActions, setAgentActions] = useState({
     canAssign: true,
@@ -73,19 +74,54 @@ const ConfiguracoesIA: React.FC = () => {
   };
 
   const handleTestMessage = async () => {
-    if (!testInput.trim()) return;
+    if (!testInput.trim() || !agent) return;
     
     const newMessages = [...testMessages, { role: 'user', content: testInput }];
     setTestMessages(newMessages);
+    const currentInput = testInput;
     setTestInput('');
 
-    // Simula resposta do agente
-    setTimeout(() => {
+    try {
+      // Call real AI Agent
+      const { data, error } = await supabase.functions.invoke('ai-agent-execute', {
+        body: {
+          conversationId: 'test-conversation',
+          message: currentInput,
+          agentConfig: {
+            id: agent.id,
+            systemPrompt: agent.systemPrompt,
+            capabilities: Object.entries(agentActions)
+              .filter(([_, enabled]) => enabled)
+              .map(([action]) => action),
+            actions: Object.keys(agentActions).filter(key => agentActions[key as keyof typeof agentActions])
+          }
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
       setTestMessages([...newMessages, {
         role: 'assistant',
-        content: 'Esta é uma resposta simulada do agente. Em produção, o agente usará a base de conhecimento e executará ações configuradas.'
+        content: data.response,
+        metadata: {
+          actionExecuted: data.actionExecuted,
+          knowledgeUsed: data.knowledgeUsed
+        }
       }]);
-    }, 1000);
+
+      if (data.actionExecuted) {
+        toast.info(`Ação executada: ${data.actionExecuted.type}`);
+      }
+    } catch (error: any) {
+      console.error('Test message error:', error);
+      toast.error('Erro ao testar agente');
+      setTestMessages([...newMessages, {
+        role: 'assistant',
+        content: 'Erro ao processar mensagem. Verifique a configuração do agente.'
+      }]);
+    }
   };
 
   const handleResetTest = () => {

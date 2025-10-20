@@ -248,10 +248,25 @@ export default function Conversas() {
     
     setShowAIAssist(true);
     
-    // Simula geração de resposta pela IA
-    setTimeout(() => {
-      setAiDraftResponse('Olá! Entendo sua dúvida. Baseado na nossa base de conhecimento, posso ajudá-lo da seguinte forma: [resposta contextual gerada pela IA usando RAG]');
-    }, 1500);
+    try {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      
+      const { data, error } = await supabase.functions.invoke('ai-assist', {
+        body: {
+          conversationId: selectedConversation.id,
+          action: 'generate_draft',
+          tenantId: authUser?.id
+        }
+      });
+
+      if (error) throw error;
+      
+      setAiDraftResponse(data.result);
+    } catch (error: any) {
+      console.error('AI Assist error:', error);
+      toast.error('Erro ao gerar rascunho com IA');
+      setShowAIAssist(false);
+    }
   };
 
   const handleUseAIDraft = () => {
@@ -266,25 +281,35 @@ export default function Conversas() {
       return;
     }
 
-    let result = messageText;
-    
-    switch(promptType) {
-      case 'translate':
-        result = `[Texto traduzido]: ${messageText}`;
-        break;
-      case 'tone':
-        result = `[Tom ajustado]: ${messageText}`;
-        break;
-      case 'fix':
-        result = messageText.replace(/erros/g, 'correções');
-        break;
-      case 'simplify':
-        result = `[Versão simplificada]: ${messageText}`;
-        break;
+    const actionMap: Record<string, { action: string; params?: any }> = {
+      translate: { action: 'translate', params: { targetLanguage: aiAssistSettings.language } },
+      tone: { action: 'adjust_tone', params: { tone: aiAssistSettings.tone } },
+      fix: { action: 'fix_grammar' },
+      simplify: { action: 'simplify' }
+    };
+
+    const config = actionMap[promptType];
+    if (!config) return;
+
+    try {
+      toast.info('Processando com IA...');
+      
+      const { data, error } = await supabase.functions.invoke('ai-assist', {
+        body: {
+          action: config.action,
+          content: messageText,
+          ...config.params
+        }
+      });
+
+      if (error) throw error;
+      
+      setMessageText(data.result);
+      toast.success('Prompt aplicado com sucesso');
+    } catch (error: any) {
+      console.error('AI Prompt error:', error);
+      toast.error('Erro ao processar prompt');
     }
-    
-    setMessageText(result);
-    toast.success('Prompt aplicado');
   };
 
   const filteredConversations = conversations.filter(conv =>
