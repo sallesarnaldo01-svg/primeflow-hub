@@ -15,6 +15,7 @@ router.delete('/:id', workflowsController.deleteWorkflow);
 router.post('/:id/publish', workflowsController.publishWorkflow);
 router.post('/:id/pause', workflowsController.pauseWorkflow);
 router.post('/:id/duplicate', workflowsController.duplicateWorkflow);
+router.post('/:id/execute', workflowsController.executeWorkflow);
 router.get('/:id/runs', workflowsController.getWorkflowRuns);
 router.get('/runs/:runId', workflowsController.getWorkflowRunById);
 router.get('/runs/:runId/logs', workflowsController.getWorkflowLogs);

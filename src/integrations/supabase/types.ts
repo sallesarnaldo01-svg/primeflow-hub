@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_agent_configs: {
+        Row: {
+          actions: Json | null
+          active: boolean
+          agent_id: string
+          capabilities: Json | null
+          created_at: string
+          id: string
+          objectives: Json | null
+          templates: Json | null
+          tenant_id: string
+          tools: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          actions?: Json | null
+          active?: boolean
+          agent_id: string
+          capabilities?: Json | null
+          created_at?: string
+          id?: string
+          objectives?: Json | null
+          templates?: Json | null
+          tenant_id: string
+          tools?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          actions?: Json | null
+          active?: boolean
+          agent_id?: string
+          capabilities?: Json | null
+          created_at?: string
+          id?: string
+          objectives?: Json | null
+          templates?: Json | null
+          tenant_id?: string
+          tools?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       broadcasts: {
         Row: {
           channel: string
@@ -387,6 +429,45 @@ export type Database = {
         }
         Relationships: []
       }
+      message_attachments: {
+        Row: {
+          conversation_id: string
+          created_at: string
+          file_name: string
+          file_size: number | null
+          file_type: string
+          file_url: string
+          id: string
+          message_id: string | null
+          metadata: Json | null
+          tenant_id: string
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string
+          file_name: string
+          file_size?: number | null
+          file_type: string
+          file_url: string
+          id?: string
+          message_id?: string | null
+          metadata?: Json | null
+          tenant_id: string
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string
+          file_name?: string
+          file_size?: number | null
+          file_type?: string
+          file_url?: string
+          id?: string
+          message_id?: string | null
+          metadata?: Json | null
+          tenant_id?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string | null
@@ -681,6 +762,163 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      workflow_logs: {
+        Row: {
+          cost_brl: number | null
+          duration_ms: number | null
+          error_message: string | null
+          executed_at: string
+          id: string
+          input_data: Json | null
+          node_id: string
+          node_type: string
+          output_data: Json | null
+          run_id: string
+          status: string
+          tokens_used: number | null
+        }
+        Insert: {
+          cost_brl?: number | null
+          duration_ms?: number | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          input_data?: Json | null
+          node_id: string
+          node_type: string
+          output_data?: Json | null
+          run_id: string
+          status: string
+          tokens_used?: number | null
+        }
+        Update: {
+          cost_brl?: number | null
+          duration_ms?: number | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          input_data?: Json | null
+          node_id?: string
+          node_type?: string
+          output_data?: Json | null
+          run_id?: string
+          status?: string
+          tokens_used?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_logs_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_runs: {
+        Row: {
+          completed_at: string | null
+          context_data: Json | null
+          created_at: string
+          error: string | null
+          id: string
+          result: Json | null
+          started_at: string | null
+          status: string
+          tenant_id: string
+          trigger_data: Json | null
+          workflow_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          context_data?: Json | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          result?: Json | null
+          started_at?: string | null
+          status?: string
+          tenant_id: string
+          trigger_data?: Json | null
+          workflow_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          context_data?: Json | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          result?: Json | null
+          started_at?: string | null
+          status?: string
+          tenant_id?: string
+          trigger_data?: Json | null
+          workflow_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_runs_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflows: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          graph_json: Json
+          id: string
+          metadata: Json | null
+          name: string
+          published_at: string | null
+          rate_limit_config: Json | null
+          status: string
+          tags: string[] | null
+          tenant_id: string
+          trigger_config: Json | null
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          graph_json?: Json
+          id?: string
+          metadata?: Json | null
+          name: string
+          published_at?: string | null
+          rate_limit_config?: Json | null
+          status?: string
+          tags?: string[] | null
+          tenant_id: string
+          trigger_config?: Json | null
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          graph_json?: Json
+          id?: string
+          metadata?: Json | null
+          name?: string
+          published_at?: string | null
+          rate_limit_config?: Json | null
+          status?: string
+          tags?: string[] | null
+          tenant_id?: string
+          trigger_config?: Json | null
+          updated_at?: string
+          version?: number
+        }
+        Relationships: []
       }
     }
     Views: {

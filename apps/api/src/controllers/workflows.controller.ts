@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { workflowsService } from '../services/workflows.service.js';
 import { logger } from '../lib/logger.js';
+import { workflowsQueue } from '../queues/workflows.queue.js';
 
 export const workflowsController = {
   async getWorkflows(req: Request, res: Response) {
@@ -142,6 +143,32 @@ export const workflowsController = {
     } catch (error) {
       logger.error('Error getting workflow logs', { error });
       res.status(500).json({ error: 'Failed to get workflow logs' });
+    }
+  },
+
+  async executeWorkflow(req: Request, res: Response) {
+    try {
+      const { tenantId } = req.user as any;
+      const { id } = req.params;
+      const { triggerData, contextData } = req.body;
+
+      // Add job to queue
+      const job = await workflowsQueue.add('execute', {
+        workflowId: id,
+        tenantId,
+        triggerData,
+        contextData
+      });
+
+      logger.info('Workflow execution queued', { workflowId: id, jobId: job.id });
+
+      res.json({
+        jobId: job.id,
+        message: 'Workflow execution started'
+      });
+    } catch (error) {
+      logger.error('Error executing workflow', { error });
+      res.status(500).json({ error: 'Failed to execute workflow' });
     }
   }
 };

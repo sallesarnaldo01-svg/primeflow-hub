@@ -92,6 +92,11 @@ export const workflowsService = {
     return response.data;
   },
 
+  async executeWorkflow(id: string, triggerData?: any, contextData?: any): Promise<{ jobId: string; message: string }> {
+    const response = await apiClient.post(`/workflows/${id}/execute`, { triggerData, contextData });
+    return response.data;
+  },
+
   async getWorkflowRuns(workflowId: string, limit = 50, offset = 0): Promise<WorkflowRun[]> {
     const response = await apiClient.get<WorkflowRun[]>(`/workflows/${workflowId}/runs`, {
       params: { limit, offset }
