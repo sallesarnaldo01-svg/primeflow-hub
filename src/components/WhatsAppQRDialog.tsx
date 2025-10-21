@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, CheckCircle2, AlertCircle, QrCode, Smartphone, Wifi } from 'lucide-react';
+import { Loader2, CheckCircle2, AlertCircle, QrCode, Smartphone, Wifi, RefreshCw } from 'lucide-react';
 import { whatsappService } from '@/services/whatsapp';
 import { toast } from 'sonner';
 
@@ -21,60 +21,128 @@ interface DeviceInfo {
   battery?: number;
 }
 
+const QR_TIMEOUT = 60000; // 60 seconds
+const STATUS_CHECK_INTERVAL = 2000; // 2 seconds
+const MAX_RETRY_ATTEMPTS = 3;
+
 export function WhatsAppQRDialog({ open, onOpenChange, connectionId, onConnected }: WhatsAppQRDialogProps) {
   const [qrCode, setQrCode] = useState<string>('');
-  const [status, setStatus] = useState<'loading' | 'qr' | 'connected' | 'error'>('loading');
+  const [status, setStatus] = useState<'loading' | 'qr' | 'connected' | 'error' | 'timeout'>('loading');
   const [error, setError] = useState<string>('');
   const [deviceInfo, setDeviceInfo] = useState<DeviceInfo>({});
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     if (open && connectionId) {
+      console.log('[QR Dialog] Opening dialog for connection:', connectionId);
       loadQRCode();
-      const interval = setInterval(checkStatus, 2000);
-      return () => clearInterval(interval);
-    }
-  }, [open, connectionId]);
+      
+      const statusInterval = setInterval(checkStatus, STATUS_CHECK_INTERVAL);
+      const timeoutTimer = setTimeout(() => {
+        if (status === 'qr' || status === 'loading') {
+          console.log('[QR Dialog] QR Code timeout');
+          setStatus('timeout');
+          setError('QR Code expirou. Clique em "Gerar Novo QR Code" para tentar novamente.');
+          toast.warning('QR Code expirado');
+        }
+      }, QR_TIMEOUT);
 
-  const loadQRCode = async () => {
+      return () => {
+        clearInterval(statusInterval);
+        clearTimeout(timeoutTimer);
+      };
+    } else {
+      // Reset state when dialog closes
+      console.log('[QR Dialog] Resetting state');
+      setQrCode('');
+      setStatus('loading');
+      setError('');
+      setDeviceInfo({});
+      setRetryCount(0);
+    }
+  }, [open, connectionId, status]);
+
+  const loadQRCode = useCallback(async () => {
     if (!connectionId) return;
     
     try {
+      console.log('[QR Dialog] Loading QR Code...');
       setStatus('loading');
-      const { qrCode: qr } = await whatsappService.getQRCode(connectionId);
+      setError('');
+      
+      const { qrCode: qr, status: connStatus } = await whatsappService.getQRCode(connectionId);
+      console.log('[QR Dialog] QR Code response:', { hasQR: !!qr, status: connStatus });
+      
       if (qr) {
-        // QR code vem diretamente do Venom Bot como base64
+        // QR code vem diretamente do provider como base64
         const qrSrc = qr.startsWith('data:image') ? qr : `data:image/png;base64,${qr}`;
         setQrCode(qrSrc);
         setStatus('qr');
+        console.log('[QR Dialog] QR Code loaded successfully');
+      } else if (connStatus === 'CONNECTED') {
+        console.log('[QR Dialog] Already connected');
+        setStatus('connected');
+        const statusData = await whatsappService.getConnectionStatus(connectionId);
+        setDeviceInfo({
+          phone: statusData.phone,
+          device: statusData.device,
+        });
+        onConnected?.();
+      } else {
+        // QR not ready yet, try again
+        console.log('[QR Dialog] QR not ready, retrying in 1s...');
+        setTimeout(loadQRCode, 1000);
       }
     } catch (err: any) {
-      setError(err.message || 'Erro ao carregar QR Code');
+      console.error('[QR Dialog] Error loading QR code:', err);
+      setError(err.response?.data?.message || err.message || 'Erro ao carregar QR Code');
       setStatus('error');
+      
+      if (retryCount < MAX_RETRY_ATTEMPTS) {
+        toast.error(`Erro ao carregar QR Code. Tentativa ${retryCount + 1}/${MAX_RETRY_ATTEMPTS}`);
+        setTimeout(() => {
+          setRetryCount(prev => prev + 1);
+          loadQRCode();
+        }, 2000);
+      } else {
+        toast.error('Falha ao carregar QR Code após várias tentativas');
+      }
     }
-  };
+  }, [connectionId, retryCount, onConnected]);
 
-  const checkStatus = async () => {
-    if (!connectionId) return;
+  const checkStatus = useCallback(async () => {
+    if (!connectionId || status === 'connected' || status === 'error' || status === 'timeout') return;
     
     try {
       const connection = await whatsappService.getConnectionStatus(connectionId);
+      console.log('[QR Dialog] Connection status:', connection.status);
       
       if (connection.status === 'CONNECTED') {
+        console.log('[QR Dialog] Connected successfully!');
         setStatus('connected');
         setDeviceInfo({
           phone: connection.phone,
           device: connection.device,
         });
         toast.success('WhatsApp conectado com sucesso!');
-        setTimeout(() => {
-          onConnected?.();
-          onOpenChange(false);
-        }, 2000);
+        onConnected?.();
+        setTimeout(() => onOpenChange(false), 2000);
+      } else if (connection.status === 'ERROR') {
+        console.error('[QR Dialog] Connection error');
+        setStatus('error');
+        setError('Erro ao conectar. Por favor, tente novamente.');
       }
     } catch (err) {
-      console.error('Error checking status:', err);
+      console.error('[QR Dialog] Error checking status:', err);
     }
-  };
+  }, [connectionId, status, onConnected, onOpenChange]);
+
+  const handleRetry = useCallback(() => {
+    console.log('[QR Dialog] Manual retry triggered');
+    setRetryCount(0);
+    setStatus('loading');
+    loadQRCode();
+  }, [loadQRCode]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -188,17 +256,29 @@ export function WhatsAppQRDialog({ open, onOpenChange, connectionId, onConnected
             </div>
           )}
 
-          {status === 'error' && (
+          {(status === 'error' || status === 'timeout') && (
             <div className="text-center space-y-4">
               <AlertCircle className="h-16 w-16 text-destructive mx-auto" />
               <div>
-                <p className="text-lg font-semibold text-destructive">Erro ao conectar</p>
+                <p className="text-lg font-semibold text-destructive">
+                  {status === 'timeout' ? 'QR Code Expirado' : 'Erro ao conectar'}
+                </p>
                 <p className="text-sm text-muted-foreground mt-2">{error}</p>
               </div>
-              <Button onClick={loadQRCode} variant="outline">
-                <QrCode className="h-4 w-4 mr-2" />
+              <Button 
+                onClick={handleRetry} 
+                variant="outline"
+                disabled={retryCount >= MAX_RETRY_ATTEMPTS && status === 'error'}
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
                 Gerar novo QR Code
+                {retryCount > 0 && status === 'error' && ` (${retryCount}/${MAX_RETRY_ATTEMPTS})`}
               </Button>
+              {retryCount >= MAX_RETRY_ATTEMPTS && status === 'error' && (
+                <p className="text-xs text-destructive mt-2">
+                  Máximo de tentativas atingido. Por favor, feche e tente novamente.
+                </p>
+              )}
             </div>
           )}
         </div>

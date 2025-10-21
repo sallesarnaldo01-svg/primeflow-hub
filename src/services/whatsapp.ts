@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/lib/api-client';
 
 export interface WhatsAppConnection {
   id: string;
@@ -20,114 +20,66 @@ export interface BulkMessageRequest {
 
 export const whatsappService = {
   async initiateConnection(name?: string): Promise<WhatsAppConnection> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
-
-    const { data, error } = await supabase
-      .from('whatsapp_connections')
-      .insert({
-        user_id: user.id,
-        name: name || 'WhatsApp Connection',
-        status: 'CONNECTING'
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
+    console.log('[WhatsApp Service] Initiating connection via API...');
     
-    return {
-      id: data.id,
-      status: data.status as any,
-      phone: data.phone || undefined,
-      device: data.device || undefined,
-      connectedAt: data.connected_at || undefined
-    };
+    const { data } = await apiClient.post<WhatsAppConnection>('/whatsapp/initiate', {
+      name: name || 'WhatsApp Connection'
+    });
+
+    console.log('[WhatsApp Service] Connection initiated:', data);
+    return data;
   },
 
   async getQRCode(connectionId: string): Promise<{ qrCode: string; status: string }> {
-    const { data, error } = await supabase
-      .from('whatsapp_connections')
-      .select('qr_code, status')
-      .eq('id', connectionId)
-      .single();
-
-    if (error) throw error;
+    console.log('[WhatsApp Service] Fetching QR Code for:', connectionId);
     
-    return {
-      qrCode: data.qr_code || '',
-      status: data.status
-    };
+    const { data } = await apiClient.get<{ qrCode: string; status: string }>(
+      `/whatsapp/${connectionId}/qr`
+    );
+
+    console.log('[WhatsApp Service] QR Code fetched, status:', data.status);
+    return data;
   },
 
   async getConnectionStatus(connectionId: string): Promise<WhatsAppConnection> {
-    const { data, error } = await supabase
-      .from('whatsapp_connections')
-      .select('*')
-      .eq('id', connectionId)
-      .single();
-
-    if (error) throw error;
+    console.log('[WhatsApp Service] Fetching connection status for:', connectionId);
     
-    return {
-      id: data.id,
-      status: data.status as any,
-      phone: data.phone || undefined,
-      device: data.device || undefined,
-      connectedAt: data.connected_at || undefined
-    };
+    const { data } = await apiClient.get<WhatsAppConnection>(
+      `/whatsapp/${connectionId}/status`
+    );
+
+    console.log('[WhatsApp Service] Connection status:', data.status);
+    return data;
   },
 
   async sendBulkMessages(
     connectionId: string,
-    data: BulkMessageRequest
+    requestData: BulkMessageRequest
   ): Promise<{ broadcastId: string; totalContacts: number; estimatedTime: number }> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    console.log('[WhatsApp Service] Sending bulk messages:', {
+      connectionId,
+      totalContacts: requestData.contacts.length
+    });
 
-    // Validate contacts
-    if (!data.contacts || data.contacts.length === 0) {
+    if (!requestData.contacts || requestData.contacts.length === 0) {
       throw new Error('Nenhum contato fornecido');
     }
 
-    // Create broadcast record
-    const { data: broadcast, error } = await supabase
-      .from('broadcasts')
-      .insert({
-        user_id: user.id,
-        name: `Disparo em Massa - ${new Date().toLocaleString('pt-BR')}`,
-        message: data.message.text,
-        channel: 'whatsapp',
-        status: 'sending',
-        total_contacts: data.contacts.length,
-        config: {
-          connectionId,
-          delayMs: data.delayMs || 1000,
-          contacts: data.contacts,
-          mediaUrl: data.message.mediaUrl,
-          mediaType: data.message.mediaType
-        }
-      })
-      .select()
-      .single();
+    const { data } = await apiClient.post<{
+      broadcastId: string;
+      totalContacts: number;
+      estimatedTime: number;
+    }>(`/whatsapp/${connectionId}/bulk`, requestData);
 
-    if (error) throw error;
-
-    return {
-      broadcastId: broadcast.id,
-      totalContacts: data.contacts.length,
-      estimatedTime: Math.ceil(data.contacts.length * (data.delayMs || 1000) / 1000)
-    };
+    console.log('[WhatsApp Service] Bulk send initiated:', data);
+    return data;
   },
 
   async disconnect(connectionId: string): Promise<void> {
-    const { error } = await supabase
-      .from('whatsapp_connections')
-      .update({ 
-        status: 'DISCONNECTED',
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', connectionId);
-
-    if (error) throw error;
+    console.log('[WhatsApp Service] Disconnecting:', connectionId);
+    
+    await apiClient.post(`/whatsapp/${connectionId}/disconnect`);
+    
+    console.log('[WhatsApp Service] Disconnected successfully');
   },
 };

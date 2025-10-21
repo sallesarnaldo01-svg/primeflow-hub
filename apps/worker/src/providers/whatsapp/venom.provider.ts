@@ -22,18 +22,30 @@ export class VenomProvider implements MessageProvider {
 
       const client = await venom.create(
         connectionId,
-        (base64Qr) => {
-          logger.info('QR Code generated', { connectionId });
+        async (base64Qr) => {
+          logger.info('✅ [Venom] QR Code generated', { connectionId, qrLength: base64Qr.length });
+          console.log(`[Venom] QR Code generated for ${connectionId}`);
+          
           this.qrEmitter.emit(`qr:${connectionId}`, base64Qr);
           
           // Update connection with QR code
-          prisma.connection.update({
-            where: { id: connectionId },
-            data: {
-              status: 'CONNECTING',
-              meta: { qrCode: base64Qr }
-            }
-          }).catch(err => logger.error('Failed to update QR', { error: err }));
+          try {
+            await prisma.connection.update({
+              where: { id: connectionId },
+              data: {
+                status: 'CONNECTING',
+                meta: { qrCode: base64Qr }
+              }
+            });
+            
+            // Also save to Redis for quick access
+            const { redis } = await import('../../lib/redis.js');
+            await redis.setex(`whatsapp:qr:${connectionId}`, 60, base64Qr);
+            
+            logger.info('✅ [Venom] QR Code saved to DB and Redis', { connectionId });
+          } catch (err) {
+            logger.error('❌ [Venom] Failed to save QR', { error: err, connectionId });
+          }
         },
         (statusSession) => {
           logger.info('Session status', { connectionId, status: statusSession });
@@ -58,23 +70,42 @@ export class VenomProvider implements MessageProvider {
       );
 
       // Connection established
+      const hostDevice = await client.getHostDevice();
+      const phone = hostDevice?.id?.user;
+      const device = hostDevice?.platform;
+      
       await prisma.connection.update({
         where: { id: connectionId },
         data: {
           status: 'CONNECTED',
-          meta: { 
-            phone: client.getHostDevice()?.id?.user,
-            device: client.getHostDevice()?.platform 
-          }
+          meta: { phone, device }
         }
       });
 
-      logger.info('Venom WhatsApp connected', { connectionId });
+      logger.info('✅ [Venom] WhatsApp connected successfully', { 
+        connectionId, 
+        phone, 
+        device 
+      });
+      console.log(`[Venom] ✅ Connected: ${phone} on ${device}`);
 
       // Listen for incoming messages
-      client.onMessage((message: Message) => {
-        if (message.isGroupMsg) return;
-        if (message.fromMe) return;
+      client.onMessage(async (message: Message) => {
+        if (message.isGroupMsg) {
+          logger.debug('[Venom] Ignoring group message', { connectionId });
+          return;
+        }
+        if (message.fromMe) {
+          logger.debug('[Venom] Ignoring message from self', { connectionId });
+          return;
+        }
+
+        logger.info('📨 [Venom] New message received', { 
+          connectionId, 
+          from: message.from,
+          type: message.type 
+        });
+        console.log(`[Venom] 📨 Message from ${message.from}: ${message.type}`);
 
         const content: MessageContent = {};
 
@@ -102,12 +133,25 @@ export class VenomProvider implements MessageProvider {
           };
         }
 
-        this.messageCallbacks.forEach(cb => cb({
+        const messageData = {
           connectionId,
           from: message.from,
           content,
           timestamp: new Date(message.timestamp * 1000)
-        }));
+        };
+
+        logger.info('✅ [Venom] Message processed, calling callbacks', { 
+          connectionId,
+          callbackCount: this.messageCallbacks.length 
+        });
+
+        this.messageCallbacks.forEach(cb => {
+          try {
+            cb(messageData);
+          } catch (error) {
+            logger.error('❌ [Venom] Error in message callback', { error, connectionId });
+          }
+        });
       });
 
       this.clients.set(connectionId, client);

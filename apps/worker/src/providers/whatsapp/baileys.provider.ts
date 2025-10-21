@@ -18,11 +18,14 @@ export class BaileysProvider implements MessageProvider {
 
   async connect(connectionId: string, config: any): Promise<void> {
     if (this.sockets.has(connectionId)) {
-      logger.warn('Connection already exists', { connectionId });
+      logger.warn('[Baileys] Connection already exists', { connectionId });
       return;
     }
 
     try {
+      logger.info('🚀 [Baileys] Starting connection', { connectionId });
+      console.log(`[Baileys] 🚀 Starting connection for ${connectionId}`);
+      
       const { state, saveCreds } = await useMultiFileAuthState(`./.wwebjs_auth/${connectionId}`);
 
       const sock = makeWASocket({
@@ -36,19 +39,26 @@ export class BaileysProvider implements MessageProvider {
         const { connection, lastDisconnect, qr } = update;
 
         if (qr) {
-          logger.info('QR Code received', { connectionId });
+          logger.info('✅ [Baileys] QR Code generated', { connectionId, qrLength: qr.length });
+          console.log(`[Baileys] ✅ QR Code generated for ${connectionId}`);
           
-          // Save QR to Redis with 60s expiration
-          await redis.set(`qr:${connectionId}`, qr, 'EX', 60);
-          
-          // Update connection with QR code
-          await prisma.connection.update({
-            where: { id: connectionId },
-            data: { 
-              status: 'CONNECTING',
-              meta: { qrCode: qr }
-            }
-          });
+          try {
+            // Save QR to Redis with 60s expiration
+            await redis.set(`qr:${connectionId}`, qr, 'EX', 60);
+            
+            // Update connection with QR code
+            await prisma.connection.update({
+              where: { id: connectionId },
+              data: { 
+                status: 'CONNECTING',
+                meta: { qrCode: qr }
+              }
+            });
+            
+            logger.info('✅ [Baileys] QR Code saved to DB and Redis', { connectionId });
+          } catch (error) {
+            logger.error('❌ [Baileys] Failed to save QR', { error, connectionId });
+          }
         }
         
         if (connection === 'close') {
@@ -65,19 +75,24 @@ export class BaileysProvider implements MessageProvider {
             this.sockets.delete(connectionId);
           }
         } else if (connection === 'open') {
-          logger.info('WhatsApp connected', { connectionId });
-          
           const phone = sock.user?.id.split(':')[0];
+          const device = 'Baileys';
+          const pushName = sock.user?.name;
+          
+          logger.info('✅ [Baileys] WhatsApp connected successfully', { 
+            connectionId, 
+            phone,
+            device,
+            pushName 
+          });
+          console.log(`[Baileys] ✅ Connected: ${phone} (${pushName}) on ${device}`);
+          
           await prisma.connection.update({
             where: { id: connectionId },
             data: { 
               status: 'CONNECTED',
               connectedAt: new Date(),
-              meta: { 
-                phone, 
-                device: 'Baileys',
-                pushName: sock.user?.name
-              }
+              meta: { phone, device, pushName }
             }
           });
           
@@ -86,12 +101,27 @@ export class BaileysProvider implements MessageProvider {
       });
 
       sock.ev.on('messages.upsert', async ({ messages }) => {
+        logger.info('📨 [Baileys] Messages received', { 
+          connectionId,
+          count: messages.length 
+        });
+        
         for (const msg of messages) {
-          if (msg.key.fromMe) continue;
+          if (msg.key.fromMe) {
+            logger.debug('[Baileys] Ignoring message from self', { connectionId });
+            continue;
+          }
 
           try {
             const from = msg.key.remoteJid || '';
             const phone = from.split('@')[0];
+            
+            logger.info('📨 [Baileys] Processing message', {
+              connectionId,
+              from,
+              hasMessage: !!msg.message
+            });
+            console.log(`[Baileys] 📨 Message from ${phone}`);
             
             // Get connection to find tenant
             const connectionData = await prisma.connection.findUnique({
@@ -134,25 +164,42 @@ export class BaileysProvider implements MessageProvider {
               }
             );
 
+            logger.info('✅ [Baileys] Message saved to database', { 
+              conversationId: conversation.id,
+              from: phone,
+              contentLength: content.length
+            });
+
             // Trigger callbacks for realtime updates
             const messageContent: MessageContent = {};
             if (msg.message?.conversation || msg.message?.extendedTextMessage) {
               messageContent.text = content;
             }
 
-            this.messageCallbacks.forEach(cb => cb({
+            logger.info('✅ [Baileys] Triggering message callbacks', {
               connectionId,
-              from: phone,
-              content: messageContent,
-              timestamp: new Date(msg.messageTimestamp as number * 1000)
-            }));
+              callbackCount: this.messageCallbacks.length
+            });
 
-            logger.info('Message processed', { 
+            this.messageCallbacks.forEach(cb => {
+              try {
+                cb({
+                  connectionId,
+                  from: phone,
+                  content: messageContent,
+                  timestamp: new Date(msg.messageTimestamp as number * 1000)
+                });
+              } catch (error) {
+                logger.error('❌ [Baileys] Error in message callback', { error, connectionId });
+              }
+            });
+
+            logger.info('✅ [Baileys] Message processed successfully', { 
               conversationId: conversation.id,
               from: phone
             });
           } catch (error) {
-            logger.error('Error processing incoming message', { error });
+            logger.error('❌ [Baileys] Error processing incoming message', { error, connectionId });
           }
         }
       });
