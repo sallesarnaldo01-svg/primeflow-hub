@@ -22,18 +22,61 @@ export const whatsappController = {
       throw new AppError('Conexão não encontrada', 404);
     }
 
+    logger.info('[WhatsApp Controller] Getting QR code', { 
+      connectionId, 
+      status: connection.status,
+      hasMetaQr: !!connection.meta?.qrCode 
+    });
+
     // Get QR code from connection meta or Redis
     let qrCode = connection.meta?.qrCode;
     
     if (!qrCode) {
       const qrFromRedis = await redis.get(`qr:${connectionId}`);
       qrCode = qrFromRedis;
+      logger.info('[WhatsApp Controller] QR from Redis', { 
+        connectionId, 
+        hasQr: !!qrCode,
+        qrLength: qrCode?.length 
+      });
+    }
+
+    // If already connected, return status without QR
+    if (connection.status === 'CONNECTED') {
+      logger.info('[WhatsApp Controller] Already connected', { connectionId });
+      return res.json({
+        success: true,
+        data: {
+          qrCode: null,
+          status: connection.status,
+          phone: connection.meta?.phone,
+          device: connection.meta?.device
+        }
+      });
+    }
+
+    // If no QR and still CONNECTING, return status
+    if (!qrCode && connection.status === 'CONNECTING') {
+      logger.info('[WhatsApp Controller] Still generating QR', { connectionId });
+      return res.json({
+        success: true,
+        data: {
+          qrCode: null,
+          status: 'CONNECTING',
+          message: 'Gerando QR Code...'
+        }
+      });
     }
 
     if (!qrCode) {
-      throw new AppError('QR Code não disponível', 404);
+      logger.warn('[WhatsApp Controller] QR Code not available', { 
+        connectionId, 
+        status: connection.status 
+      });
+      throw new AppError('QR Code ainda não foi gerado. Aguarde alguns segundos.', 404);
     }
 
+    logger.info('[WhatsApp Controller] Returning QR code', { connectionId });
     res.json({
       success: true,
       data: {

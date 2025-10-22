@@ -26,6 +26,12 @@ export class BaileysProvider implements MessageProvider {
       logger.info('🚀 [Baileys] Starting connection', { connectionId });
       console.log(`[Baileys] 🚀 Starting connection for ${connectionId}`);
       
+      // Update status to CONNECTING
+      await prisma.connection.update({
+        where: { id: connectionId },
+        data: { status: 'CONNECTING' }
+      }).catch(err => logger.error('Failed to update status to CONNECTING', { error: err }));
+      
       const { state, saveCreds } = await useMultiFileAuthState(`./.wwebjs_auth/${connectionId}`);
 
       const sock = makeWASocket({

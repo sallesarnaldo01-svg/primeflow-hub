@@ -18,7 +18,14 @@ export class VenomProvider implements MessageProvider {
     }
 
     try {
-      logger.info('Starting Venom connection', { connectionId });
+      logger.info('🚀 [Venom] Starting connection', { connectionId });
+      console.log(`[Venom] 🚀 Starting connection for ${connectionId}`);
+      
+      // Update status to CONNECTING
+      await prisma.connection.update({
+        where: { id: connectionId },
+        data: { status: 'CONNECTING' }
+      }).catch(err => logger.error('Failed to update status to CONNECTING', { error: err }));
 
       const client = await venom.create(
         connectionId,
