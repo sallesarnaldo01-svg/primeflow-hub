@@ -26,3 +26,15 @@ verify_jwt = true
 
 [functions.facebook-oauth]
 verify_jwt = true
+
+[functions.ai-document-analyzer]
+verify_jwt = true
+
+[functions.ai-lead-insights]
+verify_jwt = true
+
+[functions.ai-process-message]
+verify_jwt = true
+
+[functions.ai-auto-tag-media]
+verify_jwt = true

@@ -11,6 +11,9 @@
 - ✅ CRUD completo para pré-cadastros
 - ✅ Upload/aprovação/rejeição de documentos
 - ✅ Gestão de correspondentes e usuários
+- ✅ Services frontend (preCadastros, correspondentes, empreendimentos)
+- ✅ Página PreCadastros com listagem e contadores
+- 🚧 Página detalhe do pré-cadastro (próxima)
 
 ### Fase 9: Lead Score e Funil de Vendas
 - ✅ Migrations: campos score, sale_probability, ultimo_contato, total_interacoes em leads
@@ -20,17 +23,28 @@
 - ✅ Trigger automático para atualizar score após interações
 - ✅ Controller de lead_interactions
 - ✅ Routes para interações
+- ✅ Service frontend leadInteractions
+- ✅ Página LeadDetalhe com score, funil e timeline
 
 ### Fase 10: Agendamentos e Confirmações
 - ✅ Migration: campos lead_id, pre_cadastro_id, confirmado, lembrete_enviado em visits
 - ✅ Índices criados
+- 🚧 Worker para confirmações WhatsApp (próximo)
 
 ### Fase 11: Simulação de Financiamento
 - ✅ Migration: tabela simulacoes_financiamento
 - ✅ Função calcular_simulacao_financiamento (SAC e PRICE)
 - ✅ Controller de simulações
 - ✅ Routes para simulações
+- ✅ Service frontend simulacoes
 - ✅ Cálculo de renda mínima necessária
+- 🚧 Componente SimuladorFinanciamento (próximo)
+
+### Fase 12: CVMagic (IA)
+- ✅ Edge function ai-document-analyzer (OCR + comparação)
+- ✅ Edge function ai-lead-insights (previsão de conversão)
+- ✅ Configuração no config.toml
+- 🚧 Integração frontend com edge functions (próximo)
 
 ## 🚧 PENDENTE (Frontend)
 

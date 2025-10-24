@@ -17,6 +17,8 @@ import { PageSkeleton } from "@/components/PageSkeleton";
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const CRM = lazy(() => import("./pages/CRMNew"));
 const Leads = lazy(() => import("./pages/Leads"));
+const LeadDetalhe = lazy(() => import("./pages/LeadDetalhe"));
+const PreCadastros = lazy(() => import("./pages/PreCadastros"));
 const Contatos = lazy(() => import("./pages/Contatos"));
 // ListasContatos foi mesclado com Contatos
 const CampanhasFacebook = lazy(() => import("./pages/CampanhasFacebook"));
@@ -418,6 +420,26 @@ const App = () => {
                     <ProtectedRoute>
                       <Suspense fallback={<PageSkeleton />}>
                         <Leads />
+                      </Suspense>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/leads/:id"
+                  element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<PageSkeleton />}>
+                        <LeadDetalhe />
+                      </Suspense>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/pre-cadastros"
+                  element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<PageSkeleton />}>
+                        <PreCadastros />
                       </Suspense>
                     </ProtectedRoute>
                   }
