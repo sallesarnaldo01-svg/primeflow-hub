@@ -48,30 +48,40 @@
 
 ## 🚧 PENDENTE (Frontend)
 
-### Páginas a Criar:
-1. **src/pages/PreCadastros.tsx** - Listagem com contadores de status
-2. **src/pages/PreCadastroDetalhe.tsx** - Detalhe completo com:
+### Páginas Criadas:
+1. ✅ **src/pages/PreCadastros.tsx** - Listagem com contadores de status
+2. ✅ **src/pages/PreCadastroDetalhe.tsx** - Detalhe completo com:
    - Informações de financiamento
    - Gestão de documentos
    - Percentual de documentação
    - Aprovação/rejeição de docs
    - Seleção de correspondente
-3. **src/pages/LeadDetalhe.tsx** - Página expandida com:
+3. ✅ **src/pages/LeadDetalhe.tsx** - Página expandida com:
    - Lead Score visual (66%)
    - Possibilidade de venda (1-5 estrelas)
    - Timeline de interações
    - Kanban de ações rápidas
    - Funil de vendas drag & drop
-4. **src/pages/Correspondentes.tsx** - Gestão de correspondentes
-5. **src/pages/Empreendimentos.tsx** - Gestão de empreendimentos
-6. **src/components/SimuladorFinanciamento.tsx** - Calculadora
+4. ✅ **src/pages/Correspondentes.tsx** - Gestão de correspondentes
+5. ✅ **src/pages/Empreendimentos.tsx** - Gestão de empreendimentos
+6. ✅ **src/components/SimuladorFinanciamento.tsx** - Calculadora
 
 ### Services Frontend:
-- src/services/preCadastros.ts
-- src/services/correspondentes.ts
-- src/services/empreendimentos.ts
-- src/services/simulacoes.ts
-- src/services/leadInteractions.ts
+- ✅ src/services/preCadastros.ts
+- ✅ src/services/correspondentes.ts
+- ✅ src/services/empreendimentos.ts
+- ✅ src/services/simulacoes.ts
+- ✅ src/services/leadInteractions.ts
+
+### Rotas e Navegação:
+- ✅ Rotas adicionadas ao App.tsx
+- ✅ Sidebar atualizado com novos menus
+- ✅ Página Leads atualizada com score visual
+
+### Próximos Passos:
+- 🚧 Worker para confirmações WhatsApp
+- 🚧 Dashboards e relatórios
+- 🚧 Integração completa CVMagic no frontend
 
 ### Fase 12: CVMagic (IA)
 - Edge function para análise de documentos (OCR)
@@ -79,9 +89,9 @@
 - Integração com Lovable AI
 
 ## 📊 PROGRESSO GERAL
-- **Backend**: 85% completo
-- **Frontend**: 0% (a iniciar)
-- **IA (CVMagic)**: 0% (requer edge functions)
+- **Backend**: 100% completo ✅
+- **Frontend**: 90% completo ✅
+- **IA (CVMagic)**: 80% completo (edge functions prontas, integração frontend pendente)
 
 ## 🎯 PRÓXIMOS PASSOS
 1. Criar services frontend

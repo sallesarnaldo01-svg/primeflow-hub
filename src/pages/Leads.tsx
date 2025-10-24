@@ -11,10 +11,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, UserPlus, Filter, Download } from 'lucide-react';
+import { Plus, UserPlus, Filter, Download, TrendingUp } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Link } from 'react-router-dom';
+import { Progress } from '@/components/ui/progress';
 
 interface Lead {
   id: string;
@@ -23,6 +25,8 @@ interface Lead {
   phone: string | null;
   source: string;
   status: string;
+  score: number;
+  origin: string;
   assigned_to: string | null;
   created_at: string;
 }
@@ -257,16 +261,28 @@ export default function Leads() {
         <CardContent>
           <div className="space-y-2">
             {filteredLeads.map((lead) => (
-              <Card key={lead.id} className="p-4">
+              <Card key={lead.id} className="p-4 hover:shadow-md transition-shadow">
                 <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="font-semibold">{lead.name}</h3>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="font-semibold text-lg">{lead.name}</h3>
+                      {lead.score > 0 && (
+                        <div className="flex items-center gap-2">
+                          <TrendingUp className="h-4 w-4 text-primary" />
+                          <span className="text-sm font-semibold text-primary">{lead.score}%</span>
+                          <Progress value={lead.score} className="w-20 h-2" />
+                        </div>
+                      )}
+                    </div>
                     <p className="text-sm text-muted-foreground">
                       {lead.email || lead.phone}
                     </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Fonte: {lead.source} • {new Date(lead.created_at).toLocaleDateString()}
-                    </p>
+                    <div className="flex gap-2 mt-2">
+                      <Badge variant="outline">{lead.origin || lead.source}</Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        {new Date(lead.created_at).toLocaleDateString()}
+                      </Badge>
+                    </div>
                   </div>
                   <div className="flex flex-col items-end gap-2">
                     {getStatusBadge(lead.status)}
@@ -275,6 +291,11 @@ export default function Leads() {
                     ) : (
                       <Badge variant="secondary">Não atribuído</Badge>
                     )}
+                    <Link to={`/leads/${lead.id}`}>
+                      <Button size="sm" variant="outline">
+                        Ver Detalhes
+                      </Button>
+                    </Link>
                   </div>
                 </div>
               </Card>
