@@ -1,104 +1,115 @@
-import { useParams } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { leadsService } from '@/services/leads';
 import { leadInteractionsService } from '@/services/leadInteractions';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { 
-  Phone, Mail, MessageSquare, Calendar, CheckSquare, 
-  FileText, Users, TrendingUp, Clock, Star
-} from 'lucide-react';
-import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { toast } from 'sonner';
+import { Progress } from '@/components/ui/progress';
+import { Star, ArrowLeft, Phone, Mail, MessageSquare, Calendar, TrendingUp, FileText, Users } from 'lucide-react';
+import EventTimeline from '@/components/conversations/EventTimeline';
+import { LeadActionsKanban } from '@/components/crm/LeadActionsKanban';
+import { LeadSalesFunnel } from '@/components/crm/LeadSalesFunnel';
+import { DocumentUploadManager } from '@/components/crm/DocumentUploadManager';
+import { useToast } from '@/hooks/use-toast';
 
 export default function LeadDetalhe() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [selectedAction, setSelectedAction] = useState<string | null>(null);
+  const { toast } = useToast();
 
-  const { data: lead, isLoading } = useQuery({
+  const { data: lead, isLoading, refetch: refetchLead } = useQuery({
     queryKey: ['lead', id],
     queryFn: () => leadsService.getLeadById(id!)
   });
 
-  const { data: interactions = [] } = useQuery({
+  const { data: interactions = [], refetch: refetchInteractions } = useQuery({
     queryKey: ['lead-interactions', id],
     queryFn: () => leadInteractionsService.list(id!)
   });
 
-  const updateLeadMutation = useMutation({
-    mutationFn: ({ status }: { status: any }) => leadsService.updateLead(id!, { status }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['lead', id] });
-      toast.success('Status atualizado com sucesso');
-    }
-  });
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const createInteractionMutation = useMutation({
-    mutationFn: (tipo: string) => leadInteractionsService.create(id!, { 
-      tipo: tipo as any, 
-      descricao: `${tipo} registrado`,
-      concluido: false
-    }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['lead-interactions', id] });
-      toast.success('Interação registrada');
-    }
-  });
-
-  if (isLoading) return <div>Carregando...</div>;
-  if (!lead) return <div>Lead não encontrado</div>;
+  if (!lead) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <p className="text-lg font-semibold">Lead não encontrado</p>
+          <Button className="mt-4" onClick={() => navigate('/leads')}>
+            Voltar para Leads
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const leadScore = lead.score || 66;
   const possibilidadeVenda = Math.ceil((leadScore / 100) * 5);
 
-  const statusFunil = [
-    { label: 'Em Atendimento', value: 'EM_ATENDIMENTO' },
-    { label: 'Visita Agendada', value: 'VISITA_AGENDADA' },
-    { label: 'Visita Realizada', value: 'VISITA_REALIZADA' },
-    { label: 'Em Análise de Crédito', value: 'ANALISE_CREDITO' },
-    { label: 'Com Reserva', value: 'COM_RESERVA' },
-    { label: 'Venda Realizada', value: 'VENDA_REALIZADA' },
-    { label: 'Descartar', value: 'DESCARTADO' }
-  ];
-
-  const acoesRapidas = [
-    { icon: FileText, label: 'ANOTAÇÃO', tipo: 'ANOTACAO' },
-    { icon: Phone, label: 'LIGAÇÃO', tipo: 'LIGACAO' },
-    { icon: Mail, label: 'E-MAIL', tipo: 'EMAIL' },
-    { icon: MessageSquare, label: 'SMS', tipo: 'SMS' },
-    { icon: MessageSquare, label: 'WHATSAPP', tipo: 'WHATSAPP' },
-    { icon: Calendar, label: 'VISITA', tipo: 'VISITA' },
-    { icon: CheckSquare, label: 'TAREFA', tipo: 'TAREFA' }
-  ];
-
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-3xl font-bold">{lead.name}</h1>
-          <p className="text-muted-foreground">{lead.email} • {lead.phone}</p>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/leads')}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold">{lead.name}</h1>
+            <div className="flex items-center gap-3 mt-1">
+              {lead.email && (
+                <span className="text-muted-foreground flex items-center gap-1">
+                  <Mail className="h-3 w-3" />
+                  {lead.email}
+                </span>
+              )}
+              {lead.phone && (
+                <span className="text-muted-foreground flex items-center gap-1">
+                  <Phone className="h-3 w-3" />
+                  {lead.phone}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
-        <Badge variant={lead.status === 'QUALIFIED' ? 'default' : 'secondary'}>
-          {lead.status}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant={lead.status === 'QUALIFIED' ? 'default' : 'secondary'} className="text-sm">
+            {lead.status === 'NEW' ? 'Novo' :
+             lead.status === 'CONTACTED' ? 'Contatado' :
+             lead.status === 'QUALIFIED' ? 'Qualificado' :
+             lead.status === 'CONVERTED' ? 'Convertido' :
+             lead.status === 'LOST' ? 'Perdido' : lead.status}
+          </Badge>
+        </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
-        <Card className="p-6">
-          <div className="space-y-4">
+      {/* Score and Info Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Lead Score</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div>
-              <div className="text-sm text-muted-foreground mb-2">Lead Score</div>
-              <div className="flex items-center gap-4">
-                <Progress value={leadScore} className="flex-1" />
-                <span className="text-2xl font-bold">{leadScore}%</span>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Pontuação</span>
+                <span className="text-2xl font-bold text-primary">{leadScore}%</span>
               </div>
+              <Progress value={leadScore} className="h-3" />
             </div>
             
-            <div>
+            <div className="pt-4 border-t">
               <div className="text-sm text-muted-foreground mb-2">Possibilidade de Venda</div>
               <div className="flex gap-1">
                 {[1, 2, 3, 4, 5].map(i => (
@@ -109,93 +120,199 @@ export default function LeadDetalhe() {
                 ))}
               </div>
             </div>
-
-            <div className="pt-4 border-t">
-              <div className="text-sm text-muted-foreground">Última Interação</div>
-              <div className="font-medium">
-                {interactions[0] ? new Date(interactions[0].createdAt).toLocaleDateString() : 'Nenhuma'}
-              </div>
-            </div>
-          </div>
+          </CardContent>
         </Card>
 
-        <Card className="col-span-2 p-6">
-          <h3 className="text-lg font-semibold mb-4">Kanban de Ações</h3>
-          <div className="grid grid-cols-4 gap-2">
-            {acoesRapidas.map(acao => (
-              <Button
-                key={acao.tipo}
-                variant="outline"
-                className="h-20 flex-col gap-2"
-                onClick={() => createInteractionMutation.mutate(acao.tipo)}
-              >
-                <acao.icon className="h-5 w-5" />
-                <span className="text-xs">{acao.label}</span>
-              </Button>
-            ))}
-          </div>
-
-          <div className="mt-6 pt-6 border-t">
-            <h4 className="font-semibold mb-4">Ações de Venda</h4>
-            <div className="flex gap-2">
-              <Button variant="outline">RESERVA</Button>
-              <Button variant="outline">PRÉ-CADASTRO</Button>
-              <Button variant="outline">SIMULAÇÃO</Button>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Informações</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div>
+              <div className="text-sm text-muted-foreground">Origem</div>
+              <div className="font-medium">{lead.origin || 'Não especificado'}</div>
             </div>
-          </div>
+            <div>
+              <div className="text-sm text-muted-foreground">Última Interação</div>
+              <div className="font-medium">
+                {interactions[0] 
+                  ? new Date(interactions[0].createdAt).toLocaleDateString('pt-BR') 
+                  : 'Nenhuma'}
+              </div>
+            </div>
+            <div>
+              <div className="text-sm text-muted-foreground">Total de Interações</div>
+              <div className="font-medium">{interactions.length}</div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Tags</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {lead.tags && lead.tags.length > 0 ? (
+                lead.tags.map((tag: string) => (
+                  <Badge key={tag} variant="outline">{tag}</Badge>
+                ))
+              ) : (
+                <span className="text-sm text-muted-foreground">Nenhuma tag</span>
+              )}
+            </div>
+          </CardContent>
         </Card>
       </div>
 
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Funil de Vendas</h3>
-        <div className="flex gap-2 flex-wrap">
-          {statusFunil.map(status => (
-            <Button
-              key={status.value}
-              variant={lead.status === status.value ? 'default' : 'outline'}
-              onClick={() => updateLeadMutation.mutate({ status: status.value })}
-            >
-              {status.label}
-            </Button>
-          ))}
-        </div>
-      </Card>
+      {/* Main Content Tabs */}
+      <Tabs defaultValue="actions" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="actions">Ações</TabsTrigger>
+          <TabsTrigger value="funnel">Funil</TabsTrigger>
+          <TabsTrigger value="timeline">Timeline</TabsTrigger>
+          <TabsTrigger value="documents">Documentos</TabsTrigger>
+          <TabsTrigger value="info">Detalhes</TabsTrigger>
+          <TabsTrigger value="deals">Negociações</TabsTrigger>
+        </TabsList>
 
-      <Card className="p-6">
-        <Tabs defaultValue="timeline">
-          <TabsList>
-            <TabsTrigger value="timeline">Timeline</TabsTrigger>
-            <TabsTrigger value="insights">CVMagic | Insights</TabsTrigger>
-          </TabsList>
+        <TabsContent value="actions" className="space-y-4">
+          <LeadActionsKanban 
+            leadId={id!} 
+            onActionComplete={() => {
+              refetchInteractions();
+              refetchLead();
+            }}
+          />
+        </TabsContent>
 
-          <TabsContent value="timeline" className="space-y-4 mt-4">
-            {interactions.map(interaction => (
-              <div key={interaction.id} className="flex gap-4 border-l-2 pl-4 py-2">
-                <Clock className="h-4 w-4 text-muted-foreground mt-1" />
-                <div className="flex-1">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <div className="font-medium">{interaction.tipo}</div>
-                      <div className="text-sm text-muted-foreground">{interaction.descricao}</div>
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {new Date(interaction.createdAt).toLocaleString()}
-                    </div>
+        <TabsContent value="funnel" className="space-y-4">
+          <LeadSalesFunnel 
+            currentStage={lead?.metadata?.salesStage}
+            onStageChange={async (stage) => {
+              try {
+                await leadsService.updateLead(id!, {
+                  metadata: { ...lead?.metadata, salesStage: stage }
+                });
+                toast({
+                  title: 'Etapa atualizada',
+                  description: 'Lead movido para nova etapa do funil'
+                });
+                refetchLead();
+              } catch (error: any) {
+                toast({
+                  title: 'Erro',
+                  description: error.message,
+                  variant: 'destructive'
+                });
+              }
+            }}
+          />
+        </TabsContent>
+
+        <TabsContent value="timeline" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Histórico de Interações</CardTitle>
+              <CardDescription>Todas as atividades e interações com este lead</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <EventTimeline 
+                events={interactions.map((interaction: any) => ({
+                  id: interaction.id,
+                  type: interaction.tipo,
+                  description: interaction.descricao,
+                  timestamp: new Date(interaction.createdAt),
+                  user: interaction.createdBy
+                }))}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="documents" className="space-y-4">
+          <DocumentUploadManager 
+            entityType="lead"
+            entityId={id!}
+            onDocumentChange={() => {
+              toast({
+                title: 'Documento atualizado',
+                description: 'Lista de documentos atualizada'
+              });
+            }}
+          />
+        </TabsContent>
+
+        <TabsContent value="info" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Detalhes do Lead</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <div className="text-sm text-muted-foreground">Nome</div>
+                  <div className="font-medium">{lead.name}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-muted-foreground">Status</div>
+                  <Badge>{lead.status}</Badge>
+                </div>
+                <div>
+                  <div className="text-sm text-muted-foreground">Email</div>
+                  <div className="font-medium">{lead.email || 'Não informado'}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-muted-foreground">Telefone</div>
+                  <div className="font-medium">{lead.phone || 'Não informado'}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-muted-foreground">Origem</div>
+                  <div className="font-medium">{lead.origin || 'Não especificado'}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-muted-foreground">Data de Criação</div>
+                  <div className="font-medium">
+                    {new Date(lead.createdAt).toLocaleDateString('pt-BR')}
                   </div>
                 </div>
               </div>
-            ))}
-          </TabsContent>
 
-          <TabsContent value="insights" className="mt-4">
-            <div className="text-center py-8 text-muted-foreground">
-              <TrendingUp className="h-12 w-12 mx-auto mb-4" />
-              <p>Clique para obter insights sobre este lead usando IA</p>
-              <Button className="mt-4">Gerar Insights</Button>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </Card>
+              {lead.customFields && Object.keys(lead.customFields).length > 0 && (
+                <div className="pt-4 border-t">
+                  <h4 className="font-semibold mb-3">Campos Customizados</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    {Object.entries(lead.customFields).map(([key, value]) => (
+                      <div key={key}>
+                        <div className="text-sm text-muted-foreground">{key}</div>
+                        <div className="font-medium">{String(value)}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="deals" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Negociações Relacionadas</CardTitle>
+              <CardDescription>Deals e oportunidades vinculadas a este lead</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8 text-muted-foreground">
+                <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Nenhuma negociação vinculada a este lead</p>
+                <Button className="mt-4" onClick={() => navigate('/crm')}>
+                  Criar Deal
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

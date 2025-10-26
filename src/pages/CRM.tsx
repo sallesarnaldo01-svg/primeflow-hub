@@ -1,702 +1,458 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Plus, Search, Users, FileText, Calendar, Calculator, Building2, UserCheck, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Checkbox } from '@/components/ui/checkbox';
-import { toast } from 'sonner';
-import { lazy, Suspense } from 'react';
-
-const BulkAIDialog = lazy(() => import('@/components/crm/BulkAIDialog').then(m => ({ default: m.BulkAIDialog })));
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  MoreHorizontal, 
-  DollarSign, 
-  Calendar, 
-  User, 
-  Phone,
-  Mail,
-  Building,
-  Edit,
-  Trash2,
-  Eye,
-  Target,
-  TrendingUp,
-  Sparkles
-} from 'lucide-react';
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, closestCorners } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-
-// Mock data for deals
-const mockDeals = [
-  {
-    id: '1',
-    company: 'TechCorp Solutions',
-    contact: 'Carlos Silva',
-    email: 'carlos@techcorp.com',
-    phone: '+55 11 99999-9999',
-    value: 25000,
-    stage: 'proposta',
-    probability: 75,
-    owner: 'Maria Silva',
-    lastContact: '2024-01-15',
-    tags: ['Enterprise', 'Hot'],
-    description: 'Interessados em solução completa de CRM para 50 usuários.',
-    createdAt: '2024-01-10',
-  },
-  {
-    id: '2',
-    company: 'StartupXYZ',
-    contact: 'Ana Santos',
-    email: 'ana@startupxyz.com',
-    phone: '+55 21 88888-8888',
-    value: 12500,
-    stage: 'negociacao',
-    probability: 60,
-    owner: 'João Santos',
-    lastContact: '2024-01-14',
-    tags: ['Startup', 'SaaS'],
-    description: 'Startup em crescimento buscando ferramenta de automação.',
-    createdAt: '2024-01-08',
-  },
-  {
-    id: '3',
-    company: 'Empresa ABC',
-    contact: 'Pedro Costa',
-    email: 'pedro@empresaabc.com',
-    phone: '+55 31 77777-7777',
-    value: 8300,
-    stage: 'qualificacao',
-    probability: 40,
-    owner: 'Ana Costa',
-    lastContact: '2024-01-13',
-    tags: ['SMB'],
-    description: 'Empresa familiar interessada em digitalizar processos.',
-    createdAt: '2024-01-12',
-  },
-  {
-    id: '4',
-    company: 'MegaCorp Industries',
-    contact: 'Julia Oliveira',
-    email: 'julia@megacorp.com',
-    phone: '+55 11 55555-5555',
-    value: 45000,
-    stage: 'leads',
-    probability: 25,
-    owner: 'Pedro Lima',
-    lastContact: '2024-01-16',
-    tags: ['Enterprise', 'Cold'],
-    description: 'Grande corporação avaliando mudança de fornecedor.',
-    createdAt: '2024-01-16',
-  },
-];
-
-const stages = [
-  { id: 'leads', name: 'Leads', color: 'bg-gray-100', textColor: 'text-gray-700' },
-  { id: 'qualificacao', name: 'Qualificação', color: 'bg-blue-100', textColor: 'text-blue-700' },
-  { id: 'proposta', name: 'Proposta', color: 'bg-yellow-100', textColor: 'text-yellow-700' },
-  { id: 'negociacao', name: 'Negociação', color: 'bg-orange-100', textColor: 'text-orange-700' },
-  { id: 'fechado', name: 'Fechado', color: 'bg-green-100', textColor: 'text-green-700' },
-];
-
-interface DealCardProps {
-  deal: typeof mockDeals[0];
-  onEdit: (deal: typeof mockDeals[0]) => void;
-  isSelected: boolean;
-  onSelectChange: (id: string, selected: boolean) => void;
-}
-
-function DealCard({ deal, onEdit, isSelected, onSelectChange }: DealCardProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: deal.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
-
-  return (
-    <motion.div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      className="p-4 bg-card border rounded-lg cursor-grab hover:shadow-md transition-all"
-    >
-      <div className="space-y-3">
-        {/* Checkbox de seleção */}
-        <div className="flex items-center gap-2">
-          <Checkbox
-            checked={isSelected}
-            onCheckedChange={(checked) => onSelectChange(deal.id, checked as boolean)}
-            onClick={(e) => e.stopPropagation()}
-          />
-          <span className="text-xs text-muted-foreground">Selecionar para ação em massa</span>
-        </div>
-
-        {/* Company and Value */}
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <h4 className="font-semibold text-sm line-clamp-1">
-              {deal.company}
-            </h4>
-            <p className="text-xs text-muted-foreground">
-              {deal.contact}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {deal.email}
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="font-semibold text-primary text-sm">
-              R$ {deal.value.toLocaleString()}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {deal.probability}%
-            </p>
-          </div>
-        </div>
-
-        {/* Tags */}
-        <div className="flex flex-wrap gap-1">
-          {deal.tags.map((tag) => (
-            <Badge key={tag} variant="outline" className="text-xs">
-              {tag}
-            </Badge>
-          ))}
-        </div>
-
-        {/* Description */}
-        <p className="text-xs text-muted-foreground line-clamp-2">
-          {deal.description}
-        </p>
-
-        {/* Owner and Actions */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Avatar className="h-6 w-6">
-              <AvatarFallback className="text-xs">
-                {deal.owner.split(' ').map(n => n[0]).join('')}
-              </AvatarFallback>
-            </Avatar>
-            <span className="text-xs text-muted-foreground">
-              {deal.owner}
-            </span>
-          </div>
-          <div className="flex space-x-1">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="h-6 w-6 p-0"
-              onClick={(e) => {
-                e.stopPropagation();
-                toast.info('Funcionalidade de chamada em desenvolvimento');
-              }}
-              title="Ligar"
-            >
-              <Phone className="h-3 w-3" />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="h-6 w-6 p-0"
-              onClick={(e) => {
-                e.stopPropagation();
-                toast.info('Funcionalidade de email em desenvolvimento');
-              }}
-              title="Enviar email"
-            >
-              <Mail className="h-3 w-3" />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="h-6 w-6 p-0"
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit(deal);
-              }}
-            >
-              <Edit className="h-3 w-3" />
-            </Button>
-          </div>
-        </div>
-
-        {/* Last Contact */}
-        <div className="text-xs text-muted-foreground border-t pt-2">
-          Último contato: {new Date(deal.lastContact).toLocaleDateString('pt-BR')}
-        </div>
-      </div>
-    </motion.div>
-  );
-}
+import { useNavigate } from 'react-router-dom';
+import { leadsService } from '@/services/leads';
+import { preCadastrosService } from '@/services/preCadastros';
+import { empreendimentosService } from '@/services/empreendimentos';
+import { correspondentesService } from '@/services/correspondentes';
+import { useQuery } from '@tanstack/react-query';
+import { Progress } from '@/components/ui/progress';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useToast } from '@/hooks/use-toast';
 
 export default function CRM() {
-  const [deals, setDeals] = useState(mockDeals);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedOwner, setSelectedOwner] = useState('all');
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [editingDeal, setEditingDeal] = useState<typeof mockDeals[0] | null>(null);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [selectedDeals, setSelectedDeals] = useState<string[]>([]);
-  const [isBulkAIDialogOpen, setIsBulkAIDialogOpen] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const handleSelectDeal = (dealId: string, selected: boolean) => {
-    setSelectedDeals(prev => 
-      selected 
-        ? [...prev, dealId]
-        : prev.filter(id => id !== dealId)
-    );
-  };
-
-  const handleSelectAll = (selected: boolean) => {
-    setSelectedDeals(selected ? filteredDeals.map(d => d.id) : []);
-  };
-
-  const handleBulkAIComplete = () => {
-    setSelectedDeals([]);
-  };
-
-  const filteredDeals = deals.filter(deal => {
-    const matchesSearch = 
-      deal.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      deal.contact.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      deal.email.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesOwner = selectedOwner === 'all' || deal.owner.toLowerCase().includes(selectedOwner);
-    
-    return matchesSearch && matchesOwner;
+  // Fetch data
+  const { data: leads = [] } = useQuery({
+    queryKey: ['leads'],
+    queryFn: () => leadsService.getLeads()
   });
 
-  const dealsByStage = stages.reduce((acc, stage) => {
-    acc[stage.id] = filteredDeals.filter(deal => deal.stage === stage.id);
-    return acc;
-  }, {} as Record<string, typeof deals>);
+  const { data: preCadastros = [] } = useQuery({
+    queryKey: ['pre-cadastros'],
+    queryFn: () => preCadastrosService.list()
+  });
 
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
+  const { data: empreendimentos = [] } = useQuery({
+    queryKey: ['empreendimentos'],
+    queryFn: () => empreendimentosService.list()
+  });
+
+  const { data: correspondentes = [] } = useQuery({
+    queryKey: ['correspondentes'],
+    queryFn: () => correspondentesService.list()
+  });
+
+  // Calculate stats
+  const leadsStats = {
+    total: leads.length,
+    novos: leads.filter((l: any) => l.status === 'NEW').length,
+    atendimento: leads.filter((l: any) => l.status === 'CONTACTED').length,
+    qualificados: leads.filter((l: any) => l.status === 'QUALIFIED').length,
+    convertidos: leads.filter((l: any) => l.status === 'CONVERTED').length,
+    scoreAlto: leads.filter((l: any) => l.score >= 70).length
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    
-    if (!over) return;
-
-    const activeId = active.id as string;
-    const overId = over.id as string;
-
-    // Check if we're dropping on a stage
-    const targetStage = stages.find(stage => stage.id === overId);
-    
-    if (targetStage) {
-      setDeals(prev => prev.map(deal => 
-        deal.id === activeId 
-          ? { ...deal, stage: targetStage.id }
-          : deal
-      ));
-    }
-
-    setActiveId(null);
+  const preCadastrosStats = {
+    total: preCadastros.length,
+    novaAvaliacao: preCadastros.filter((p: any) => p.situacao === 'NOVA_AVALIACAO').length,
+    emAnalise: preCadastros.filter((p: any) => p.situacao === 'EM_ANALISE').length,
+    pendente: preCadastros.filter((p: any) => p.situacao === 'PENDENTE_APROVACAO').length,
+    aprovado: preCadastros.filter((p: any) => p.situacao === 'APROVADO').length
   };
 
-  const totalValue = filteredDeals.reduce((sum, deal) => sum + deal.value, 0);
-  const avgProbability = filteredDeals.length > 0 
-    ? filteredDeals.reduce((sum, deal) => sum + deal.probability, 0) / filteredDeals.length 
-    : 0;
+  const filteredLeads = leads.filter((lead: any) => 
+    lead.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    lead.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    lead.phone?.includes(searchQuery)
+  );
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="space-y-6"
-    >
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">CRM / Pipeline de Vendas</h1>
-            <p className="text-muted-foreground">
-              Gerencie seu pipeline de vendas com kanban interativo
-            </p>
-          </div>
-          <div className="flex items-center space-x-2">
-            {selectedDeals.length > 0 && (
-              <Button
-                variant="secondary"
-                onClick={() => setIsBulkAIDialogOpen(true)}
-              >
-                <Sparkles className="mr-2 h-4 w-4" />
-                Ação em Massa com IA ({selectedDeals.length})
-              </Button>
-            )}
-            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Novo Deal
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>Criar Novo Deal</DialogTitle>
-                </DialogHeader>
-                {/* Add Deal form would go here */}
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="company">Empresa</Label>
-                      <Input id="company" placeholder="Nome da empresa" />
-                    </div>
-                    <div>
-                      <Label htmlFor="contact">Contato</Label>
-                      <Input id="contact" placeholder="Nome do contato" />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="email">Email</Label>
-                      <Input id="email" type="email" placeholder="email@empresa.com" />
-                    </div>
-                    <div>
-                      <Label htmlFor="phone">Telefone</Label>
-                      <Input id="phone" placeholder="+55 11 99999-9999" />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="value">Valor</Label>
-                      <Input id="value" type="number" placeholder="25000" />
-                    </div>
-                    <div>
-                      <Label htmlFor="owner">Responsável</Label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecionar responsável" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="maria">Maria Silva</SelectItem>
-                          <SelectItem value="joao">João Santos</SelectItem>
-                          <SelectItem value="ana">Ana Costa</SelectItem>
-                          <SelectItem value="pedro">Pedro Lima</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="description">Descrição</Label>
-                    <Textarea id="description" placeholder="Descreva o deal..." />
-                  </div>
-                  <div className="flex justify-end space-x-2">
-                    <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                      Cancelar
-                    </Button>
-                    <Button onClick={() => setIsCreateDialogOpen(false)}>
-                      Criar Deal
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
+    <div className="p-8 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">CRM Imobiliário</h1>
+          <p className="text-muted-foreground mt-1">
+            Gestão completa de leads, pré-cadastros e vendas
+          </p>
         </div>
-
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-2">
-                <Target className="h-4 w-4 text-primary" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Pipeline</p>
-                  <p className="text-2xl font-bold">R$ {totalValue.toLocaleString()}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-2">
-                <TrendingUp className="h-4 w-4 text-success" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Deals Ativos</p>
-                  <p className="text-2xl font-bold">{filteredDeals.length}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-2">
-                <DollarSign className="h-4 w-4 text-warning" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Prob. Média</p>
-                  <p className="text-2xl font-bold">{avgProbability.toFixed(0)}%</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-2">
-                <Calendar className="h-4 w-4 text-blue-500" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Ticket Médio</p>
-                  <p className="text-2xl font-bold">R$ {(totalValue / filteredDeals.length || 0).toFixed(0)}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => navigate('/leads')}>
+            <Users className="h-4 w-4 mr-2" />
+            Ver Todos os Leads
+          </Button>
+          <Button onClick={() => navigate('/leads')}>
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Lead
+          </Button>
         </div>
+      </div>
 
-        {/* Filters */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  checked={selectedDeals.length === filteredDeals.length && filteredDeals.length > 0}
-                  onCheckedChange={handleSelectAll}
-                />
-                <span className="text-sm text-muted-foreground">Selecionar todos</span>
-              </div>
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar deals, empresas, contatos..."
-                  className="pl-10"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <Select value={selectedOwner} onValueChange={setSelectedOwner}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Responsável" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="maria">Maria Silva</SelectItem>
-                  <SelectItem value="joao">João Santos</SelectItem>
-                  <SelectItem value="ana">Ana Costa</SelectItem>
-                  <SelectItem value="pedro">Pedro Lima</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button variant="outline">
-                <Filter className="mr-2 h-4 w-4" />
-                Filtros
-              </Button>
+      {/* Overview Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/leads')}>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium">Total de Leads</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{leadsStats.total}</div>
+            <div className="flex gap-2 mt-2">
+              <Badge variant="secondary" className="text-xs">{leadsStats.novos} novos</Badge>
+              <Badge variant="default" className="text-xs">{leadsStats.scoreAlto} score alto</Badge>
             </div>
           </CardContent>
         </Card>
 
-        {/* Kanban Board */}
-        <DndContext
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-          collisionDetection={closestCorners}
-        >
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 overflow-x-auto">
-            {stages.map((stage) => (
-              <motion.div
-                key={stage.id}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: 0.1 }}
-                className="min-w-[300px] lg:min-w-0"
-              >
-                <Card className="h-full min-h-[600px]">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center justify-between text-sm">
-                      <span className="flex items-center">
-                        <div className={`w-3 h-3 rounded-full ${stage.color} mr-2`} />
-                        {stage.name}
-                      </span>
-                      <Badge variant="secondary">
-                        {dealsByStage[stage.id]?.length || 0}
-                      </Badge>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <SortableContext items={dealsByStage[stage.id]?.map(d => d.id) || []} strategy={verticalListSortingStrategy}>
-                      {dealsByStage[stage.id]?.map((deal) => (
-                        <DealCard 
-                          key={deal.id} 
-                          deal={deal} 
-                          onEdit={setEditingDeal}
-                          isSelected={selectedDeals.includes(deal.id)}
-                          onSelectChange={handleSelectDeal}
-                        />
-                      ))}
-                    </SortableContext>
+        <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/pre-cadastros')}>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium">Pré-Cadastros</CardTitle>
+              <FileText className="h-4 w-4 text-muted-foreground" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{preCadastrosStats.total}</div>
+            <div className="flex gap-2 mt-2">
+              <Badge variant="secondary" className="text-xs">{preCadastrosStats.aprovado} aprovados</Badge>
+              <Badge variant="outline" className="text-xs">{preCadastrosStats.pendente} pendentes</Badge>
+            </div>
+          </CardContent>
+        </Card>
 
-                    {/* Add Deal Button */}
-                    <Button 
-                      variant="ghost" 
-                      className="w-full border-2 border-dashed border-muted-foreground/25 hover:border-primary/50"
-                      onClick={() => setIsCreateDialogOpen(true)}
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Adicionar Deal
-                    </Button>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
+        <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/empreendimentos')}>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium">Empreendimentos</CardTitle>
+              <Building2 className="h-4 w-4 text-muted-foreground" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{empreendimentos.length}</div>
+            <div className="flex gap-2 mt-2">
+              <Badge variant="default" className="text-xs">
+                {empreendimentos.filter((e: any) => e.ativo).length} ativos
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
 
-          <DragOverlay>
-            {activeId ? (
-              <div className="rotate-3 opacity-80">
-                <DealCard 
-                  deal={deals.find(d => d.id === activeId)!} 
-                  onEdit={() => {}}
-                  isSelected={selectedDeals.includes(activeId)}
-                  onSelectChange={() => {}}
-                />
+        <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/correspondentes')}>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium">Correspondentes</CardTitle>
+              <UserCheck className="h-4 w-4 text-muted-foreground" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{correspondentes.length}</div>
+            <div className="flex gap-2 mt-2">
+              <Badge variant="default" className="text-xs">
+                {correspondentes.filter((c: any) => c.ativo).length} ativos
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main Content Tabs */}
+      <Tabs defaultValue="leads" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="leads">
+            <Users className="h-4 w-4 mr-2" />
+            Leads
+          </TabsTrigger>
+          <TabsTrigger value="pre-cadastros">
+            <FileText className="h-4 w-4 mr-2" />
+            Pré-Cadastros
+          </TabsTrigger>
+          <TabsTrigger value="empreendimentos">
+            <Building2 className="h-4 w-4 mr-2" />
+            Empreendimentos
+          </TabsTrigger>
+          <TabsTrigger value="correspondentes">
+            <UserCheck className="h-4 w-4 mr-2" />
+            Correspondentes
+          </TabsTrigger>
+          <TabsTrigger value="simulador">
+            <Calculator className="h-4 w-4 mr-2" />
+            Simulador
+          </TabsTrigger>
+          <TabsTrigger value="agendamentos">
+            <Calendar className="h-4 w-4 mr-2" />
+            Agendamentos
+          </TabsTrigger>
+        </TabsList>
+
+        {/* LEADS TAB */}
+        <TabsContent value="leads" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Leads Recentes</CardTitle>
+                  <CardDescription>Leads com maior score e mais recentes</CardDescription>
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Buscar leads..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-64"
+                  />
+                  <Button onClick={() => navigate('/leads')}>Ver Todos</Button>
+                </div>
               </div>
-            ) : null}
-          </DragOverlay>
-        </DndContext>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-[500px]">
+                <div className="space-y-3">
+                  {filteredLeads.slice(0, 10).map((lead: any) => (
+                    <Card 
+                      key={lead.id} 
+                      className="cursor-pointer hover:shadow-md transition-shadow"
+                      onClick={() => navigate(`/leads/${lead.id}`)}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3">
+                              <div>
+                                <h4 className="font-semibold">{lead.name}</h4>
+                                <p className="text-sm text-muted-foreground">{lead.email || lead.phone}</p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <div className="text-right">
+                              <div className="flex items-center gap-2">
+                                <TrendingUp className="h-4 w-4 text-primary" />
+                                <span className="text-sm font-medium">Score: {lead.score}%</span>
+                              </div>
+                              <Progress value={lead.score} className="w-24 h-2 mt-1" />
+                            </div>
+                            <Badge variant={
+                              lead.status === 'NEW' ? 'secondary' :
+                              lead.status === 'CONTACTED' ? 'default' :
+                              lead.status === 'QUALIFIED' ? 'default' :
+                              lead.status === 'CONVERTED' ? 'default' : 'outline'
+                            }>
+                              {lead.status === 'NEW' ? 'Novo' :
+                               lead.status === 'CONTACTED' ? 'Contatado' :
+                               lead.status === 'QUALIFIED' ? 'Qualificado' :
+                               lead.status === 'CONVERTED' ? 'Convertido' :
+                               lead.status === 'LOST' ? 'Perdido' : lead.status}
+                            </Badge>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-        {/* Edit Deal Dialog */}
-        <Dialog open={!!editingDeal} onOpenChange={() => setEditingDeal(null)}>
-          <DialogContent className="max-w-4xl">
-            <DialogHeader>
-              <DialogTitle>Editar Deal - {editingDeal?.company}</DialogTitle>
-            </DialogHeader>
-            {editingDeal && (
-              <Tabs defaultValue="details" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
-                  <TabsTrigger value="details">Detalhes</TabsTrigger>
-                  <TabsTrigger value="history">Histórico</TabsTrigger>
-                  <TabsTrigger value="tasks">Tarefas</TabsTrigger>
-                  <TabsTrigger value="notes">Notas</TabsTrigger>
-                </TabsList>
-                <TabsContent value="details" className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="edit-company">Empresa</Label>
-                      <Input id="edit-company" defaultValue={editingDeal.company} />
-                    </div>
-                    <div>
-                      <Label htmlFor="edit-contact">Contato</Label>
-                      <Input id="edit-contact" defaultValue={editingDeal.contact} />
-                    </div>
-                    <div>
-                      <Label htmlFor="edit-email">Email</Label>
-                      <Input id="edit-email" defaultValue={editingDeal.email} />
-                    </div>
-                    <div>
-                      <Label htmlFor="edit-phone">Telefone</Label>
-                      <Input id="edit-phone" defaultValue={editingDeal.phone} />
-                    </div>
-                    <div>
-                      <Label htmlFor="edit-value">Valor</Label>
-                      <Input id="edit-value" type="number" defaultValue={editingDeal.value} />
-                    </div>
-                    <div>
-                      <Label htmlFor="edit-probability">Probabilidade (%)</Label>
-                      <Input id="edit-probability" type="number" defaultValue={editingDeal.probability} />
-                    </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="edit-description">Descrição</Label>
-                    <Textarea id="edit-description" defaultValue={editingDeal.description} />
-                  </div>
-                  <div className="flex justify-end space-x-2">
-                    <Button variant="outline" onClick={() => setEditingDeal(null)}>
-                      Cancelar
-                    </Button>
-                    <Button onClick={() => setEditingDeal(null)}>
-                      Salvar Alterações
-                    </Button>
-                  </div>
-                </TabsContent>
-                <TabsContent value="history">
-                  <div className="space-y-4">
-                    <h4 className="font-medium">Histórico de Atividades</h4>
-                    <div className="space-y-2">
-                      <div className="border-l-2 border-primary pl-4">
-                        <p className="text-sm">Deal criado</p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(editingDeal.createdAt).toLocaleDateString('pt-BR')} - {editingDeal.owner}
-                        </p>
-                      </div>
-                      <div className="border-l-2 border-muted pl-4">
-                        <p className="text-sm">Último contato realizado</p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(editingDeal.lastContact).toLocaleDateString('pt-BR')} - {editingDeal.owner}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </TabsContent>
-                <TabsContent value="tasks">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium">Tarefas</h4>
-                      <Button size="sm">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Nova Tarefa
-                      </Button>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2 p-2 border rounded">
-                        <input type="checkbox" className="rounded" />
-                        <span className="text-sm">Enviar proposta comercial</span>
-                      </div>
-                      <div className="flex items-center space-x-2 p-2 border rounded">
-                        <input type="checkbox" className="rounded" defaultChecked />
-                        <span className="text-sm line-through text-muted-foreground">Primeira reunião</span>
-                      </div>
-                    </div>
-                  </div>
-                </TabsContent>
-                <TabsContent value="notes">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium">Notas</h4>
-                      <Button size="sm">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Nova Nota
-                      </Button>
-                    </div>
-                    <Textarea placeholder="Adicionar nota sobre este deal..." />
-                  </div>
-                </TabsContent>
-              </Tabs>
-            )}
-          </DialogContent>
-        </Dialog>
+        {/* PRÉ-CADASTROS TAB */}
+        <TabsContent value="pre-cadastros" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Pré-Cadastros Recentes</CardTitle>
+                  <CardDescription>Acompanhe o status dos pré-cadastros</CardDescription>
+                </div>
+                <Button onClick={() => navigate('/pre-cadastros')}>Ver Todos</Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-[500px]">
+                <div className="space-y-3">
+                  {preCadastros.slice(0, 10).map((pc: any) => (
+                    <Card 
+                      key={pc.id}
+                      className="cursor-pointer hover:shadow-md transition-shadow"
+                      onClick={() => navigate(`/pre-cadastros/${pc.id}`)}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <h4 className="font-semibold">{pc.nomeCliente}</h4>
+                            <p className="text-sm text-muted-foreground">
+                              CPF: {pc.cpfCliente} | {pc.empreendimento?.nome || 'Sem empreendimento'}
+                            </p>
+                            <div className="flex items-center gap-2 mt-2">
+                              <span className="text-xs text-muted-foreground">Documentação:</span>
+                              <Progress value={pc.percentualDocumentacao || 0} className="w-32 h-2" />
+                              <span className="text-xs font-medium">{pc.percentualDocumentacao || 0}%</span>
+                            </div>
+                          </div>
+                          <div className="text-right space-y-2">
+                            <Badge variant={
+                              pc.situacao === 'APROVADO' ? 'default' :
+                              pc.situacao === 'NOVA_AVALIACAO' ? 'secondary' :
+                              pc.situacao === 'EM_ANALISE' ? 'outline' :
+                              pc.situacao === 'PENDENTE_APROVACAO' ? 'outline' : 'secondary'
+                            }>
+                              {pc.situacao === 'NOVA_AVALIACAO' ? 'Nova Avaliação' :
+                               pc.situacao === 'EM_ANALISE' ? 'Em Análise' :
+                               pc.situacao === 'PENDENTE_APROVACAO' ? 'Pendente' :
+                               pc.situacao === 'APROVADO' ? 'Aprovado' :
+                               pc.situacao === 'REPROVADO' ? 'Reprovado' : pc.situacao}
+                            </Badge>
+                            <div className="text-sm font-medium">
+                              R$ {(pc.valorAprovado || pc.valorAvaliacao || 0).toLocaleString('pt-BR')}
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-        {/* Bulk AI Dialog */}
-        <Suspense fallback={<div>Carregando...</div>}>
-          <BulkAIDialog
-            open={isBulkAIDialogOpen}
-            onOpenChange={setIsBulkAIDialogOpen}
-            selectedLeads={selectedDeals}
-            onComplete={handleBulkAIComplete}
-          />
-        </Suspense>
-      </motion.div>
+        {/* EMPREENDIMENTOS TAB */}
+        <TabsContent value="empreendimentos" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Empreendimentos Ativos</CardTitle>
+                  <CardDescription>Gerencie os empreendimentos disponíveis</CardDescription>
+                </div>
+                <Button onClick={() => navigate('/empreendimentos')}>Gerenciar</Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-[500px]">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {empreendimentos.map((emp: any) => (
+                    <Card key={emp.id} className="cursor-pointer hover:shadow-md transition-shadow">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="font-semibold">{emp.nome}</h4>
+                            <p className="text-sm text-muted-foreground mt-1">{emp.descricao}</p>
+                            <p className="text-sm text-muted-foreground mt-2">
+                              {emp.cidade}, {emp.estado}
+                            </p>
+                            {emp.construtora && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Construtora: {emp.construtora}
+                              </p>
+                            )}
+                          </div>
+                          <Badge variant={emp.ativo ? 'default' : 'secondary'}>
+                            {emp.ativo ? 'Ativo' : 'Inativo'}
+                          </Badge>
+                        </div>
+                        {(emp.valorMinimo || emp.valorMaximo) && (
+                          <div className="mt-3 pt-3 border-t">
+                            <p className="text-sm font-medium">
+                              Faixa de Valores: R$ {(emp.valorMinimo || 0).toLocaleString('pt-BR')} - R$ {(emp.valorMaximo || 0).toLocaleString('pt-BR')}
+                            </p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* CORRESPONDENTES TAB */}
+        <TabsContent value="correspondentes" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Correspondentes Bancários</CardTitle>
+                  <CardDescription>Empresas parceiras para financiamento</CardDescription>
+                </div>
+                <Button onClick={() => navigate('/correspondentes')}>Gerenciar</Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-[500px]">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {correspondentes.map((corr: any) => (
+                    <Card key={corr.id} className="cursor-pointer hover:shadow-md transition-shadow">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="font-semibold">{corr.nome}</h4>
+                            {corr.cnpj && (
+                              <p className="text-sm text-muted-foreground mt-1">CNPJ: {corr.cnpj}</p>
+                            )}
+                            {corr.email && (
+                              <p className="text-sm text-muted-foreground">{corr.email}</p>
+                            )}
+                            {corr.telefone && (
+                              <p className="text-sm text-muted-foreground">{corr.telefone}</p>
+                            )}
+                          </div>
+                          <Badge variant={corr.ativo ? 'default' : 'secondary'}>
+                            {corr.ativo ? 'Ativo' : 'Inativo'}
+                          </Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* SIMULADOR TAB */}
+        <TabsContent value="simulador" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Simulador de Financiamento</CardTitle>
+              <CardDescription>Calcule parcelas e condições de financiamento</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8 text-muted-foreground">
+                <Calculator className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Clique em um lead ou pré-cadastro para simular financiamento</p>
+                <Button className="mt-4" onClick={() => navigate('/leads')}>
+                  Selecionar Lead
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* AGENDAMENTOS TAB */}
+        <TabsContent value="agendamentos" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Próximos Agendamentos</CardTitle>
+                  <CardDescription>Visitas e atendimentos agendados</CardDescription>
+                </div>
+                <Button onClick={() => navigate('/agendamentos')}>Ver Calendário</Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8 text-muted-foreground">
+                <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Nenhum agendamento próximo</p>
+                <Button className="mt-4" onClick={() => navigate('/agendamentos')}>
+                  Criar Agendamento
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }
