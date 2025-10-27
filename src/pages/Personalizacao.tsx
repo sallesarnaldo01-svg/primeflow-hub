@@ -24,6 +24,7 @@ export default function Personalizacao() {
     faviconUrl,
     primaryColor,
     accentColor,
+    backgroundColor,
     darkMode,
     setBrandName,
     setTagline,
@@ -31,6 +32,7 @@ export default function Personalizacao() {
     setFaviconUrl,
     setPrimaryColor,
     setAccentColor,
+    setBackgroundColor,
     setDarkMode,
     reset,
   } = useCustomization();
@@ -338,6 +340,26 @@ export default function Personalizacao() {
                     </div>
                     <p className="text-xs text-muted-foreground">
                       Usada em badges, notificações e destaques
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label>Cor de Fundo</Label>
+                    <div className="flex gap-3 items-center">
+                      <Input
+                        type="color"
+                        value={backgroundColor}
+                        onChange={(e) => setBackgroundColor(e.target.value)}
+                        className="w-20 h-10 cursor-pointer"
+                      />
+                      <Input
+                        value={backgroundColor}
+                        onChange={(e) => setBackgroundColor(e.target.value)}
+                        placeholder="#0a0a0a"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Cor de fundo principal da interface
                     </p>
                   </div>
                 </div>

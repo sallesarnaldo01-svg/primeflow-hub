@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
+import { CustomThemeProvider } from "@/components/CustomThemeProvider";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { LoadingSplash } from "@/components/LoadingSplash";
@@ -90,13 +91,14 @@ const App = () => {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
-          <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <CommandPalette open={open} onOpenChange={setOpen} />
-              <AnimatePresence mode="wait">
-                <Routes>
+          <CustomThemeProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <CommandPalette open={open} onOpenChange={setOpen} />
+                <AnimatePresence mode="wait">
+                  <Routes>
                 {/* Public routes */}
                 <Route 
                   path="/login" 
@@ -517,6 +519,7 @@ const App = () => {
               </AnimatePresence>
             </BrowserRouter>
           </TooltipProvider>
+          </CustomThemeProvider>
         </ThemeProvider>
       </QueryClientProvider>
     </ErrorBoundary>

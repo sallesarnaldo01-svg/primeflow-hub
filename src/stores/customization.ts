@@ -8,6 +8,7 @@ interface CustomizationStore {
   faviconUrl: string;
   primaryColor: string;
   accentColor: string;
+  backgroundColor: string;
   darkMode: boolean;
   setBrandName: (name: string) => void;
   setTagline: (tagline: string) => void;
@@ -15,6 +16,7 @@ interface CustomizationStore {
   setFaviconUrl: (url: string) => void;
   setPrimaryColor: (color: string) => void;
   setAccentColor: (color: string) => void;
+  setBackgroundColor: (color: string) => void;
   setDarkMode: (enabled: boolean) => void;
   reset: () => void;
 }
@@ -26,6 +28,7 @@ const defaultValues = {
   faviconUrl: '',
   primaryColor: '#6366f1',
   accentColor: '#8b5cf6',
+  backgroundColor: '#0a0a0a',
   darkMode: true,
 };
 
@@ -39,6 +42,7 @@ export const useCustomization = create<CustomizationStore>()(
       setFaviconUrl: (faviconUrl) => set({ faviconUrl }),
       setPrimaryColor: (primaryColor) => set({ primaryColor }),
       setAccentColor: (accentColor) => set({ accentColor }),
+      setBackgroundColor: (backgroundColor) => set({ backgroundColor }),
       setDarkMode: (darkMode) => set({ darkMode }),
       reset: () => set(defaultValues),
     }),
