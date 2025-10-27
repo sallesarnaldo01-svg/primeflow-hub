@@ -15,7 +15,7 @@ import { PageSkeleton } from "@/components/PageSkeleton";
 
 // Lazy-loaded pages for better performance
 const Dashboard = lazy(() => import("./pages/Dashboard"));
-const CRM = lazy(() => import("./pages/CRMNew"));
+const CRM = lazy(() => import("./pages/CRM"));
 const Leads = lazy(() => import("./pages/Leads"));
 const LeadDetalhe = lazy(() => import("./pages/LeadDetalhe"));
 const PreCadastros = lazy(() => import("./pages/PreCadastros"));
