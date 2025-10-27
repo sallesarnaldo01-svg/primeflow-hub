@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,17 +9,82 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Palette, Upload, Save, RotateCcw, Eye } from 'lucide-react';
+import { Palette, Upload, Save, RotateCcw, Eye, Image as ImageIcon } from 'lucide-react';
+import { useCustomization } from '@/stores/customization';
 
 export default function Personalizacao() {
   const { toast } = useToast();
-  const [brandName, setBrandName] = useState('PrimeZapAI');
-  const [tagline, setTagline] = useState('CRM & Omnichannel');
-  const [primaryColor, setPrimaryColor] = useState('#6366f1');
-  const [accentColor, setAccentColor] = useState('#8b5cf6');
-  const [darkMode, setDarkMode] = useState(true);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const faviconInputRef = useRef<HTMLInputElement>(null);
+  
+  const {
+    brandName,
+    tagline,
+    logoUrl,
+    faviconUrl,
+    primaryColor,
+    accentColor,
+    darkMode,
+    setBrandName,
+    setTagline,
+    setLogoUrl,
+    setFaviconUrl,
+    setPrimaryColor,
+    setAccentColor,
+    setDarkMode,
+    reset,
+  } = useCustomization();
+  
   const [sidebarPosition, setSidebarPosition] = useState('left');
   const [compactMode, setCompactMode] = useState(false);
+
+  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast({
+          title: 'Arquivo muito grande',
+          description: 'O arquivo deve ter no máximo 2MB.',
+          variant: 'destructive'
+        });
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoUrl(reader.result as string);
+        toast({
+          title: 'Logo atualizado!',
+          description: 'Seu logo foi carregado com sucesso.'
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleFaviconUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 1 * 1024 * 1024) {
+        toast({
+          title: 'Arquivo muito grande',
+          description: 'O favicon deve ter no máximo 1MB.',
+          variant: 'destructive'
+        });
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFaviconUrl(reader.result as string);
+        toast({
+          title: 'Favicon atualizado!',
+          description: 'Seu favicon foi carregado com sucesso.'
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSave = () => {
     toast({
@@ -29,11 +94,7 @@ export default function Personalizacao() {
   };
 
   const handleReset = () => {
-    setBrandName('PrimeZapAI');
-    setTagline('CRM & Omnichannel');
-    setPrimaryColor('#6366f1');
-    setAccentColor('#8b5cf6');
-    setDarkMode(true);
+    reset();
     setSidebarPosition('left');
     setCompactMode(false);
     toast({
@@ -107,14 +168,38 @@ export default function Personalizacao() {
                 <div className="space-y-2">
                   <Label>Logotipo</Label>
                   <div className="flex items-center gap-4">
-                    <div className="w-20 h-20 border-2 border-dashed rounded-lg flex items-center justify-center">
-                      <Palette className="h-8 w-8 text-muted-foreground" />
+                    <div className="w-20 h-20 border-2 border-dashed rounded-lg flex items-center justify-center overflow-hidden bg-muted">
+                      {logoUrl ? (
+                        <img src={logoUrl} alt="Logo" className="w-full h-full object-contain" />
+                      ) : (
+                        <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                      )}
                     </div>
                     <div className="flex-1 space-y-2">
-                      <Button variant="outline" size="sm">
+                      <input
+                        ref={logoInputRef}
+                        type="file"
+                        accept="image/png,image/jpeg,image/svg+xml"
+                        className="hidden"
+                        onChange={handleLogoUpload}
+                      />
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => logoInputRef.current?.click()}
+                      >
                         <Upload className="mr-2 h-4 w-4" />
                         Fazer Upload do Logo
                       </Button>
+                      {logoUrl && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => setLogoUrl('')}
+                        >
+                          Remover Logo
+                        </Button>
+                      )}
                       <p className="text-xs text-muted-foreground">
                         Formatos aceitos: PNG, JPG, SVG (máx. 2MB)
                       </p>
@@ -125,14 +210,38 @@ export default function Personalizacao() {
                 <div className="space-y-2">
                   <Label>Favicon</Label>
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 border-2 border-dashed rounded-lg flex items-center justify-center">
-                      <Palette className="h-6 w-6 text-muted-foreground" />
+                    <div className="w-12 h-12 border-2 border-dashed rounded-lg flex items-center justify-center overflow-hidden bg-muted">
+                      {faviconUrl ? (
+                        <img src={faviconUrl} alt="Favicon" className="w-full h-full object-contain" />
+                      ) : (
+                        <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                      )}
                     </div>
                     <div className="flex-1 space-y-2">
-                      <Button variant="outline" size="sm">
+                      <input
+                        ref={faviconInputRef}
+                        type="file"
+                        accept="image/png,image/x-icon,image/vnd.microsoft.icon"
+                        className="hidden"
+                        onChange={handleFaviconUpload}
+                      />
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => faviconInputRef.current?.click()}
+                      >
                         <Upload className="mr-2 h-4 w-4" />
                         Fazer Upload do Favicon
                       </Button>
+                      {faviconUrl && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => setFaviconUrl('')}
+                        >
+                          Remover Favicon
+                        </Button>
+                      )}
                       <p className="text-xs text-muted-foreground">
                         Ícone quadrado 32x32 ou 64x64 pixels
                       </p>

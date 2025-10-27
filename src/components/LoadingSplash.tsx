@@ -1,7 +1,10 @@
 import { motion } from 'framer-motion';
 import logo from '@/assets/logo.svg';
+import { useCustomization } from '@/stores/customization';
 
 export function LoadingSplash() {
+  const { logoUrl, brandName } = useCustomization();
+  
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -11,9 +14,9 @@ export function LoadingSplash() {
     >
       <div className="text-center">
         <motion.img
-          src={logo}
-          alt="PrimeZapAI"
-          className="h-20 w-20 mx-auto mb-4"
+          src={logoUrl || logo}
+          alt={brandName}
+          className="h-20 w-20 mx-auto mb-4 object-contain"
           animate={{ rotate: 360 }}
           transition={{
             duration: 2,
@@ -27,7 +30,7 @@ export function LoadingSplash() {
           transition={{ delay: 0.2 }}
         >
           <h1 className="text-2xl font-bold gradient-primary bg-clip-text text-transparent mb-2">
-            PrimeZapAI
+            {brandName}
           </h1>
           <p className="text-muted-foreground text-sm">
             Carregando sua experiência...

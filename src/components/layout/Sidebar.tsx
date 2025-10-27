@@ -43,6 +43,7 @@ import {
   Megaphone,
 } from 'lucide-react';
 import logo from '@/assets/logo.svg';
+import { useCustomization } from '@/stores/customization';
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/', badge: null },
@@ -119,6 +120,7 @@ const menuItems = [
 
 export function Sidebar() {
   const { sidebarOpen, setSidebarOpen, sidebarCollapsed, setSidebarCollapsed } = useUIStore();
+  const { logoUrl, brandName, tagline } = useCustomization();
   const location = useLocation();
   const [openDropdowns, setOpenDropdowns] = useState<string[]>([]);
 
@@ -175,12 +177,16 @@ export function Sidebar() {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.1 }}
               >
-                <img src={logo} alt="PrimeZapAI" className="h-8 w-8" />
+                <img 
+                  src={logoUrl || logo} 
+                  alt={brandName} 
+                  className="h-8 w-8 object-contain" 
+                />
                 <div>
                   <h1 className="text-lg font-bold gradient-primary bg-clip-text text-transparent">
-                    PrimeZapAI
+                    {brandName}
                   </h1>
-                  <p className="text-xs text-muted-foreground">CRM & Omnichannel</p>
+                  <p className="text-xs text-muted-foreground">{tagline}</p>
                 </div>
               </motion.div>
             )}
