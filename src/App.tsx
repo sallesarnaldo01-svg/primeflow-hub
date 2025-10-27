@@ -16,12 +16,8 @@ import { PageSkeleton } from "@/components/PageSkeleton";
 // Lazy-loaded pages for better performance
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const CRM = lazy(() => import("./pages/CRM"));
-const Leads = lazy(() => import("./pages/Leads"));
 const LeadDetalhe = lazy(() => import("./pages/LeadDetalhe"));
-const PreCadastros = lazy(() => import("./pages/PreCadastros"));
 const PreCadastroDetalhe = lazy(() => import("./pages/PreCadastroDetalhe"));
-const Empreendimentos = lazy(() => import("./pages/Empreendimentos"));
-const Correspondentes = lazy(() => import("./pages/Correspondentes"));
 const Contatos = lazy(() => import("./pages/Contatos"));
 // ListasContatos foi mesclado com Contatos
 const CampanhasFacebook = lazy(() => import("./pages/CampanhasFacebook"));
@@ -418,16 +414,6 @@ const App = () => {
                   }
                 />
                 <Route
-                  path="/leads"
-                  element={
-                    <ProtectedRoute>
-                      <Suspense fallback={<PageSkeleton />}>
-                        <Leads />
-                      </Suspense>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
                   path="/leads/:id"
                   element={
                     <ProtectedRoute>
@@ -438,41 +424,11 @@ const App = () => {
                   }
                 />
                 <Route
-                  path="/pre-cadastros"
-                  element={
-                    <ProtectedRoute>
-                      <Suspense fallback={<PageSkeleton />}>
-                        <PreCadastros />
-                      </Suspense>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
                   path="/pre-cadastros/:id"
                   element={
                     <ProtectedRoute>
                       <Suspense fallback={<PageSkeleton />}>
                         <PreCadastroDetalhe />
-                      </Suspense>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/empreendimentos"
-                  element={
-                    <ProtectedRoute>
-                      <Suspense fallback={<PageSkeleton />}>
-                        <Empreendimentos />
-                      </Suspense>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/correspondentes"
-                  element={
-                    <ProtectedRoute>
-                      <Suspense fallback={<PageSkeleton />}>
-                        <Correspondentes />
                       </Suspense>
                     </ProtectedRoute>
                   }
@@ -538,13 +494,7 @@ const App = () => {
                 {/* CRM */}
                 <Route
                   path="/crm/leads"
-                  element={
-                    <ProtectedRoute>
-                      <Suspense fallback={<PageSkeleton />}>
-                        <Leads />
-                      </Suspense>
-                    </ProtectedRoute>
-                  }
+                  element={<Navigate to="/crm" replace />}
                 />
                 <Route
                   path="/crm/listas"
