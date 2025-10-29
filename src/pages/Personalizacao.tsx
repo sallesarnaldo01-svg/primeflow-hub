@@ -25,6 +25,13 @@ export default function Personalizacao() {
     primaryColor,
     accentColor,
     backgroundColor,
+    foregroundColor,
+    cardColor,
+    borderColor,
+    mutedColor,
+    successColor,
+    errorColor,
+    warningColor,
     darkMode,
     setBrandName,
     setTagline,
@@ -33,6 +40,13 @@ export default function Personalizacao() {
     setPrimaryColor,
     setAccentColor,
     setBackgroundColor,
+    setForegroundColor,
+    setCardColor,
+    setBorderColor,
+    setMutedColor,
+    setSuccessColor,
+    setErrorColor,
+    setWarningColor,
     setDarkMode,
     reset,
   } = useCustomization();
@@ -360,6 +374,146 @@ export default function Personalizacao() {
                     </div>
                     <p className="text-xs text-muted-foreground">
                       Cor de fundo principal da interface
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label>Cor do Texto</Label>
+                    <div className="flex gap-3 items-center">
+                      <Input
+                        type="color"
+                        value={foregroundColor}
+                        onChange={(e) => setForegroundColor(e.target.value)}
+                        className="w-20 h-10 cursor-pointer"
+                      />
+                      <Input
+                        value={foregroundColor}
+                        onChange={(e) => setForegroundColor(e.target.value)}
+                        placeholder="#ffffff"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Cor principal do texto
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label>Cor dos Cards</Label>
+                    <div className="flex gap-3 items-center">
+                      <Input
+                        type="color"
+                        value={cardColor}
+                        onChange={(e) => setCardColor(e.target.value)}
+                        className="w-20 h-10 cursor-pointer"
+                      />
+                      <Input
+                        value={cardColor}
+                        onChange={(e) => setCardColor(e.target.value)}
+                        placeholder="#1a1a1a"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Cor de fundo dos cards e painéis
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label>Cor das Bordas</Label>
+                    <div className="flex gap-3 items-center">
+                      <Input
+                        type="color"
+                        value={borderColor}
+                        onChange={(e) => setBorderColor(e.target.value)}
+                        className="w-20 h-10 cursor-pointer"
+                      />
+                      <Input
+                        value={borderColor}
+                        onChange={(e) => setBorderColor(e.target.value)}
+                        placeholder="#27272a"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Cor das bordas e divisórias
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label>Cor do Texto Secundário</Label>
+                    <div className="flex gap-3 items-center">
+                      <Input
+                        type="color"
+                        value={mutedColor}
+                        onChange={(e) => setMutedColor(e.target.value)}
+                        className="w-20 h-10 cursor-pointer"
+                      />
+                      <Input
+                        value={mutedColor}
+                        onChange={(e) => setMutedColor(e.target.value)}
+                        placeholder="#71717a"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Cor de textos secundários e desabilitados
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label>Cor de Sucesso</Label>
+                    <div className="flex gap-3 items-center">
+                      <Input
+                        type="color"
+                        value={successColor}
+                        onChange={(e) => setSuccessColor(e.target.value)}
+                        className="w-20 h-10 cursor-pointer"
+                      />
+                      <Input
+                        value={successColor}
+                        onChange={(e) => setSuccessColor(e.target.value)}
+                        placeholder="#22c55e"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Cor para mensagens de sucesso e confirmação
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label>Cor de Erro</Label>
+                    <div className="flex gap-3 items-center">
+                      <Input
+                        type="color"
+                        value={errorColor}
+                        onChange={(e) => setErrorColor(e.target.value)}
+                        className="w-20 h-10 cursor-pointer"
+                      />
+                      <Input
+                        value={errorColor}
+                        onChange={(e) => setErrorColor(e.target.value)}
+                        placeholder="#ef4444"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Cor para mensagens de erro e alertas críticos
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label>Cor de Aviso</Label>
+                    <div className="flex gap-3 items-center">
+                      <Input
+                        type="color"
+                        value={warningColor}
+                        onChange={(e) => setWarningColor(e.target.value)}
+                        className="w-20 h-10 cursor-pointer"
+                      />
+                      <Input
+                        value={warningColor}
+                        onChange={(e) => setWarningColor(e.target.value)}
+                        placeholder="#f59e0b"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Cor para avisos e alertas importantes
                     </p>
                   </div>
                 </div>

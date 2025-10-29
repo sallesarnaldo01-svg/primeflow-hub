@@ -41,27 +41,63 @@ function hexToHSL(hex: string): string {
 }
 
 export function CustomThemeProvider({ children }: { children: React.ReactNode }) {
-  const { primaryColor, accentColor, backgroundColor } = useCustomization();
+  const { 
+    primaryColor, 
+    accentColor, 
+    backgroundColor,
+    foregroundColor,
+    cardColor,
+    borderColor,
+    mutedColor,
+    successColor,
+    errorColor,
+    warningColor
+  } = useCustomization();
 
   useEffect(() => {
-    // Apply custom colors to CSS variables
     const root = document.documentElement;
     
     if (primaryColor) {
-      const primaryHSL = hexToHSL(primaryColor);
-      root.style.setProperty('--primary', primaryHSL);
+      root.style.setProperty('--primary', hexToHSL(primaryColor));
     }
     
     if (accentColor) {
-      const accentHSL = hexToHSL(accentColor);
-      root.style.setProperty('--accent', accentHSL);
+      root.style.setProperty('--accent', hexToHSL(accentColor));
     }
     
     if (backgroundColor) {
-      const bgHSL = hexToHSL(backgroundColor);
-      root.style.setProperty('--background', bgHSL);
+      root.style.setProperty('--background', hexToHSL(backgroundColor));
     }
-  }, [primaryColor, accentColor, backgroundColor]);
+    
+    if (foregroundColor) {
+      root.style.setProperty('--foreground', hexToHSL(foregroundColor));
+    }
+    
+    if (cardColor) {
+      root.style.setProperty('--card', hexToHSL(cardColor));
+    }
+    
+    if (borderColor) {
+      root.style.setProperty('--border', hexToHSL(borderColor));
+    }
+    
+    if (mutedColor) {
+      root.style.setProperty('--muted', hexToHSL(mutedColor));
+      root.style.setProperty('--muted-foreground', hexToHSL(mutedColor));
+    }
+    
+    if (successColor) {
+      root.style.setProperty('--success', hexToHSL(successColor));
+    }
+    
+    if (errorColor) {
+      root.style.setProperty('--destructive', hexToHSL(errorColor));
+    }
+    
+    if (warningColor) {
+      root.style.setProperty('--warning', hexToHSL(warningColor));
+    }
+  }, [primaryColor, accentColor, backgroundColor, foregroundColor, cardColor, borderColor, mutedColor, successColor, errorColor, warningColor]);
 
   return <>{children}</>;
 }
