@@ -2,22 +2,23 @@ import { apiClient } from '@/lib/api-client';
 
 export interface Empreendimento {
   id: string;
-  tenantId: string;
+  tenant_id: string;
   nome: string;
   descricao?: string;
-  endereco?: string;
+  construtora?: string;
   cidade?: string;
   estado?: string;
-  construtora?: string;
-  valorMinimo?: number;
-  valorMaximo?: number;
-  ativo: boolean;
-  createdAt: string;
+  status: string;
+  total_unidades?: number;
+  unidades_disponiveis?: number;
+  valor_minimo?: number;
+  valor_maximo?: number;
+  created_at: string;
 }
 
 export const empreendimentosService = {
-  async list() {
-    const { data } = await apiClient.get('/empreendimentos');
+  async list(filters?: { status?: string; cidade?: string }) {
+    const { data } = await apiClient.get('/empreendimentos', { params: filters });
     return data;
   },
 

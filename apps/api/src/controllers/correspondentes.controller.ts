@@ -6,31 +6,19 @@ export const correspondentesController = {
   async getAll(req: Request, res: Response) {
     try {
       const tenantId = req.user?.tenantId;
-      const { tipo, ativo } = req.query;
+      const { status } = req.query;
 
-      let query = `
+      const where: any = { tenant_id: tenantId };
+      if (status) where.status = status;
+
+      const correspondentes = await prisma.$queryRawUnsafe(`
         SELECT c.*, 
           (SELECT COUNT(*) FROM public.correspondentes_usuarios WHERE correspondente_id = c.id) as total_usuarios
         FROM public.correspondentes c
         WHERE c.tenant_id = $1
-      `;
-
-      const params: any[] = [tenantId];
-      let paramIndex = 2;
-
-      if (tipo) {
-        query += ` AND c.tipo = $${paramIndex++}`;
-        params.push(tipo);
-      }
-
-      if (ativo !== undefined) {
-        query += ` AND c.ativo = $${paramIndex++}`;
-        params.push(ativo === 'true');
-      }
-
-      query += ' ORDER BY c.razao_social ASC';
-
-      const correspondentes = await prisma.$queryRawUnsafe(query, ...params);
+        ${status ? `AND c.status = '${status}'` : ''}
+        ORDER BY c.razao_social ASC
+      `, tenantId);
 
       res.json({ data: correspondentes });
     } catch (error) {
@@ -44,23 +32,23 @@ export const correspondentesController = {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
 
-      const correspondente = await prisma.$queryRawUnsafe(`
+      const result = await prisma.$queryRawUnsafe(`
         SELECT * FROM public.correspondentes
         WHERE id = $1 AND tenant_id = $2
       `, id, tenantId);
 
-      if (!correspondente || correspondente.length === 0) {
+      if (!result || result.length === 0) {
         return res.status(404).json({ error: 'Correspondente not found' });
       }
 
-      // Buscar usuários
+      // Buscar usuários do correspondente
       const usuarios = await prisma.$queryRawUnsafe(`
         SELECT * FROM public.correspondentes_usuarios
         WHERE correspondente_id = $1
         ORDER BY nome ASC
       `, id);
 
-      res.json({ data: correspondente[0], usuarios });
+      res.json({ data: { ...result[0], usuarios } });
     } catch (error) {
       logger.error('Error fetching correspondente', { error });
       res.status(500).json({ error: 'Failed to fetch correspondente' });
@@ -72,30 +60,42 @@ export const correspondentesController = {
       const tenantId = req.user?.tenantId;
       const data = req.body;
 
-      const correspondente = await prisma.$queryRawUnsafe(`
+      const result = await prisma.$queryRawUnsafe(`
         INSERT INTO public.correspondentes (
-          tenant_id, tipo, razao_social, nome_fantasia, cnpj, email, telefone,
-          endereco, contato_principal, banco_parceiro, comissao_padrao, ativo, metadata
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-        RETURNING *
+          tenant_id, razao_social, nome_fantasia, cnpj, inscricao_estadual,
+          email, telefone, celular, endereco, bairro, cidade, estado, cep,
+          responsavel_nome, responsavel_email, responsavel_telefone,
+          banco_credenciado, comissao_padrao, status, observacoes, metadata
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13,
+          $14, $15, $16, $17, $18, $19, $20, $21
+        ) RETURNING *
       `,
         tenantId,
-        data.tipo,
         data.razao_social,
         data.nome_fantasia || null,
         data.cnpj || null,
+        data.inscricao_estadual || null,
         data.email || null,
         data.telefone || null,
+        data.celular || null,
         data.endereco || null,
-        data.contato_principal || null,
-        data.banco_parceiro || null,
+        data.bairro || null,
+        data.cidade || null,
+        data.estado || null,
+        data.cep || null,
+        data.responsavel_nome || null,
+        data.responsavel_email || null,
+        data.responsavel_telefone || null,
+        data.banco_credenciado || null,
         data.comissao_padrao || null,
-        data.ativo !== undefined ? data.ativo : true,
+        data.status || 'ATIVO',
+        data.observacoes || null,
         JSON.stringify(data.metadata || {})
       );
 
-      logger.info('Correspondente created', { id: correspondente[0].id });
-      res.status(201).json({ data: correspondente[0] });
+      logger.info('Correspondente created', { id: result[0].id });
+      res.status(201).json({ data: result[0] });
     } catch (error) {
       logger.error('Error creating correspondente', { error });
       res.status(500).json({ error: 'Failed to create correspondente' });
@@ -113,8 +113,10 @@ export const correspondentesController = {
       let paramIndex = 1;
 
       const fields = [
-        'tipo', 'razao_social', 'nome_fantasia', 'cnpj', 'email', 'telefone',
-        'endereco', 'contato_principal', 'banco_parceiro', 'comissao_padrao', 'ativo'
+        'razao_social', 'nome_fantasia', 'cnpj', 'inscricao_estadual',
+        'email', 'telefone', 'celular', 'endereco', 'bairro', 'cidade', 'estado', 'cep',
+        'responsavel_nome', 'responsavel_email', 'responsavel_telefone',
+        'banco_credenciado', 'comissao_padrao', 'status', 'observacoes'
       ];
 
       fields.forEach(field => {
@@ -123,6 +125,11 @@ export const correspondentesController = {
           values.push(data[field]);
         }
       });
+
+      if (data.metadata !== undefined) {
+        updates.push(`metadata = $${paramIndex++}`);
+        values.push(JSON.stringify(data.metadata));
+      }
 
       if (updates.length === 0) {
         return res.status(400).json({ error: 'No fields to update' });
@@ -167,21 +174,32 @@ export const correspondentesController = {
     }
   },
 
-  // Gerenciar usuários
+  // Gerenciar usuários do correspondente
   async createUsuario(req: Request, res: Response) {
     try {
       const { id } = req.params;
+      const tenantId = req.user?.tenantId;
       const data = req.body;
 
-      const usuario = await prisma.$queryRawUnsafe(`
+      const result = await prisma.$queryRawUnsafe(`
         INSERT INTO public.correspondentes_usuarios (
-          correspondente_id, nome, email, telefone, cargo, ativo
-        ) VALUES ($1, $2, $3, $4, $5, $6)
+          tenant_id, correspondente_id, nome, email, telefone, celular, cargo, status, metadata
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         RETURNING *
-      `, id, data.nome, data.email, data.telefone || null, data.cargo || null, data.ativo !== undefined ? data.ativo : true);
+      `,
+        tenantId,
+        id,
+        data.nome,
+        data.email,
+        data.telefone || null,
+        data.celular || null,
+        data.cargo || null,
+        data.status || 'ATIVO',
+        JSON.stringify(data.metadata || {})
+      );
 
-      logger.info('Correspondente usuario created', { id: usuario[0].id });
-      res.status(201).json({ data: usuario[0] });
+      logger.info('Correspondente usuario created', { id: result[0].id });
+      res.status(201).json({ data: result[0] });
     } catch (error) {
       logger.error('Error creating correspondente usuario', { error });
       res.status(500).json({ error: 'Failed to create correspondente usuario' });
@@ -191,13 +209,14 @@ export const correspondentesController = {
   async updateUsuario(req: Request, res: Response) {
     try {
       const { id, usuarioId } = req.params;
+      const tenantId = req.user?.tenantId;
       const data = req.body;
 
       const updates: string[] = [];
       const values: any[] = [];
       let paramIndex = 1;
 
-      const fields = ['nome', 'email', 'telefone', 'cargo', 'ativo'];
+      const fields = ['nome', 'email', 'telefone', 'celular', 'cargo', 'status'];
 
       fields.forEach(field => {
         if (data[field] !== undefined) {
@@ -206,16 +225,21 @@ export const correspondentesController = {
         }
       });
 
+      if (data.metadata !== undefined) {
+        updates.push(`metadata = $${paramIndex++}`);
+        values.push(JSON.stringify(data.metadata));
+      }
+
       if (updates.length === 0) {
         return res.status(400).json({ error: 'No fields to update' });
       }
 
-      values.push(usuarioId, id);
+      values.push(usuarioId, id, tenantId);
 
       const result = await prisma.$queryRawUnsafe(`
         UPDATE public.correspondentes_usuarios
         SET ${updates.join(', ')}, updated_at = NOW()
-        WHERE id = $${paramIndex} AND correspondente_id = $${paramIndex + 1}
+        WHERE id = $${paramIndex} AND correspondente_id = $${paramIndex + 1} AND tenant_id = $${paramIndex + 2}
         RETURNING *
       `, ...values);
 
@@ -233,11 +257,12 @@ export const correspondentesController = {
   async deleteUsuario(req: Request, res: Response) {
     try {
       const { id, usuarioId } = req.params;
+      const tenantId = req.user?.tenantId;
 
       await prisma.$queryRawUnsafe(`
         DELETE FROM public.correspondentes_usuarios
-        WHERE id = $1 AND correspondente_id = $2
-      `, usuarioId, id);
+        WHERE id = $1 AND correspondente_id = $2 AND tenant_id = $3
+      `, usuarioId, id, tenantId);
 
       logger.info('Correspondente usuario deleted', { usuarioId });
       res.status(204).send();

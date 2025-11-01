@@ -6,14 +6,13 @@ const router = Router();
 
 router.use(authenticate);
 
-// Correspondentes
 router.get('/', correspondentesController.getAll);
 router.get('/:id', correspondentesController.getById);
 router.post('/', correspondentesController.create);
 router.put('/:id', correspondentesController.update);
 router.delete('/:id', correspondentesController.delete);
 
-// Usuários
+// Gerenciar usuários do correspondente
 router.post('/:id/usuarios', correspondentesController.createUsuario);
 router.put('/:id/usuarios/:usuarioId', correspondentesController.updateUsuario);
 router.delete('/:id/usuarios/:usuarioId', correspondentesController.deleteUsuario);

@@ -2,28 +2,31 @@ import { apiClient } from '@/lib/api-client';
 
 export interface Correspondente {
   id: string;
-  tenantId: string;
-  nome: string;
+  tenant_id: string;
+  razao_social: string;
+  nome_fantasia?: string;
   cnpj?: string;
   email?: string;
   telefone?: string;
-  ativo: boolean;
-  createdAt: string;
+  banco_credenciado?: string;
+  status: string;
+  total_usuarios?: number;
+  created_at: string;
 }
 
-export interface UsuarioCorrespondente {
+export interface CorrespondenteUsuario {
   id: string;
-  correspondenteId: string;
+  correspondente_id: string;
   nome: string;
   email: string;
   telefone?: string;
-  ativo: boolean;
-  createdAt: string;
+  cargo?: string;
+  status: string;
 }
 
 export const correspondentesService = {
-  async list() {
-    const { data } = await apiClient.get('/correspondentes');
+  async list(filters?: { status?: string }) {
+    const { data } = await apiClient.get('/correspondentes', { params: filters });
     return data;
   },
 
@@ -46,22 +49,22 @@ export const correspondentesService = {
     await apiClient.delete(`/correspondentes/${id}`);
   },
 
-  async getUsuarios(correspondenteId: string) {
-    const { data } = await apiClient.get(`/correspondentes/${correspondenteId}/usuarios`);
+  async createUsuario(correspondente_id: string, usuario: Partial<CorrespondenteUsuario>) {
+    const { data } = await apiClient.post(`/correspondentes/${correspondente_id}/usuarios`, usuario);
     return data;
   },
 
-  async createUsuario(correspondenteId: string, usuario: Partial<UsuarioCorrespondente>) {
-    const { data } = await apiClient.post(`/correspondentes/${correspondenteId}/usuarios`, usuario);
+  async updateUsuario(correspondente_id: string, usuario_id: string, usuario: Partial<CorrespondenteUsuario>) {
+    const { data } = await apiClient.put(`/correspondentes/${correspondente_id}/usuarios/${usuario_id}`, usuario);
     return data;
   },
 
-  async updateUsuario(usuarioId: string, usuario: Partial<UsuarioCorrespondente>) {
-    const { data } = await apiClient.put(`/correspondentes/usuarios/${usuarioId}`, usuario);
-    return data;
+  async deleteUsuario(correspondente_id: string, usuario_id: string) {
+    await apiClient.delete(`/correspondentes/${correspondente_id}/usuarios/${usuario_id}`);
   },
 
-  async deleteUsuario(usuarioId: string) {
-    await apiClient.delete(`/correspondentes/usuarios/${usuarioId}`);
+  async getUsuarios(correspondente_id: string) {
+    const { data } = await apiClient.get(`/correspondentes/${correspondente_id}`);
+    return data.usuarios || [];
   }
 };

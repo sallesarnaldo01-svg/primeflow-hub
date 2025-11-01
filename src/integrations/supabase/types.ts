@@ -237,6 +237,140 @@ export type Database = {
         }
         Relationships: []
       }
+      correspondentes: {
+        Row: {
+          bairro: string | null
+          banco_credenciado: string | null
+          celular: string | null
+          cep: string | null
+          cidade: string | null
+          cnpj: string | null
+          comissao_padrao: number | null
+          created_at: string
+          email: string | null
+          endereco: string | null
+          estado: string | null
+          id: string
+          inscricao_estadual: string | null
+          metadata: Json | null
+          nome_fantasia: string | null
+          observacoes: string | null
+          razao_social: string
+          responsavel_email: string | null
+          responsavel_nome: string | null
+          responsavel_telefone: string | null
+          status: string | null
+          telefone: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          bairro?: string | null
+          banco_credenciado?: string | null
+          celular?: string | null
+          cep?: string | null
+          cidade?: string | null
+          cnpj?: string | null
+          comissao_padrao?: number | null
+          created_at?: string
+          email?: string | null
+          endereco?: string | null
+          estado?: string | null
+          id?: string
+          inscricao_estadual?: string | null
+          metadata?: Json | null
+          nome_fantasia?: string | null
+          observacoes?: string | null
+          razao_social: string
+          responsavel_email?: string | null
+          responsavel_nome?: string | null
+          responsavel_telefone?: string | null
+          status?: string | null
+          telefone?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          bairro?: string | null
+          banco_credenciado?: string | null
+          celular?: string | null
+          cep?: string | null
+          cidade?: string | null
+          cnpj?: string | null
+          comissao_padrao?: number | null
+          created_at?: string
+          email?: string | null
+          endereco?: string | null
+          estado?: string | null
+          id?: string
+          inscricao_estadual?: string | null
+          metadata?: Json | null
+          nome_fantasia?: string | null
+          observacoes?: string | null
+          razao_social?: string
+          responsavel_email?: string | null
+          responsavel_nome?: string | null
+          responsavel_telefone?: string | null
+          status?: string | null
+          telefone?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      correspondentes_usuarios: {
+        Row: {
+          cargo: string | null
+          celular: string | null
+          correspondente_id: string
+          created_at: string
+          email: string
+          id: string
+          metadata: Json | null
+          nome: string
+          status: string | null
+          telefone: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          cargo?: string | null
+          celular?: string | null
+          correspondente_id: string
+          created_at?: string
+          email: string
+          id?: string
+          metadata?: Json | null
+          nome: string
+          status?: string | null
+          telefone?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          cargo?: string | null
+          celular?: string | null
+          correspondente_id?: string
+          created_at?: string
+          email?: string
+          id?: string
+          metadata?: Json | null
+          nome?: string
+          status?: string | null
+          telefone?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "correspondentes_usuarios_correspondente_id_fkey"
+            columns: ["correspondente_id"]
+            isOneToOne: false
+            referencedRelation: "correspondentes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deals: {
         Row: {
           ai_insights: Json | null
@@ -307,6 +441,167 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      documentos_pre_cadastro: {
+        Row: {
+          aprovado_por: string | null
+          categoria: Database["public"]["Enums"]["documento_categoria"]
+          created_at: string
+          data_aprovacao: string | null
+          file_size: number | null
+          id: string
+          metadata: Json | null
+          mime_type: string | null
+          motivo_rejeicao: string | null
+          nome: string
+          obrigatorio: boolean | null
+          pessoa: Database["public"]["Enums"]["documento_pessoa"]
+          pre_cadastro_id: string
+          status: Database["public"]["Enums"]["documento_status"] | null
+          storage_path: string
+          tenant_id: string
+          tipo: string
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          aprovado_por?: string | null
+          categoria: Database["public"]["Enums"]["documento_categoria"]
+          created_at?: string
+          data_aprovacao?: string | null
+          file_size?: number | null
+          id?: string
+          metadata?: Json | null
+          mime_type?: string | null
+          motivo_rejeicao?: string | null
+          nome: string
+          obrigatorio?: boolean | null
+          pessoa: Database["public"]["Enums"]["documento_pessoa"]
+          pre_cadastro_id: string
+          status?: Database["public"]["Enums"]["documento_status"] | null
+          storage_path: string
+          tenant_id: string
+          tipo: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          aprovado_por?: string | null
+          categoria?: Database["public"]["Enums"]["documento_categoria"]
+          created_at?: string
+          data_aprovacao?: string | null
+          file_size?: number | null
+          id?: string
+          metadata?: Json | null
+          mime_type?: string | null
+          motivo_rejeicao?: string | null
+          nome?: string
+          obrigatorio?: boolean | null
+          pessoa?: Database["public"]["Enums"]["documento_pessoa"]
+          pre_cadastro_id?: string
+          status?: Database["public"]["Enums"]["documento_status"] | null
+          storage_path?: string
+          tenant_id?: string
+          tipo?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documentos_pre_cadastro_pre_cadastro_id_fkey"
+            columns: ["pre_cadastro_id"]
+            isOneToOne: false
+            referencedRelation: "pre_cadastros"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      empreendimentos: {
+        Row: {
+          bairro: string | null
+          cep: string | null
+          cidade: string | null
+          construtora: string | null
+          created_at: string
+          data_entrega_prevista: string | null
+          data_lancamento: string | null
+          descricao: string | null
+          documentos: Json | null
+          endereco: string | null
+          estado: string | null
+          id: string
+          imagens: Json | null
+          incorporadora: string | null
+          latitude: number | null
+          longitude: number | null
+          metadata: Json | null
+          nome: string
+          status: string | null
+          tenant_id: string
+          tipo: string | null
+          total_unidades: number | null
+          unidades_disponiveis: number | null
+          updated_at: string
+          valor_maximo: number | null
+          valor_minimo: number | null
+        }
+        Insert: {
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
+          construtora?: string | null
+          created_at?: string
+          data_entrega_prevista?: string | null
+          data_lancamento?: string | null
+          descricao?: string | null
+          documentos?: Json | null
+          endereco?: string | null
+          estado?: string | null
+          id?: string
+          imagens?: Json | null
+          incorporadora?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          metadata?: Json | null
+          nome: string
+          status?: string | null
+          tenant_id: string
+          tipo?: string | null
+          total_unidades?: number | null
+          unidades_disponiveis?: number | null
+          updated_at?: string
+          valor_maximo?: number | null
+          valor_minimo?: number | null
+        }
+        Update: {
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
+          construtora?: string | null
+          created_at?: string
+          data_entrega_prevista?: string | null
+          data_lancamento?: string | null
+          descricao?: string | null
+          documentos?: Json | null
+          endereco?: string | null
+          estado?: string | null
+          id?: string
+          imagens?: Json | null
+          incorporadora?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          metadata?: Json | null
+          nome?: string
+          status?: string | null
+          tenant_id?: string
+          tipo?: string | null
+          total_unidades?: number | null
+          unidades_disponiveis?: number | null
+          updated_at?: string
+          valor_maximo?: number | null
+          valor_minimo?: number | null
+        }
+        Relationships: []
       }
       facebook_connections: {
         Row: {
@@ -690,6 +985,166 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      pre_cadastros: {
+        Row: {
+          bloco: string | null
+          contact_id: string | null
+          correspondente_id: string | null
+          correspondente_usuario_id: string | null
+          corretor_nome: string | null
+          created_at: string
+          data_aprovacao: string | null
+          data_cadastro: string
+          data_vencimento_aprovacao: string | null
+          deal_id: string | null
+          empreendimento_id: string | null
+          id: string
+          imobiliaria_nome: string | null
+          lead_id: string | null
+          metadata: Json | null
+          numero: string
+          observacoes: string | null
+          owner_id: string | null
+          prazo_meses: number | null
+          renda_familiar_bruta: number | null
+          renda_mensal_bruta: number | null
+          sistema_amortizacao:
+            | Database["public"]["Enums"]["sistema_amortizacao"]
+            | null
+          status: Database["public"]["Enums"]["pre_cadastro_status"] | null
+          taxa_juros: number | null
+          tenant_id: string
+          unidade: string | null
+          updated_at: string
+          valor_aprovado: number | null
+          valor_avaliacao: number
+          valor_entrada: number | null
+          valor_fgts: number | null
+          valor_prestacao: number | null
+          valor_subsidio: number | null
+          valor_total: number | null
+        }
+        Insert: {
+          bloco?: string | null
+          contact_id?: string | null
+          correspondente_id?: string | null
+          correspondente_usuario_id?: string | null
+          corretor_nome?: string | null
+          created_at?: string
+          data_aprovacao?: string | null
+          data_cadastro?: string
+          data_vencimento_aprovacao?: string | null
+          deal_id?: string | null
+          empreendimento_id?: string | null
+          id?: string
+          imobiliaria_nome?: string | null
+          lead_id?: string | null
+          metadata?: Json | null
+          numero: string
+          observacoes?: string | null
+          owner_id?: string | null
+          prazo_meses?: number | null
+          renda_familiar_bruta?: number | null
+          renda_mensal_bruta?: number | null
+          sistema_amortizacao?:
+            | Database["public"]["Enums"]["sistema_amortizacao"]
+            | null
+          status?: Database["public"]["Enums"]["pre_cadastro_status"] | null
+          taxa_juros?: number | null
+          tenant_id: string
+          unidade?: string | null
+          updated_at?: string
+          valor_aprovado?: number | null
+          valor_avaliacao: number
+          valor_entrada?: number | null
+          valor_fgts?: number | null
+          valor_prestacao?: number | null
+          valor_subsidio?: number | null
+          valor_total?: number | null
+        }
+        Update: {
+          bloco?: string | null
+          contact_id?: string | null
+          correspondente_id?: string | null
+          correspondente_usuario_id?: string | null
+          corretor_nome?: string | null
+          created_at?: string
+          data_aprovacao?: string | null
+          data_cadastro?: string
+          data_vencimento_aprovacao?: string | null
+          deal_id?: string | null
+          empreendimento_id?: string | null
+          id?: string
+          imobiliaria_nome?: string | null
+          lead_id?: string | null
+          metadata?: Json | null
+          numero?: string
+          observacoes?: string | null
+          owner_id?: string | null
+          prazo_meses?: number | null
+          renda_familiar_bruta?: number | null
+          renda_mensal_bruta?: number | null
+          sistema_amortizacao?:
+            | Database["public"]["Enums"]["sistema_amortizacao"]
+            | null
+          status?: Database["public"]["Enums"]["pre_cadastro_status"] | null
+          taxa_juros?: number | null
+          tenant_id?: string
+          unidade?: string | null
+          updated_at?: string
+          valor_aprovado?: number | null
+          valor_avaliacao?: number
+          valor_entrada?: number | null
+          valor_fgts?: number | null
+          valor_prestacao?: number | null
+          valor_subsidio?: number | null
+          valor_total?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pre_cadastros_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pre_cadastros_correspondente_id_fkey"
+            columns: ["correspondente_id"]
+            isOneToOne: false
+            referencedRelation: "correspondentes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pre_cadastros_correspondente_usuario_id_fkey"
+            columns: ["correspondente_usuario_id"]
+            isOneToOne: false
+            referencedRelation: "correspondentes_usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pre_cadastros_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pre_cadastros_empreendimento_id_fkey"
+            columns: ["empreendimento_id"]
+            isOneToOne: false
+            referencedRelation: "empreendimentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pre_cadastros_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -1107,6 +1562,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calcular_percentual_documentos: {
+        Args: { p_pre_cadastro_id: string }
+        Returns: number
+      }
+      generate_pre_cadastro_numero: {
+        Args: { p_tenant_id: string }
+        Returns: string
+      }
       get_user_roles: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"][]
@@ -1121,6 +1584,29 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "manager" | "agent" | "viewer"
+      documento_categoria:
+        | "IDENTIFICACAO"
+        | "COMPROVANTE_RENDA"
+        | "COMPROVANTE_RESIDENCIA"
+        | "CERTIDOES"
+        | "DOCUMENTOS_IMOVEL"
+        | "OUTROS"
+      documento_pessoa: "TITULAR" | "CONJUGE" | "AVALISTA" | "OUTROS"
+      documento_status:
+        | "PENDENTE"
+        | "ENVIADO"
+        | "AGUARDANDO_APROVACAO"
+        | "APROVADO"
+        | "REJEITADO"
+      pre_cadastro_status:
+        | "NOVA_AVALIACAO"
+        | "EM_ANALISE"
+        | "APROVADO"
+        | "APROVADO_COM_RESTRICAO"
+        | "REPROVADO"
+        | "PENDENTE_DOCUMENTACAO"
+        | "CANCELADO"
+      sistema_amortizacao: "SAC" | "PRICE" | "SACRE"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1249,6 +1735,32 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "manager", "agent", "viewer"],
+      documento_categoria: [
+        "IDENTIFICACAO",
+        "COMPROVANTE_RENDA",
+        "COMPROVANTE_RESIDENCIA",
+        "CERTIDOES",
+        "DOCUMENTOS_IMOVEL",
+        "OUTROS",
+      ],
+      documento_pessoa: ["TITULAR", "CONJUGE", "AVALISTA", "OUTROS"],
+      documento_status: [
+        "PENDENTE",
+        "ENVIADO",
+        "AGUARDANDO_APROVACAO",
+        "APROVADO",
+        "REJEITADO",
+      ],
+      pre_cadastro_status: [
+        "NOVA_AVALIACAO",
+        "EM_ANALISE",
+        "APROVADO",
+        "APROVADO_COM_RESTRICAO",
+        "REPROVADO",
+        "PENDENTE_DOCUMENTACAO",
+        "CANCELADO",
+      ],
+      sistema_amortizacao: ["SAC", "PRICE", "SACRE"],
     },
   },
 } as const
