@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Palette, Upload, Save, RotateCcw, Eye, Image as ImageIcon } from 'lucide-react';
 import { useCustomization } from '@/stores/customization';
+
+// Função para calcular a luminância e determinar contraste
+const getContrastColor = (hexColor: string): string => {
+  // Remove o # se existir
+  const hex = hexColor.replace('#', '');
+  
+  // Converte para RGB
+  const r = parseInt(hex.substr(0, 2), 16);
+  const g = parseInt(hex.substr(2, 2), 16);
+  const b = parseInt(hex.substr(4, 2), 16);
+  
+  // Calcula a luminância relativa usando a fórmula WCAG
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  
+  // Retorna preto para fundos claros e branco para fundos escuros
+  return luminance > 0.5 ? '#000000' : '#ffffff';
+};
 
 export default function Personalizacao() {
   const { toast } = useToast();
@@ -53,6 +70,9 @@ export default function Personalizacao() {
   
   const [sidebarPosition, setSidebarPosition] = useState('left');
   const [compactMode, setCompactMode] = useState(false);
+
+  // Calcula a cor do texto com base no contraste
+  const tabTextColor = useMemo(() => getContrastColor(primaryColor), [primaryColor]);
 
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -143,10 +163,10 @@ export default function Personalizacao() {
 
         <Tabs defaultValue="brand" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="brand">Marca</TabsTrigger>
-            <TabsTrigger value="colors">Cores</TabsTrigger>
-            <TabsTrigger value="layout">Layout</TabsTrigger>
-            <TabsTrigger value="advanced">Avançado</TabsTrigger>
+            <TabsTrigger value="brand" style={{ color: tabTextColor }}>Marca</TabsTrigger>
+            <TabsTrigger value="colors" style={{ color: tabTextColor }}>Cores</TabsTrigger>
+            <TabsTrigger value="layout" style={{ color: tabTextColor }}>Layout</TabsTrigger>
+            <TabsTrigger value="advanced" style={{ color: tabTextColor }}>Avançado</TabsTrigger>
           </TabsList>
 
           {/* Aba Marca */}
