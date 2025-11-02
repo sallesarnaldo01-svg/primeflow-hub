@@ -71,8 +71,12 @@ export default function Personalizacao() {
   const [sidebarPosition, setSidebarPosition] = useState('left');
   const [compactMode, setCompactMode] = useState(false);
 
-  // Calcula a cor do texto com base no contraste
-  const tabTextColor = useMemo(() => getContrastColor(primaryColor), [primaryColor]);
+  // Controle das abas para ajustar contraste dinamicamente
+  const [tabValue, setTabValue] = useState('brand');
+
+  // Cores de texto calculadas por contraste
+  const defaultTabTextColor = useMemo(() => getContrastColor(mutedColor), [mutedColor]);
+  const activeTabTextColor = useMemo(() => getContrastColor(backgroundColor), [backgroundColor]);
 
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -161,12 +165,12 @@ export default function Personalizacao() {
           </div>
         </div>
 
-        <Tabs defaultValue="brand" className="space-y-6">
+        <Tabs value={tabValue} onValueChange={setTabValue} className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="brand" style={{ color: tabTextColor }}>Marca</TabsTrigger>
-            <TabsTrigger value="colors" style={{ color: tabTextColor }}>Cores</TabsTrigger>
-            <TabsTrigger value="layout" style={{ color: tabTextColor }}>Layout</TabsTrigger>
-            <TabsTrigger value="advanced" style={{ color: tabTextColor }}>Avançado</TabsTrigger>
+            <TabsTrigger value="brand" style={{ color: tabValue === 'brand' ? activeTabTextColor : defaultTabTextColor }}>Marca</TabsTrigger>
+            <TabsTrigger value="colors" style={{ color: tabValue === 'colors' ? activeTabTextColor : defaultTabTextColor }}>Cores</TabsTrigger>
+            <TabsTrigger value="layout" style={{ color: tabValue === 'layout' ? activeTabTextColor : defaultTabTextColor }}>Layout</TabsTrigger>
+            <TabsTrigger value="advanced" style={{ color: tabValue === 'advanced' ? activeTabTextColor : defaultTabTextColor }}>Avançado</TabsTrigger>
           </TabsList>
 
           {/* Aba Marca */}
