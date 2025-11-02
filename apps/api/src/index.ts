@@ -76,6 +76,7 @@ import internalChatRoutes from './routes/internal-chat.routes.js';
 import preCadastrosRoutes from './routes/pre-cadastros.routes.js';
 import empreendimentosRoutes from './routes/empreendimentos.routes.js';
 import correspondentesRoutes from './routes/correspondentes.routes.js';
+import leadInteractionsRoutes from './routes/lead-interactions.routes.js';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/flows', flowsRoutes);
@@ -120,6 +121,7 @@ app.use('/api/internal-chats', internalChatRoutes);
 app.use('/api/pre-cadastros', preCadastrosRoutes);
 app.use('/api/empreendimentos', empreendimentosRoutes);
 app.use('/api/correspondentes', correspondentesRoutes);
+app.use('/api', leadInteractionsRoutes);
 
 // Error handler
 app.use(errorHandler);

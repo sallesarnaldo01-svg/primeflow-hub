@@ -801,6 +801,177 @@ export type Database = {
           },
         ]
       }
+      lead_interactions: {
+        Row: {
+          agendado_para: string | null
+          concluido: boolean | null
+          created_at: string | null
+          created_by: string
+          descricao: string
+          duracao: number | null
+          id: string
+          lead_id: string
+          resultado: string | null
+          tenant_id: string
+          tipo: string
+          updated_at: string | null
+        }
+        Insert: {
+          agendado_para?: string | null
+          concluido?: boolean | null
+          created_at?: string | null
+          created_by: string
+          descricao: string
+          duracao?: number | null
+          id?: string
+          lead_id: string
+          resultado?: string | null
+          tenant_id: string
+          tipo: string
+          updated_at?: string | null
+        }
+        Update: {
+          agendado_para?: string | null
+          concluido?: boolean | null
+          created_at?: string | null
+          created_by?: string
+          descricao?: string
+          duracao?: number | null
+          id?: string
+          lead_id?: string
+          resultado?: string | null
+          tenant_id?: string
+          tipo?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      lead_scoring_rules: {
+        Row: {
+          active: boolean | null
+          condition_type: string
+          condition_value: Json
+          created_at: string | null
+          id: string
+          name: string
+          points: number
+          priority: number | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          condition_type: string
+          condition_value: Json
+          created_at?: string | null
+          id?: string
+          name: string
+          points: number
+          priority?: number | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          condition_type?: string
+          condition_value?: Json
+          created_at?: string | null
+          id?: string
+          name?: string
+          points?: number
+          priority?: number | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      lead_status_history: {
+        Row: {
+          changed_by: string | null
+          created_at: string | null
+          from_status: string | null
+          id: string
+          lead_id: string
+          reason: string | null
+          to_status: string
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string | null
+          from_status?: string | null
+          id?: string
+          lead_id: string
+          reason?: string | null
+          to_status: string
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string | null
+          from_status?: string | null
+          id?: string
+          lead_id?: string
+          reason?: string | null
+          to_status?: string
+        }
+        Relationships: []
+      }
+      leads: {
+        Row: {
+          column_id: string | null
+          created_at: string | null
+          custom_fields: Json | null
+          email: string | null
+          id: string
+          metadata: Json | null
+          name: string
+          origin: string | null
+          owner_id: string | null
+          phone: string | null
+          pipeline_id: string | null
+          score: number | null
+          status: string | null
+          tags: string[] | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          column_id?: string | null
+          created_at?: string | null
+          custom_fields?: Json | null
+          email?: string | null
+          id?: string
+          metadata?: Json | null
+          name: string
+          origin?: string | null
+          owner_id?: string | null
+          phone?: string | null
+          pipeline_id?: string | null
+          score?: number | null
+          status?: string | null
+          tags?: string[] | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          column_id?: string | null
+          created_at?: string | null
+          custom_fields?: Json | null
+          email?: string | null
+          id?: string
+          metadata?: Json | null
+          name?: string
+          origin?: string | null
+          owner_id?: string | null
+          phone?: string | null
+          pipeline_id?: string | null
+          score?: number | null
+          status?: string | null
+          tags?: string[] | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       message_attachments: {
         Row: {
           conversation_id: string
