@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTabContrast } from '@/hooks/useTabContrast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -50,6 +51,8 @@ const ConfiguracoesIA: React.FC = () => {
   const [testMode, setTestMode] = useState(false);
   const [testMessages, setTestMessages] = useState<Array<{role: string; content: string; metadata?: any}>>([]);
   const [testInput, setTestInput] = useState('');
+  const [tabValue, setTabValue] = useState('basic');
+  const { defaultTabTextColor, activeTabTextColor } = useTabContrast();
   const [agentActions, setAgentActions] = useState({
     canAssign: true,
     canClose: true,
@@ -263,14 +266,14 @@ const ConfiguracoesIA: React.FC = () => {
           </Card>
         )}
 
-        <Tabs defaultValue="basic" className="w-full">
+        <Tabs value={tabValue} onValueChange={setTabValue} className="w-full">
           <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="basic">Básico</TabsTrigger>
-            <TabsTrigger value="templates">Templates</TabsTrigger>
-            <TabsTrigger value="actions">Ações</TabsTrigger>
-            <TabsTrigger value="test">Testar</TabsTrigger>
-            <TabsTrigger value="tools">Ferramentas</TabsTrigger>
-            <TabsTrigger value="followup">Follow-up</TabsTrigger>
+            <TabsTrigger value="basic" style={{ color: tabValue === 'basic' ? activeTabTextColor : defaultTabTextColor }}>Básico</TabsTrigger>
+            <TabsTrigger value="templates" style={{ color: tabValue === 'templates' ? activeTabTextColor : defaultTabTextColor }}>Templates</TabsTrigger>
+            <TabsTrigger value="actions" style={{ color: tabValue === 'actions' ? activeTabTextColor : defaultTabTextColor }}>Ações</TabsTrigger>
+            <TabsTrigger value="test" style={{ color: tabValue === 'test' ? activeTabTextColor : defaultTabTextColor }}>Testar</TabsTrigger>
+            <TabsTrigger value="tools" style={{ color: tabValue === 'tools' ? activeTabTextColor : defaultTabTextColor }}>Ferramentas</TabsTrigger>
+            <TabsTrigger value="followup" style={{ color: tabValue === 'followup' ? activeTabTextColor : defaultTabTextColor }}>Follow-up</TabsTrigger>
           </TabsList>
 
           <TabsContent value="basic" className="space-y-4">

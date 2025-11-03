@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useTabContrast } from '@/hooks/useTabContrast';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -109,6 +110,8 @@ const metrics = [
 export default function Relatorios() {
   const [selectedPeriod, setSelectedPeriod] = useState('6months');
   const [selectedReport, setSelectedReport] = useState('vendas');
+  const [tabValue, setTabValue] = useState('vendas');
+  const { defaultTabTextColor, activeTabTextColor } = useTabContrast();
 
   return (
     <>
@@ -183,12 +186,12 @@ export default function Relatorios() {
         </div>
 
         {/* Main Reports */}
-        <Tabs defaultValue="vendas" className="space-y-6">
+        <Tabs value={tabValue} onValueChange={setTabValue} className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="vendas">Vendas</TabsTrigger>
-            <TabsTrigger value="marketing">Marketing</TabsTrigger>
-            <TabsTrigger value="atendimento">Atendimento</TabsTrigger>
-            <TabsTrigger value="performance">Performance</TabsTrigger>
+            <TabsTrigger value="vendas" style={{ color: tabValue === 'vendas' ? activeTabTextColor : defaultTabTextColor }}>Vendas</TabsTrigger>
+            <TabsTrigger value="marketing" style={{ color: tabValue === 'marketing' ? activeTabTextColor : defaultTabTextColor }}>Marketing</TabsTrigger>
+            <TabsTrigger value="atendimento" style={{ color: tabValue === 'atendimento' ? activeTabTextColor : defaultTabTextColor }}>Atendimento</TabsTrigger>
+            <TabsTrigger value="performance" style={{ color: tabValue === 'performance' ? activeTabTextColor : defaultTabTextColor }}>Performance</TabsTrigger>
           </TabsList>
 
           <TabsContent value="vendas" className="space-y-6">

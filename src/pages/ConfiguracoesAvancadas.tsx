@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { useTabContrast } from '@/hooks/useTabContrast';
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -110,6 +111,8 @@ export default function ConfiguracoesAvancadas() {
   });
   const [isNovoUsuarioOpen, setIsNovoUsuarioOpen] = useState(false);
   const [senhaVisivel, setSenhaVisivel] = useState(false);
+  const [tabValue, setTabValue] = useState('usuarios');
+  const { defaultTabTextColor, activeTabTextColor } = useTabContrast();
 
   const papeis = [
     { value: "admin", label: "Administrador", desc: "Acesso total ao sistema" },
@@ -178,13 +181,13 @@ export default function ConfiguracoesAvancadas() {
           </div>
         </div>
 
-        <Tabs defaultValue="usuarios">
+        <Tabs value={tabValue} onValueChange={setTabValue}>
           <TabsList className="grid grid-cols-5 w-fit">
-            <TabsTrigger value="usuarios">Usuários</TabsTrigger>
-            <TabsTrigger value="seguranca">Segurança</TabsTrigger>
-            <TabsTrigger value="sistema">Sistema</TabsTrigger>
-            <TabsTrigger value="backup">Backup</TabsTrigger>
-            <TabsTrigger value="logs">Logs</TabsTrigger>
+            <TabsTrigger value="usuarios" style={{ color: tabValue === 'usuarios' ? activeTabTextColor : defaultTabTextColor }}>Usuários</TabsTrigger>
+            <TabsTrigger value="seguranca" style={{ color: tabValue === 'seguranca' ? activeTabTextColor : defaultTabTextColor }}>Segurança</TabsTrigger>
+            <TabsTrigger value="sistema" style={{ color: tabValue === 'sistema' ? activeTabTextColor : defaultTabTextColor }}>Sistema</TabsTrigger>
+            <TabsTrigger value="backup" style={{ color: tabValue === 'backup' ? activeTabTextColor : defaultTabTextColor }}>Backup</TabsTrigger>
+            <TabsTrigger value="logs" style={{ color: tabValue === 'logs' ? activeTabTextColor : defaultTabTextColor }}>Logs</TabsTrigger>
           </TabsList>
 
           <TabsContent value="usuarios" className="space-y-6">

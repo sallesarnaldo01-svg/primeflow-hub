@@ -1,4 +1,6 @@
 import { motion } from 'framer-motion';
+import { useTabContrast } from '@/hooks/useTabContrast';
+import { useState } from 'react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -101,6 +103,9 @@ const tagPerformance = [
 ];
 
 export default function FunilVendas() {
+  const [tabValue, setTabValue] = useState('deals');
+  const { defaultTabTextColor, activeTabTextColor } = useTabContrast();
+  
   return (
     <>
       <motion.div
@@ -252,11 +257,11 @@ export default function FunilVendas() {
         </div>
 
         {/* Deals Recentes e Analytics */}
-        <Tabs defaultValue="deals" className="space-y-4">
+        <Tabs value={tabValue} onValueChange={setTabValue} className="space-y-4">
           <TabsList>
-            <TabsTrigger value="deals">Deals em Destaque</TabsTrigger>
-            <TabsTrigger value="trends">Tendências</TabsTrigger>
-            <TabsTrigger value="forecast">Previsão</TabsTrigger>
+            <TabsTrigger value="deals" style={{ color: tabValue === 'deals' ? activeTabTextColor : defaultTabTextColor }}>Deals em Destaque</TabsTrigger>
+            <TabsTrigger value="trends" style={{ color: tabValue === 'trends' ? activeTabTextColor : defaultTabTextColor }}>Tendências</TabsTrigger>
+            <TabsTrigger value="forecast" style={{ color: tabValue === 'forecast' ? activeTabTextColor : defaultTabTextColor }}>Previsão</TabsTrigger>
           </TabsList>
 
           <TabsContent value="deals">
