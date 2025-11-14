@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, CheckCircle2, AlertCircle, QrCode, Smartphone, Wifi, RefreshCw } from 'lucide-react';
 import { whatsappService } from '@/services/whatsapp';
+import { useSocket } from '@/hooks/useSocket';
 import { toast } from 'sonner';
 
 interface WhatsAppQRDialogProps {
@@ -31,6 +32,51 @@ export function WhatsAppQRDialog({ open, onOpenChange, connectionId, onConnected
   const [error, setError] = useState<string>('');
   const [deviceInfo, setDeviceInfo] = useState<DeviceInfo>({});
   const [retryCount, setRetryCount] = useState(0);
+  const socket = useSocket();
+
+  // Listen for real-time QR updates via Socket.IO
+  useEffect(() => {
+    if (!open || !connectionId) return;
+
+    const handleQRCode = (data: any) => {
+      console.log('[QR Dialog] Received QR via Socket:', { 
+        receivedConnectionId: data.connectionId, 
+        currentConnectionId: connectionId,
+        hasQR: !!data.qrCode 
+      });
+      
+      if (data.connectionId === connectionId && data.qrCode) {
+        const qrSrc = data.qrCode.startsWith('data:image') ? data.qrCode : `data:image/png;base64,${data.qrCode}`;
+        setQrCode(qrSrc);
+        setStatus('qr');
+        setError('');
+        toast.success('QR Code gerado! Escaneie com seu WhatsApp.');
+      }
+    };
+
+    const handleConnectionStatus = (data: any) => {
+      console.log('[QR Dialog] Received connection status:', data);
+      if (data.connectionId === connectionId) {
+        if (data.status === 'CONNECTED') {
+          setStatus('connected');
+          setDeviceInfo({
+            phone: data.phone,
+            device: data.device
+          });
+          toast.success('WhatsApp conectado com sucesso!');
+          onConnected?.();
+        }
+      }
+    };
+
+    socket.on('whatsapp:qr', handleQRCode);
+    socket.on('connection:status', handleConnectionStatus);
+
+    return () => {
+      socket.off('whatsapp:qr', handleQRCode);
+      socket.off('connection:status', handleConnectionStatus);
+    };
+  }, [open, connectionId, socket, onConnected]);
 
   useEffect(() => {
     if (open && connectionId) {

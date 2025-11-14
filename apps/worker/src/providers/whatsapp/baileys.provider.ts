@@ -4,6 +4,7 @@ import makeWASocket, {
   WASocket 
 } from '@whiskeysockets/baileys';
 import { Boom } from '@hapi/boom';
+import QRCode from 'qrcode';
 import { MessageProvider, SendMessageOptions, MessageContent } from '../message.provider.js';
 import { ConnectionType } from '@primeflow/shared/types';
 import { logger } from '../../lib/logger.js';
@@ -47,21 +48,49 @@ export class BaileysProvider implements MessageProvider {
         if (qr) {
           logger.info('✅ [Baileys] QR Code generated', { connectionId, qrLength: qr.length });
           console.log(`[Baileys] ✅ QR Code generated for ${connectionId}`);
+          console.log('[Baileys] QR Code string:', qr);
           
           try {
-            // Save QR to Redis with 60s expiration
-            await redis.set(`qr:${connectionId}`, qr, 'EX', 60);
+            // Converter QR string para imagem base64
+            const qrImageBase64 = await QRCode.toDataURL(qr, {
+              errorCorrectionLevel: 'H',
+              type: 'image/png',
+              quality: 1,
+              margin: 1,
+              width: 400
+            });
             
-            // Update connection with QR code
+            logger.info('✅ [Baileys] QR Code converted to image', { connectionId });
+            
+            // Save QR to Redis with 120s expiration
+            await redis.set(`qr:${connectionId}`, qrImageBase64, 'EX', 120);
+            
+            // Get current connection to preserve metadata
+            const currentConnection = await prisma.connection.findUnique({
+              where: { id: connectionId }
+            });
+            
+            // Update connection with QR code preserving existing meta
             await prisma.connection.update({
               where: { id: connectionId },
               data: { 
                 status: 'CONNECTING',
-                meta: { qrCode: qr }
+                meta: { 
+                  ...(currentConnection?.meta as any || {}),
+                  qrCode: qrImageBase64,
+                  qrGeneratedAt: new Date().toISOString()
+                }
               }
             });
             
             logger.info('✅ [Baileys] QR Code saved to DB and Redis', { connectionId });
+            
+            // Publicar evento de QR gerado para o frontend via Socket.IO
+            await redis.publish('qr:generated', JSON.stringify({
+              connectionId,
+              qrCode: qrImageBase64,
+              timestamp: new Date().toISOString()
+            }));
           } catch (error) {
             logger.error('❌ [Baileys] Failed to save QR', { error, connectionId });
           }
@@ -103,6 +132,16 @@ export class BaileysProvider implements MessageProvider {
           });
           
           await redis.del(`qr:${connectionId}`);
+          
+          // Publicar evento de conexão estabelecida
+          await redis.publish('connection:status', JSON.stringify({
+            connectionId,
+            status: 'CONNECTED',
+            phone,
+            device,
+            timestamp: new Date().toISOString()
+          }));
+        }
         }
       });
 

@@ -44,13 +44,13 @@ export function initializeSocket(httpServer: HTTPServer) {
     });
   });
 
-  // Subscribe to Redis pub/sub for workflow events
+  // Subscribe to Redis pub/sub for workflow events, QR codes, and connection status
   const subscriber = redis.duplicate();
-  subscriber.subscribe('workflow:completed', (err) => {
+  subscriber.subscribe('workflow:completed', 'qr:generated', 'connection:status', (err) => {
     if (err) {
-      logger.error('Failed to subscribe to workflow:completed', { err });
+      logger.error('Failed to subscribe to Redis channels', { err });
     } else {
-      logger.info('Subscribed to workflow:completed channel');
+      logger.info('Subscribed to workflow:completed, qr:generated, and connection:status channels');
     }
   });
 
@@ -62,6 +62,33 @@ export function initializeSocket(httpServer: HTTPServer) {
         emitWorkflowCompleted(data.tenantId, data);
       } catch (error) {
         logger.error('Error processing workflow:completed message', { error });
+      }
+    } else if (channel === 'qr:generated') {
+      try {
+        const data = JSON.parse(message);
+        logger.info('Received qr:generated event', { connectionId: data.connectionId });
+        
+        // Emit QR code to all connected clients
+        io.emit('whatsapp:qr', {
+          connectionId: data.connectionId,
+          qrCode: data.qrCode,
+          timestamp: data.timestamp
+        });
+      } catch (error) {
+        logger.error('Error processing qr:generated message', { error });
+      }
+    } else if (channel === 'connection:status') {
+      try {
+        const data = JSON.parse(message);
+        logger.info('Received connection:status event', { 
+          connectionId: data.connectionId, 
+          status: data.status 
+        });
+        
+        // Emit connection status to all connected clients
+        io.emit('connection:status', data);
+      } catch (error) {
+        logger.error('Error processing connection:status message', { error });
       }
     }
   });

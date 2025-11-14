@@ -6,7 +6,7 @@ import { broadcastWorker } from './queues/broadcast.queue.js';
 import { broadcastMassWorker } from './queues/broadcast-mass.queue.js';
 import { facebookMassWorker } from './queues/facebook-mass.queue.js';
 import { instagramMassWorker } from './queues/instagram-mass.queue.js';
-import { venomProvider } from './providers/whatsapp/venom.provider.js';
+import { BaileysProvider } from './providers/whatsapp/baileys.provider.js';
 import { facebookProvider } from './providers/facebook/facebook.provider.js';
 import { instagramProvider } from './providers/instagram/instagram.provider.js';
 import './queues/knowledge.queue.js';
@@ -15,6 +15,9 @@ import './queues/bulk-ai.queue.js';
 import './queues/leads.queue.js';
 import './queues/workflows.queue.js';
 import './queues/webhooks.queue.js';
+
+// Inicializar Baileys provider
+const baileysProvider = new BaileysProvider();
 
 async function start() {
   try {
@@ -39,22 +42,28 @@ async function start() {
       const data = JSON.parse(message);
       
       if (channel === 'whatsapp:connect') {
-        await venomProvider.connect(data.connectionId, {});
+        logger.info('📱 [Worker] Iniciando conexão WhatsApp com Baileys', { connectionId: data.connectionId });
+        await baileysProvider.connect(data.connectionId, {});
       } else if (channel === 'whatsapp:disconnect') {
-        await venomProvider.disconnect(data.connectionId);
+        logger.info('📱 [Worker] Desconectando WhatsApp', { connectionId: data.connectionId });
+        await baileysProvider.disconnect(data.connectionId);
       } else if (channel === 'facebook:connect') {
+        logger.info('📘 [Worker] Conectando Facebook', { connectionId: data.connectionId });
         await facebookProvider.connect(data.connectionId, {
           email: data.email,
           password: data.password
         });
       } else if (channel === 'facebook:disconnect') {
+        logger.info('📘 [Worker] Desconectando Facebook', { connectionId: data.connectionId });
         await facebookProvider.disconnect(data.connectionId);
       } else if (channel === 'instagram:connect') {
+        logger.info('📷 [Worker] Conectando Instagram', { connectionId: data.connectionId });
         await instagramProvider.connect(data.connectionId, {
           username: data.username,
           password: data.password
         });
       } else if (channel === 'instagram:disconnect') {
+        logger.info('📷 [Worker] Desconectando Instagram', { connectionId: data.connectionId });
         await instagramProvider.disconnect(data.connectionId);
       }
     });
