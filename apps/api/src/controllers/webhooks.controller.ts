@@ -4,9 +4,9 @@ import { emitToTenant } from '../lib/socket.js';
 import { logger } from '../lib/logger.js';
 import { emitWebhookEvent } from '../../worker/src/processors/webhooks.processor.js';
 
-async function getOrCreateContact(tenantId: string, phone: string, name?: string) {
+async function getOrCreateContact(tenantId: string, phone: string, name?: string, channel: string = 'WHATSAPP') {
   let contact = await prisma.contact.findFirst({
-    where: { tenantId, phone }
+    where: { tenantId, phone, channel }
   });
 
   if (!contact) {
@@ -15,9 +15,27 @@ async function getOrCreateContact(tenantId: string, phone: string, name?: string
         tenantId,
         phone,
         name: name || phone,
-        source: 'whatsapp'
+        source: channel.toLowerCase(),
+        channel
       }
     });
+
+    // Criar lead automaticamente para novo contato
+    try {
+      await prisma.lead.create({
+        data: {
+          tenantId,
+          name: name || phone,
+          phone,
+          status: 'NEW',
+          origin: channel as any,
+          score: 0,
+          tags: [channel.toLowerCase()]
+        }
+      });
+    } catch (error) {
+      logger.error('Failed to create lead for contact', { error });
+    }
   }
 
   return contact;
@@ -34,6 +52,7 @@ async function getOrCreateConversation(contactId: string, channel: string, tenan
   if (!conversation) {
     conversation = await prisma.conversation.create({
       data: {
+        tenantId,
         contactId,
         channel: channel.toUpperCase() as any,
         status: 'OPEN',
@@ -52,10 +71,10 @@ export const webhooksController = {
       
       if (type === 'message') {
         const tenantId = req.user!.tenantId;
-        const contact = await getOrCreateContact(tenantId, data.from, data.name);
-        const conversation = await getOrCreateConversation(contact.id, 'whatsapp', tenantId);
+        const contact = await getOrCreateContact(tenantId, data.from, data.name, 'WHATSAPP');
+        const conversation = await getOrCreateConversation(contact.id, 'WHATSAPP', tenantId);
         
-        const message = await prisma.message.create({
+        const message = await prisma.conversationMessage.create({
           data: {
             conversationId: conversation.id,
             content: data.text || '',
@@ -118,10 +137,10 @@ export const webhooksController = {
           const senderId = messagingEvent.sender.id;
           const messageText = messagingEvent.message.text;
 
-          const contact = await getOrCreateContact(tenantId, senderId, `Facebook User ${senderId}`);
-          const conversation = await getOrCreateConversation(contact.id, 'facebook', tenantId);
+          const contact = await getOrCreateContact(tenantId, senderId, `Facebook User ${senderId}`, 'FACEBOOK');
+          const conversation = await getOrCreateConversation(contact.id, 'FACEBOOK', tenantId);
           
-          const message = await prisma.message.create({
+          const message = await prisma.conversationMessage.create({
             data: {
               conversationId: conversation.id,
               content: messageText || '',
@@ -170,10 +189,10 @@ export const webhooksController = {
           const senderId = messagingEvent.sender.id;
           const messageText = messagingEvent.message.text;
 
-          const contact = await getOrCreateContact(tenantId, senderId, `Instagram User ${senderId}`);
-          const conversation = await getOrCreateConversation(contact.id, 'instagram', tenantId);
+          const contact = await getOrCreateContact(tenantId, senderId, `Instagram User ${senderId}`, 'INSTAGRAM');
+          const conversation = await getOrCreateConversation(contact.id, 'INSTAGRAM', tenantId);
           
-          const message = await prisma.message.create({
+          const message = await prisma.conversationMessage.create({
             data: {
               conversationId: conversation.id,
               content: messageText || '',

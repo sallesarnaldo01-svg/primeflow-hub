@@ -13,6 +13,7 @@ import { WhatsAppQRDialog } from '@/components/WhatsAppQRDialog';
 import { MultiChannelComposer } from '@/components/MultiChannelComposer';
 import { whatsappService } from '@/services/whatsapp';
 import { integrationsService } from '@/services/integrations';
+import { syncService } from '@/services/sync';
 import { useSocket } from '@/hooks/useSocket';
 import { toast } from 'sonner';
 import {
@@ -88,10 +89,13 @@ export default function Conexoes() {
   const [selectedConnectionId, setSelectedConnectionId] = useState<string>('');
   const [whatsappConnections, setWhatsappConnections] = useState<any[]>([]);
   const [showComposer, setShowComposer] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [channelLists, setChannelLists] = useState<any[]>([]);
   const socket = useSocket();
 
   useEffect(() => {
     loadConnections();
+    loadChannelLists();
 
     // Listen for real-time updates
     socket.on('connection:status', (data: any) => {
@@ -110,6 +114,45 @@ export default function Conexoes() {
       setWhatsappConnections(whatsapp);
     } catch (error) {
       console.error('Failed to load connections', error);
+    }
+  };
+
+  const loadChannelLists = async () => {
+    try {
+      const lists = await syncService.getChannelLists();
+      setChannelLists(lists);
+    } catch (error) {
+      console.error('Failed to load channel lists', error);
+    }
+  };
+
+  const handleSyncAllChannels = async () => {
+    try {
+      setSyncing(true);
+      const result = await syncService.syncAllChannels();
+      
+      const totalSynced = result.results.reduce((sum, r) => sum + r.synced, 0);
+      const totalAdded = result.results.reduce((sum, r) => sum + r.added, 0);
+      
+      toast.success(`Sincronização concluída! ${totalSynced} contatos encontrados, ${totalAdded} adicionados às listas.`);
+      loadChannelLists();
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao sincronizar canais');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const handleSyncChannel = async (channel: string, connectionId?: string) => {
+    try {
+      setSyncing(true);
+      const result = await syncService.syncChannelContacts(channel, connectionId);
+      toast.success(`${result.synced} contatos de ${channel} sincronizados!`);
+      loadChannelLists();
+    } catch (error: any) {
+      toast.error(error.message || `Erro ao sincronizar ${channel}`);
+    } finally {
+      setSyncing(false);
     }
   };
 
@@ -191,11 +234,56 @@ export default function Conexoes() {
               Gerenciar integrações com canais de comunicação
             </p>
           </div>
-          <Button>
-            <Settings className="h-4 w-4 mr-2" />
-            Configurações Gerais
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={handleSyncAllChannels} 
+              disabled={syncing}
+              variant="outline"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
+              Sincronizar Contatos
+            </Button>
+            <Button>
+              <Settings className="h-4 w-4 mr-2" />
+              Configurações
+            </Button>
+          </div>
         </div>
+
+        {/* Listas de Contatos por Canal */}
+        {channelLists.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Listas de Contatos Sincronizadas</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {channelLists.map((channelList) => (
+                  <div key={channelList.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                    <div>
+                      <div className="font-medium">{channelList.list.name}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {channelList.list._count.members} contatos • 
+                        Última sincronização: {channelList.lastSyncAt 
+                          ? new Date(channelList.lastSyncAt).toLocaleString('pt-BR')
+                          : 'Nunca'
+                        }
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleSyncChannel(channelList.channel, channelList.connectionId)}
+                      disabled={syncing}
+                    >
+                      <RefreshCw className={`h-3 w-3 ${syncing ? 'animate-spin' : ''}`} />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Status Geral */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
